@@ -64,80 +64,9 @@
 
       <button id="ajaxButton" type="button">Get hot leads</button>
       
-      <script
-        src="https://code.jquery.com/jquery-3.3.1.js"
-        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
-        crossorigin="anonymous"></script>
       <script src="main.js"></script>
       <script>
-
-      var NEW_LEAD_API = "https://script.google.com/macros/s/AKfycbydo_5UrWzxhIusxpcqcZ6JdN_U4prpVLlywqQTfjc/dev?key=abc&action=newlead";
-
-
-      (function() {
-        var httpRequest;
-        document.getElementById("ajaxButton").addEventListener('click', getNewLead);
-
-        function getNewLead() {
-
-          $.ajax({
-              url: NEW_LEAD_API,
-              type: 'GET',
-              dataType:"json",
-              success:function(data) {
-                  console.log(data);
-                  alert(data);
-                  // data.feed.entry is an array of objects that represent each cell
-              },
-          });
-
-          // fetch(NEW_LEAD_API,{mode: 'no-cors'}).then(function (response) {
-          //     return response.json();
-          // }).then(function (json) {
-          //     console.log(json);
-          // });
-            // example request
-            // getCORS(NEW_LEAD_API, function(request){
-            //     var response = request.currentTarget.response || request.target.responseText;
-            //     console.log(response);
-            // });
-            // 
-            // 
-            // 
-        }
-
-        function getCORS(url, success) {
-            var xhr = new XMLHttpRequest();
-            if (!('withCredentials' in xhr)) xhr = new XDomainRequest(); // fix IE8/9
-            xhr.open('GET', url);
-            xhr.onload = success;
-            xhr.send();
-            return xhr;
-        }
-
-
-        function makeRequest() {
-          httpRequest = new XMLHttpRequest();
-
-          if (!httpRequest) {
-            alert('Giving up :( Cannot create an XMLHTTP instance');
-            return false;
-          }
-          httpRequest.onreadystatechange = alertContents;
-          httpRequest.open('GET', NEW_LEAD_API);
-          httpRequest.send();
-        }
-
-        function alertContents() {
-          if (httpRequest.readyState === XMLHttpRequest.DONE) {
-            if (httpRequest.status === 200) {
-              alert(httpRequest.responseText);
-            } else {
-              alert('There was a problem with the request.');
-            }
-          }
-        }
-      })();
+        document.addEventListener('DOMContentLoaded', app.init);
       </script>
 
       
