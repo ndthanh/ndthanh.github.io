@@ -65,8 +65,8 @@
       <button id="ajaxButton" type="button">Get hot leads</button>
       
       <script
-        src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-        integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E="
+        src="https://code.jquery.com/jquery-3.3.1.js"
+        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
         crossorigin="anonymous"></script>
       <script src="main.js"></script>
       <script>
@@ -80,11 +80,22 @@
 
         function getNewLead() {
 
-          fetch(NEW_LEAD_API,{mode: 'no-cors'}).then(function (response) {
-              return response.json();
-          }).then(function (json) {
-              console.log(json);
+          $.ajax({
+              url: NEW_LEAD_API,
+              type: 'GET',
+              dataType:"json",
+              success:function(data) {
+                  console.log(data);
+                  alert(data);
+                  // data.feed.entry is an array of objects that represent each cell
+              },
           });
+
+          // fetch(NEW_LEAD_API,{mode: 'no-cors'}).then(function (response) {
+          //     return response.json();
+          // }).then(function (json) {
+          //     console.log(json);
+          // });
             // example request
             // getCORS(NEW_LEAD_API, function(request){
             //     var response = request.currentTarget.response || request.target.responseText;
