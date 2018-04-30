@@ -1,7 +1,7 @@
 
 
 const app = function () {
-  const NEW_LEAD_API = "https://script.google.com/macros/s/AKfycbydo_5UrWzxhIusxpcqcZ6JdN_U4prpVLlywqQTfjc/dev?key=abc&action=newlead";
+  const NEW_LEAD_API = "https://script.google.com/macros/s/AKfycbydo_5UrWzxhIusxpcqcZ6JdN_U4prpVLlywqQTfjc/exec?key=abc&action=newlead";
   const API_BASE = 'https://script.google.com/macros/s/AKfycby-jPqmlNjRwcemO1v0k6UX9uuD2CLXdpcQQFKoc85g7hLSGI1R/exec';
   const API_KEY = 'abc';
   const CATEGORIES = ['general', 'financial', 'technology'];
