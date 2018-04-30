@@ -79,11 +79,20 @@
         document.getElementById("ajaxButton").addEventListener('click', getNewLead);
 
         function getNewLead() {
+
+          fetch(NEW_LEAD_API,{mode: 'no-cors'}).then(function (response) {
+              return response.json();
+          }).then(function (json) {
+              console.log(json);
+          });
             // example request
-            getCORS(NEW_LEAD_API, function(request){
-                var response = request.currentTarget.response || request.target.responseText;
-                console.log(response);
-            });
+            // getCORS(NEW_LEAD_API, function(request){
+            //     var response = request.currentTarget.response || request.target.responseText;
+            //     console.log(response);
+            // });
+            // 
+            // 
+            // 
         }
 
         function getCORS(url, success) {
