@@ -91,6 +91,14 @@
   display: none;
 }
 
+/* lead row
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+.lead-detail-id, .lead-detail-phone {
+  cursor: pointer;
+  color: #6687e7!important;
+  text-decoration: none;
+}
+
 /* Bigger than 550 */
 @media (min-width: 550px) {
   .section {

@@ -58,6 +58,12 @@ const app = function () {
   function _initEventListener() {
     page.allLeadPrev.onclick = function (e) { _prevAllLeadsTablePage();};
     page.allLeadNext.onclick = function (e) { _nextAllLeadsTablePage();};
+
+    document.querySelector('body').addEventListener('click', function(event) {
+      if (event.target.className.toLowerCase() === 'lead-detail-id') {
+        console.log(event.target.dataset.transactionid);
+      }
+    });
   }
 
 //var headings = ["timestamp","name","phone","email","product","id","product_id","price","call_1","status_1","call_2","status_2","call_3","status_3","result","last_time","note"];
@@ -78,8 +84,8 @@ const app = function () {
       tableHtml += `
             <tr>
               <td>${row.id}</td>
-              <td>${row.name}</td>
-              <td>${row.phone}</td>
+              <td class='lead-detail-id' data-transactionid='${row.id}'>${row.name}</td>
+              <td><a class='lead-detail-phone' href='tel:${row.phone}'>${row.phone}</a></td>
               <td>${row.product_id}</td>
               <td>${row.price}</td>
             </tr>`;
@@ -96,8 +102,6 @@ const app = function () {
 
     return url;
   }
-
-
 
   function _formatDate (string) {
     return new Date(string).toLocaleDateString('en-GB');
@@ -125,15 +129,6 @@ const app = function () {
   function _decrementActivePage () {
     state.allLeadTable.activePage -= 1;
   }  
-
-  function _setActiveCategory (category) {
-    state.activeCategory = category;
-    
-    const label = category === null ? 'no filter' : category;
-    Array.from(page.filter.children).forEach(function (element) {
-        element.classList = label === element.innerHTML.toLowerCase() ? 'selected' : '';
-      });
-  }
 
   return {
     init: init
