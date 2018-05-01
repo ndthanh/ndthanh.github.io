@@ -62,11 +62,46 @@
 
       <h1>CRM With Google Sheets Back End</h1>
 
-      <button id="ajaxButton" type="button">Get hot leads</button>
-      
-      <script src="main.js"></script>
+      <button id="ajaxButton" type="button">Get hot leads</button><br>
+      <input type="text" id="inputID">
+      <button id="findByIdButton" type="button">Find by Id</button><br>
+
+      <script
+          src="https://code.jquery.com/jquery-3.3.1.js"
+          integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+          crossorigin="anonymous"></script>
       <script>
-        document.addEventListener('DOMContentLoaded', app.init);
+        $('#ajaxButton').on('click', getNewLead);
+        
+        $('#findByIdButton').click(function () {
+          var id = $('#inputID').val();
+          findLeadById(id);
+        });
+
+        function getNewLead() {
+          const NEW_LEAD_API = "https://script.google.com/macros/s/AKfycbwzFYIniU3IOaIBW6e54UQmxe3pkBQOpXI8idwn_jipA-hU01k/exec?key=abc&action=newlead";
+
+          $.get( NEW_LEAD_API ).done(function (data) {
+              console.log(data);
+          });
+                    
+          // fetch( NEW_LEAD_API ).then(function (response) {
+          //     return response.json();
+          // }).then(function (json) {
+          //     console.log(json);
+          // });
+
+        }
+
+        function findLeadById (leadId) {
+          var url = "https://script.google.com/macros/s/AKfycbwzFYIniU3IOaIBW6e54UQmxe3pkBQOpXI8idwn_jipA-hU01k/exec?key=abc&action=get&id=" + leadId;
+            // console.log(url);
+            $.get( url ).done(function (data) {
+                // console.log(data);
+                alert(JSON.stringify(data.data[0]));
+            });
+        }
+
       </script>
 
       
