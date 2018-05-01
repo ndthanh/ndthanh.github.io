@@ -251,7 +251,7 @@ const app = function () {
               <td class='lead-detail-id' data-transactionid='${row.id}'>${row.name}</td>
               <td><a class='lead-detail-phone' href='tel:${row.phone}'>${row.phone}</a></td>
               <td>${row.product_id}</td>
-              <td>${row.price}</td>
+              <td>${numberWithCommas(Number(row.price))}</td>
             </tr>`;
     });
     tableHtml += `</tbody></table>`;
@@ -308,7 +308,7 @@ const app = function () {
     page.orderDate.value = data.timestamp;
     page.lastActivityDate.value = data.last_time;
     page.productName.value = data.product;
-    page.productPrice.value = data.price;
+    page.productPrice.value = numberWithCommas(Number(data.price));
 
     page.call1.value = data.call_1;
     page.status1.value = data.status_1;
@@ -389,6 +389,10 @@ const app = function () {
     }
     
     return postsPaginated;
+  }
+
+  const numberWithCommas = (x) => {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
 
   function _backToCustomerList() {
