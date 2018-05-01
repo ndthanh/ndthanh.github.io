@@ -49,9 +49,9 @@
     </div>
   </div>
 
-  <div class="section all-leads" id="section-all-leads">
+  <div class="section all-leads">
     <div class="container">
-      <h3 class="section-heading">Xem danh sách toàn bộ khách hàng</h3>
+      <h3 class="section-heading" id="section-all-leads">Xem danh sách toàn bộ khách hàng</h3>
       <p class="section-description">Danh sách khách hàng được sắp xếp và lấy về từ Google Sheet</p>
       <p class="section-description">Bấm vào <strong>Họ Tên</strong> khách hàng để xem thông tin cụ thể, bấm vào <strong>Số điện thoại</strong> để thực hiện cuộc gọi.</p>
       <br>
@@ -91,19 +91,22 @@
     </div>
   </div>
 
-  <div class="section lead-details" id="section-lead-details">
+  <div class="section lead-details">
     <div class="container">
-      <h3 class="section-heading">Tương tác với 1 khách hàng cụ thể</h3>
+      <h3 class="section-heading" id="section-lead-details">Tương tác với 1 khách hàng cụ thể</h3>
       <p class="section-description">Tương tác và cập nhật trạng thái khách hàng</p>
-      <a class="button button-primary" href="#">Gọi điện</a>
-      <a class="button" href="#">Gửi email</a>
-      <a class="button" href="#">Xác nhận thông tin</a>
+      <a class="button button-primary" id = 'call-from-customer-form' href="#">Gọi điện</a>
+      <a class="button" id='send-email-customer-form' href="#">Gửi email</a>
+      <a class="button confirm-update-lead" href="javascript:void(0);">Xác nhận thông tin</a>
       <br><br>
-      <form>
+      <div class="row">
+        <h5 id="lead-details-notice">Xin mời bắt đầu thao tác từ <a href="#section-all-leads">danh sách khách hàng</a></h5>
+      </div>
+      <form id="customer-form">
         <div class="row">
           <div class="four columns">
             <label for="customer-name">Tên khách hàng</label>
-            <input class="u-full-width" type="text" placeholder="Thanh Nguyễn" id="customer-name">
+            <input class="u-full-width" type="text" placeholder="Thanh Nguyễn" id="customer-name" readonly="readonly">
           </div>
           <div class="four columns">
             <label for="customer-phone">Số điện thoại</label>
@@ -168,7 +171,7 @@
           </div>
           <div class="four columns">
             <label for="status-2">Trạng thái cuộc gọi 2</label>
-            <select class="u-full-width" id="status-1">
+            <select class="u-full-width" id="status-2">
               <option value=""></option>
               <option value="Nhấc máy">Nhấc máy</option>
               <option value="Không nhấc máy">Không nhấc máy</option>
@@ -194,7 +197,7 @@
           </div>
           <div class="four columns">
             <label for="status-3">Trạng thái cuộc gọi 3</label>
-            <select class="u-full-width" id="status-1">
+            <select class="u-full-width" id="status-3">
               <option value=""></option>
               <option value="Nhấc máy">Nhấc máy</option>
               <option value="Không nhấc máy">Không nhấc máy</option>
@@ -203,7 +206,7 @@
           </div>
           <div class="six columns">
             <label>Xác nhận thông tin</label>
-            <a class="button button-primary u-full-width" href="#">Xác nhận thông tin</a>
+            <a class="button button-primary u-full-width confirm-update-lead" href="javascript:void(0);">Xác nhận thông tin</a>
           </div>
         </div>
       </form>

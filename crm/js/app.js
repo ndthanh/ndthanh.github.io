@@ -8,16 +8,48 @@ const app = function () {
     allLeadTable: {
       activePage: 1,
       previousPage: null,
-      nextPage: null
+      nextPage: null,
+      transactionid: null
     }
   };
   const page = {};
 
   function init () {
+
+    page.sectionAllLeads = document.getElementById('section-all-leads');
+    page.sectionLeadDetails = document.getElementById('section-lead-details');
+    page.customerForm = document.getElementById('customer-form');
+
     page.sectionAllLeadNotice = document.getElementById('all-leads-notice');
+    page.sectionLeadDetailsNotice = document.getElementById('lead-details-notice');
     page.allLeadTable = document.getElementById('all-leads-table');
     page.allLeadPrev = document.getElementById('prev-btn');
     page.allLeadNext = document.getElementById('next-btn');
+
+    page.customerName = document.getElementById('customer-name');
+    page.customerPhone = document.getElementById('customer-phone');
+    page.customerEmail = document.getElementById('customer-email');
+
+    page.orderDate = document.getElementById('order-date');
+    page.lastActivityDate = document.getElementById('last-activity-timestamp');
+    page.productName = document.getElementById('product-name');
+    page.productPrice = document.getElementById('product-price');
+
+    page.call1 = document.getElementById('call-1');
+    page.status1 = document.getElementById('status-1');
+
+    page.call2 = document.getElementById('call-2');
+    page.status2 = document.getElementById('status-2');
+
+    page.call3 = document.getElementById('call-3');
+    page.status3 = document.getElementById('status-3');
+
+    page.note1 = document.getElementById('note-1');
+    page.callResult = document.getElementById('call-result');
+
+    page.actionCallBtn = document.getElementById('call-from-customer-form');
+    page.actionEmailBtn = document.getElementById('send-email-customer-form');
+    page.actionConfirm = document.getElementsByClassName('confirm-update-lead');
 
     _getAllLeads();
     _initEventListener();
@@ -27,7 +59,7 @@ const app = function () {
     page.allLeadTable.innerHTML = '';
     page.sectionAllLeadNotice.innerHTML = 'Loading customer data ...';
     
-    fetch( _buildApiUrl(state.allLeadTable.activePage, 'all') ).then(function (response) {
+    fetch( _buildApiUrl(state.allLeadTable.activePage, 'all','') ).then(function (response) {
         return response.json();
     }).then(function (json) {
         console.log(json);
@@ -58,15 +90,24 @@ const app = function () {
   function _initEventListener() {
     page.allLeadPrev.onclick = function (e) { _prevAllLeadsTablePage();};
     page.allLeadNext.onclick = function (e) { _nextAllLeadsTablePage();};
+    page.actionConfirm[0].onclick = function (e) { _updateLeadDetail();};
+    page.actionConfirm[1].onclick = function (e) { _updateLeadDetail();};
 
     document.querySelector('body').addEventListener('click', function(event) {
       if (event.target.className.toLowerCase() === 'lead-detail-id') {
-        console.log(event.target.dataset.transactionid);
+        state.allLeadTable.transactionid = event.target.dataset.transactionid;
+
+        page.sectionLeadDetailsNotice.innerHTML = 'Loading customer data ...';
+        page.customerForm.style.display = 'none';
+
+        _viewLeadDetail(state.allLeadTable.transactionid);
+
+        page.sectionLeadDetails.scrollIntoView(true);
       }
     });
   }
 
-//var headings = ["timestamp","name","phone","email","product","id","product_id","price","call_1","status_1","call_2","status_2","call_3","status_3","result","last_time","note"];
+
   function _renderLeadTable (rows) {
     let tableHtml = `
         <table class="u-full-width">
@@ -94,11 +135,12 @@ const app = function () {
     return tableHtml;
   }
 
-  function _buildApiUrl(page, action) {
+  function _buildApiUrl(page, action, id) {
     let url = API_BASE;
     url += '?key=' + API_KEY;
     url += '&action=' + action;
     url += '&page=' + page;
+    url += '&id=' + id;
 
     return url;
   }
@@ -128,7 +170,75 @@ const app = function () {
 
   function _decrementActivePage () {
     state.allLeadTable.activePage -= 1;
-  }  
+  }
+
+  function _viewLeadDetail(id) {
+    fetch( _buildApiUrl(state.allLeadTable.activePage, 'get',id) ).then(function (response) {
+        return response.json();
+    }).then(function (json) {
+        console.log(json);
+        _fillCustomForm(json.data[0]);
+        page.sectionAllLeadNotice.innerHTML = '';
+    });
+  }
+//var headings = ["timestamp","name","phone","email","product","id","product_id","price","call_1","status_1","call_2","status_2","call_3","status_3","result","last_time","note"];
+  function _fillCustomForm(data) {
+    page.customerName.value = data.name;
+    page.customerPhone.value = data.phone;
+    page.customerEmail.value = data.email;
+
+    page.orderDate.value = data.timestamp;
+    page.lastActivityDate.value = data.last_time;
+    page.productName.value = data.product;
+    page.productPrice.value = data.price;
+
+    page.call1.value = data.call_1;
+    page.status1.value = data.status_1;
+
+    page.call2.value = data.call_2;
+    page.status2.value = data.status_2;
+
+    page.call3.value = data.call_3;
+    page.status3.value = data.status_3;
+
+    page.callResult.value = data.result;
+    page.note1.value = data.note;
+
+    page.actionCallBtn.href = 'tel:' + data.phone;
+    page.actionEmailBtn.href = 'mailto:' + data.email;
+
+    page.sectionLeadDetailsNotice.innerHTML = '';
+    page.customerForm.style.display = 'block';
+  }
+
+  function _updateLeadDetail() {
+
+    if ( state.allLeadTable.transactionid === null ) {
+      alert('Hãy thao tác bắt đầu từ danh sách khách hàng!');
+      return;
+    }
+
+    const id = state.allLeadTable.transactionid;
+    let url = _buildApiUrl('', 'update', id);
+    url += '&call_1=' + page.call1.value;
+    url += '&status_1=' + page.status1.value;
+    url += '&call_2=' + page.call2.value;
+    url += '&status_2=' + page.status2.value;
+    url += '&call_3=' + page.call3.value;
+    url += '&status_3=' + page.status3.value;
+    url += '&result=' + page.callResult.value;
+    url += '&note=' + page.note1.value;
+
+    // console.log(encodeURIComponent(url));
+    fetch( url ).then(function (response) {
+        return response.json();
+    }).then(function (json) {
+        alert('Cập nhật thông tin thành công!');
+        page.sectionAllLeads.scrollIntoView(true);
+        page.sectionLeadDetailsNotice.innerHTML = 'Xin mời bắt đầu thao tác từ <a href="#section-all-leads">danh sách khách hàng</a>';
+        page.customerForm.style.display = 'none';
+    });
+  }
 
   return {
     init: init

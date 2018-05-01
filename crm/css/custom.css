@@ -99,6 +99,15 @@
   text-decoration: none;
 }
 
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #eee;
+    opacity: 1; /* Firefox */
+}
+
+#customer-form {
+  display: none;
+}
+
 /* Bigger than 550 */
 @media (min-width: 550px) {
   .section {
