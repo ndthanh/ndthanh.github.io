@@ -61,6 +61,10 @@
     <div class="container">
 
       <h1>CRM With Google Sheets Back End</h1>
+      
+      <p></p>
+
+      <button id="moreLeads" type="button">More</button><br>
 
       <button id="ajaxButton" type="button">Get hot leads</button><br>
       <input type="text" id="inputID">
@@ -71,6 +75,13 @@
           integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
           crossorigin="anonymous"></script>
       <script>
+
+        var API_BASE = 'https://script.google.com/macros/s/AKfycbwzFYIniU3IOaIBW6e54UQmxe3pkBQOpXI8idwn_jipA-hU01k/exec?key=';
+        var API_KEY = 'abc';
+        var currentPage = 1;
+
+        getLeads(currentPage);
+
         $('#ajaxButton').on('click', getNewLead);
         
         $('#findByIdButton').click(function () {
@@ -78,28 +89,30 @@
           findLeadById(id);
         });
 
-        function getNewLead() {
-          const NEW_LEAD_API = "https://script.google.com/macros/s/AKfycbwzFYIniU3IOaIBW6e54UQmxe3pkBQOpXI8idwn_jipA-hU01k/exec?key=abc&action=newlead";
+        $('#moreLeads').click(function (){
+          currentPage ++;
+          getLeads(currentPage);
+        });
 
-          $.get( NEW_LEAD_API ).done(function (data) {
+        function getNewLead() {
+          var url = API_BASE + API_KEY + '&action=newlead';
+          $.get( url ).done(function (data) {
               console.log(data);
           });
-                    
-          // fetch( NEW_LEAD_API ).then(function (response) {
-          //     return response.json();
-          // }).then(function (json) {
-          //     console.log(json);
-          // });
-
         }
 
         function findLeadById (leadId) {
-          var url = "https://script.google.com/macros/s/AKfycbwzFYIniU3IOaIBW6e54UQmxe3pkBQOpXI8idwn_jipA-hU01k/exec?key=abc&action=get&id=" + leadId;
-            // console.log(url);
-            $.get( url ).done(function (data) {
-                // console.log(data);
-                alert(JSON.stringify(data.data[0]));
-            });
+          var url = API_BASE + API_KEY + '&action=get&id=' + leadId;
+          $.get( url ).done(function (data) {
+              console.log(data);
+          });
+        }
+
+        function getLeads(page) {
+          var url = API_BASE + API_KEY + '&action=all&page=' + page;
+          $.get( url ).done(function (data) {
+            console.log(data);
+          }); 
         }
 
       </script>
