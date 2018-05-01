@@ -178,7 +178,7 @@ label {
 /* Bigger than 1000 */
 @media (min-width: 1000px) {
   .section {
-    padding: 20vh 0 60vh;
+    padding: 14rem 0 15rem;
   }
   .hero {
     padding: 22rem 0;

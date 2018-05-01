@@ -52,6 +52,7 @@ const app = function () {
     page.actionCallBtn = document.getElementById('call-from-customer-form');
     page.actionEmailBtn = document.getElementById('send-email-customer-form');
     page.actionConfirm = document.getElementsByClassName('confirm-update-lead');
+    page.actionBack = document.getElementById('go-back');
     
     _writeCache();
     _initEventListener();
@@ -118,6 +119,7 @@ const app = function () {
     page.allLeadNext.onclick = function (e) { _nextAllLeadsTablePage();};
     page.actionConfirm[0].onclick = function (e) { _updateLeadDetail();};
     page.actionConfirm[1].onclick = function (e) { _updateLeadDetail();};
+    page.actionBack.onclick = function (e) { _backToCustomerList();};
 
     document.querySelector('body').addEventListener('click', function(event) {
       if (event.target.className.toLowerCase() === 'lead-detail-id') {
@@ -255,9 +257,7 @@ const app = function () {
         return response.json();
     }).then(function (json) {
         alert('Cập nhật thông tin thành công!');
-        page.sectionAllLeads.scrollIntoView(true);
-        page.sectionLeadDetailsNotice.innerHTML = 'Xin mời bắt đầu thao tác từ <a href="#section-all-leads">danh sách khách hàng</a>';
-        page.customerForm.style.display = 'none';
+        _backToCustomerList();
     });
   }
 
@@ -294,6 +294,12 @@ const app = function () {
     }
     
     return postsPaginated;
+  }
+
+  function _backToCustomerList() {
+    page.sectionAllLeads.scrollIntoView(true);
+    page.sectionLeadDetailsNotice.innerHTML = 'Xin mời bắt đầu thao tác từ <a href="#section-all-leads">danh sách khách hàng</a>';
+    page.customerForm.style.display = 'none';
   }
 
   function buildSuccessResponse(data) {
