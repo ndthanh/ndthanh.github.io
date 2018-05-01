@@ -104,6 +104,10 @@
     opacity: 1; /* Firefox */
 }
 
+label {
+  text-align: left;
+}
+
 #customer-form {
   display: none;
 }
