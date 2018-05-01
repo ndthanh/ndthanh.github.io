@@ -10,7 +10,8 @@ const app = function () {
       previousPage: null,
       nextPage: null,
       transactionid: null
-    }
+    },
+    cache: {}
   };
   const page = {};
 
