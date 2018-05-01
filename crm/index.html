@@ -1,123 +1,114 @@
-
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; connect-src 'self'"> -->
-    <title>dtnguyen</title>
-    <style type="text/css" media="screen">
-      body {
-        background-color: #f1f1f1;
-        margin: 0;
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      }
+<html lang="en">
+<head>
 
-      th, td {
-          border: 1px solid;
-      }
-      th {
-          font-weight : bold
-      }
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>GCRM - Mini CRM với backend Google Sheet</title>
+  <meta name="description" content="">
+  <meta name="author" content="Thanh Nguyễn">
 
-      .container { margin: 50px auto 40px auto; width: 600px; text-align: center; }
+  <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-      a { color: #4183c4; text-decoration: none; }
-      a:hover { text-decoration: underline; }
+  <!-- FONT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <!-- <link href='//fonts.googleapis.com/css?family=Raleway:400,300,600' rel='stylesheet' type='text/css'> -->
+  <link href="https://fonts.googleapis.com/css?family=Quicksand:300,400,500&amp;subset=vietnamese" rel="stylesheet">
 
-      h1 { width: 800px; position:relative; left: -100px; letter-spacing: -1px; line-height: 60px; font-size: 60px; font-weight: 100; margin: 0px 0 50px 0; text-shadow: 0 1px 0 #fff; }
-      p { color: rgba(0, 0, 0, 0.5); margin: 20px 0; line-height: 1.6; }
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
+  <link rel="stylesheet" href="css/custom.css">
 
-      ul { list-style: none; margin: 25px 0; padding: 0; }
-      li { display: table-cell; font-weight: bold; width: 1%; }
+  <!-- Scripts
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 
-      .logo { display: inline-block; margin-top: 35px; }
-      .logo-img-2x { display: none; }
-      @media
-      only screen and (-webkit-min-device-pixel-ratio: 2),
-      only screen and (   min--moz-device-pixel-ratio: 2),
-      only screen and (     -o-min-device-pixel-ratio: 2/1),
-      only screen and (        min-device-pixel-ratio: 2),
-      only screen and (                min-resolution: 192dpi),
-      only screen and (                min-resolution: 2dppx) {
-        .logo-img-1x { display: none; }
-        .logo-img-2x { display: inline-block; }
-      }
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="../dist/images/favicon.png">
 
-      #suggestions {
-        margin-top: 35px;
-        color: #ccc;
-      }
-      #suggestions a {
-        color: #666666;
-        font-weight: 200;
-        font-size: 14px;
-        margin: 0 10px;
-      }
+</head>
+<body>
 
-    </style>
-  </head>
-  <body>
+  <!-- Primary Page Layout
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 
+  <div class="section get-help">
     <div class="container">
-
-      <h1>CRM With Google Sheets Back End</h1>
-      
-      <p></p>
-
-      <button id="moreLeads" type="button">More</button><br>
-
-      <button id="ajaxButton" type="button">Get hot leads</button><br>
-      <input type="text" id="inputID">
-      <button id="findByIdButton" type="button">Find by Id</button><br>
-
-      <script
-          src="https://code.jquery.com/jquery-3.3.1.js"
-          integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
-          crossorigin="anonymous"></script>
-      <script>
-
-        var API_BASE = 'https://script.google.com/macros/s/AKfycbwzFYIniU3IOaIBW6e54UQmxe3pkBQOpXI8idwn_jipA-hU01k/exec?key=';
-        var API_KEY = 'abc';
-        var currentPage = 1;
-
-        getLeads(currentPage);
-
-        $('#ajaxButton').on('click', getNewLead);
-        
-        $('#findByIdButton').click(function () {
-          var id = $('#inputID').val();
-          findLeadById(id);
-        });
-
-        $('#moreLeads').click(function (){
-          currentPage ++;
-          getLeads(currentPage);
-        });
-
-        function getNewLead() {
-          var url = API_BASE + API_KEY + '&action=newlead';
-          $.get( url ).done(function (data) {
-              console.log(data);
-          });
-        }
-
-        function findLeadById (leadId) {
-          var url = API_BASE + API_KEY + '&action=get&id=' + leadId;
-          $.get( url ).done(function (data) {
-              console.log(data);
-          });
-        }
-
-        function getLeads(page) {
-          var url = API_BASE + API_KEY + '&action=all&page=' + page;
-          $.get( url ).done(function (data) {
-            console.log(data);
-          }); 
-        }
-
-      </script>
-
-      
+      <h3 class="section-heading">Mini CRM with Google Sheet Backend</h3>
+      <p class="section-description">Hệ thống quản lý quan hệ khách hàng với backend Google Sheet</p>
+      <br>
+      <!-- <a class="button button-primary" href="#">Toàn bộ khách hàng</a> -->
+      <a class="button" href="#section-all-leads">Xem toàn bộ khách hàng</a>
+      <a class="button" href="#section-lead-details">Xem khách hàng mới</a>
     </div>
-  </body>
+  </div>
+
+  <div class="section all-leads" id="section-all-leads">
+    <div class="container">
+      <h3 class="section-heading">Xem danh sách toàn bộ khách hàng</h3>
+      <p class="section-description">Danh sách khách hàng được sắp xếp và lấy về từ Google Sheet</p>
+      <p class="section-description">Bấm vào tên khách hàng để xem thông tin cụ thể, bấm vào số điện thoại để thực hiện cuộc gọi.</p>
+      <br>
+      <div class="row">
+        <!-- <div class="six columns"> -->
+          <a class="button" id="prev-btn">Previous</a>
+          <a class="button" id="next-btn">Next</a>
+        <!-- </div> -->
+        <!-- <div class="six columns"></div> -->
+      </div>
+      <div class="row">
+        <h5 id="all-leads-notice"></h5>
+      </div>
+      <br>
+      <div class="row" id="all-leads-table">
+        <table class="u-full-width">
+          <thead>
+            <tr>
+              <th>Mã giao dịch</th>
+              <th>Họ Tên</th>
+              <th>Số điện thoại</th>
+              <th>Mã sản phẩm</th>
+              <th>Đơn giá</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ID001</td>
+              <td>Thanh N</td>
+              <td>09884757274</td>
+              <td>SP006</td>
+              <td>600.000</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section lead-details" id="section-lead-details">
+    <div class="container">
+      <h3 class="section-heading">Tương tác với 1 khách hàng cụ thể</h3>
+      <p class="section-description">Tương tác và cập nhật trạng thái khách hàng</p>
+      <br>
+      
+      <p>Bấm vào tên khách hàng để xem thông tin</p>
+    </div>
+  </div>
+
+
+  <a href="#" id="back-to-top-btn" title="Go to top">Top</a>
+
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', app.init);
+  </script>
+<!-- End Document
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
 </html>
