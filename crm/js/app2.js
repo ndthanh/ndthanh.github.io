@@ -3,6 +3,7 @@
 const app = function () {
   const API_BASE = 'https://script.google.com/macros/s/AKfycbwzFYIniU3IOaIBW6e54UQmxe3pkBQOpXI8idwn_jipA-hU01k/exec';
   const API_KEY = 'abc';
+  const RESULTS_PER_PAGE = 5;
   
   const state = {
     allLeadTable: {
@@ -51,38 +52,52 @@ const app = function () {
     page.actionCallBtn = document.getElementById('call-from-customer-form');
     page.actionEmailBtn = document.getElementById('send-email-customer-form');
     page.actionConfirm = document.getElementsByClassName('confirm-update-lead');
-
-    _getAllLeads();
-    // _writeCache();
+    
+    _writeCache();
     _initEventListener();
   }
 
   function _writeCache () {
+    page.allLeadTable.innerHTML = '';
+    page.sectionAllLeadNotice.innerHTML = 'Loading customer data ...';
     fetch( _buildApiUrl(state.allLeadTable.activePage, 'cache','') ).then(function (response) {
         return response.json();
     }).then(function (json) {
-        console.log(json);
+        // console.log(JSON.stringify(json));
         state.cache = json;
-    });
-  }
-
-  function _getAllLeads () {
-    page.allLeadTable.innerHTML = '';
-    page.sectionAllLeadNotice.innerHTML = 'Loading customer data ...';
-    
-    fetch( _buildApiUrl(state.allLeadTable.activePage, 'all','') ).then(function (response) {
-        return response.json();
-    }).then(function (json) {
-        console.log(json);
-        page.allLeadTable.innerHTML = _renderLeadTable(json.data.posts);
-        _renderAllLeadsTablePagination(json);
+        _renderTable();
         page.sectionAllLeadNotice.innerHTML = '';
     });
   }
 
+  function _renderTable () {
+    var data = _getAllLeads();
+    page.allLeadTable.innerHTML = data.html;
+    _renderAllLeadsTablePagination(data.pagi);
+  }
+
+  function _getAllLeads () {
+
+    var data = state.cache;
+
+    var dataSorted = data.data.sort(function (a, b) {
+      return new Date(b.timestamp) - new Date(a.timestamp);
+    });
+
+    data.data = dataSorted;
+  
+    var page = state.allLeadTable.activePage;
+    var paginated = paginate(dataSorted, page);
+
+    return {
+      html: _renderLeadTable(paginated.posts),
+      pagi: paginated
+    };
+  }
+
   function _renderAllLeadsTablePagination(data) {
-    let next = data.data.pages.next;
-    let prev = data.data.pages.previous;
+    let next = data.pages.next;
+    let prev = data.pages.previous;
 
     page.allLeadNext.style.display = (next === null ? 'none' : 'inline-block');
     page.allLeadPrev.style.display = (prev === null ? 'none' : 'inline-block');
@@ -90,12 +105,12 @@ const app = function () {
 
   function _nextAllLeadsTablePage () {
     _incrementActivePage();
-    _getAllLeads();
+    _renderTable ()
   }
 
   function _prevAllLeadsTablePage () {
     _decrementActivePage();
-    _getAllLeads();
+    _renderTable ()
   }
 
   function _initEventListener() {
@@ -184,13 +199,8 @@ const app = function () {
   }
 
   function _viewLeadDetail(id) {
-    fetch( _buildApiUrl(state.allLeadTable.activePage, 'get',id) ).then(function (response) {
-        return response.json();
-    }).then(function (json) {
-        console.log(json);
-        _fillCustomForm(json.data[0]);
-        page.sectionAllLeadNotice.innerHTML = '';
-    });
+    var result = state.cache.data.filter((d) => d.id.toLowerCase() === id.toLowerCase());
+    _fillCustomForm(result[0]);
   }
 //var headings = ["timestamp","name","phone","email","product","id","product_id","price","call_1","status_1","call_2","status_2","call_3","status_3","result","last_time","note"];
   function _fillCustomForm(data) {
@@ -249,6 +259,48 @@ const app = function () {
         page.sectionLeadDetailsNotice.innerHTML = 'Xin mời bắt đầu thao tác từ <a href="#section-all-leads">danh sách khách hàng</a>';
         page.customerForm.style.display = 'none';
     });
+  }
+
+  function paginate(posts, page) {
+    var postsCopy = posts.slice();
+    var postsChunked = [];
+    var postsPaginated = {
+      posts: [],
+      count: posts.length,
+      perPage: RESULTS_PER_PAGE,
+      activePage: page,
+      pages: {
+        previous: null,
+        next: null
+      }
+    };
+    
+    while (postsCopy.length > 0) {
+      postsChunked.push(postsCopy.splice(0, RESULTS_PER_PAGE));
+    }
+    
+    if (page - 1 in postsChunked) {
+      postsPaginated.posts = postsChunked[page - 1];
+    } else {
+      postsPaginated.posts = [];
+    }
+
+    if (page > 1 && page <= postsChunked.length) {
+      postsPaginated.pages.previous = page - 1;
+    }
+    
+    if (page >= 1 && page < postsChunked.length) {
+      postsPaginated.pages.next = page + 1;
+    }
+    
+    return postsPaginated;
+  }
+
+  function buildSuccessResponse(data) {
+    return {
+      status: 'success',
+      data: data
+    };
   }
 
   return {
