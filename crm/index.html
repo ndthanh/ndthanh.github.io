@@ -61,11 +61,34 @@
       <p class="section-description">Bấm vào <strong>Họ Tên</strong> khách hàng để xem thông tin cụ thể, bấm vào <strong>Số điện thoại</strong> để thực hiện cuộc gọi.</p>
       <br>
       <div class="row">
-        <!-- <div class="six columns"> -->
+        <div class="three columns">
+          <select class="u-full-width" id="search-column">
+            <option value="id">Mã giao dịch</option>
+            <option value="name">Họ tên</option>
+            <option value="phone">Số điện thoại</option>
+            <option value="email">Email</option>
+            <option value="product">Sản phẩm</option>
+            <option value="result">Kết quả</option>
+          </select>
+        </div>
+        <div class="three columns">
+          <input class="u-full-width" type="text" placeholder="tìm kiếm ..." id="search-input">
+        </div>
+        <div class="three columns">
+          <a class="button" id="search-btn">Search</a>
+        </div>
+        <div class="three columns">
+          <p id="search-notification"></p>
+        </div>
+      </div>
+      <div class="row" style="text-align: left;">
+        <div class="six columns">
           <a class="button" id="prev-btn">Previous</a>
           <a class="button" id="next-btn">Next</a>
-        <!-- </div> -->
-        <!-- <div class="six columns"></div> -->
+        </div>
+        <div class="six columns">
+          
+        </div>
       </div>
       <div class="row">
         <h5 id="all-leads-notice"></h5>

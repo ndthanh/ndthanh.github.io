@@ -10,7 +10,10 @@ const app = function () {
       activePage: 1,
       previousPage: null,
       nextPage: null,
-      transactionid: null
+      transactionid: null,
+      searchMode: false,
+      searchColumn: null,
+      searchInput: null
     },
     cache: {}
   };
@@ -27,6 +30,11 @@ const app = function () {
     page.allLeadTable = document.getElementById('all-leads-table');
     page.allLeadPrev = document.getElementById('prev-btn');
     page.allLeadNext = document.getElementById('next-btn');
+
+    page.searchColumn = document.getElementById('search-column');
+    page.searchInput = document.getElementById('search-input');
+    page.searchButton = document.getElementById('search-btn');
+    page.searchNotification = document.getElementById('search-notification');
 
     page.customerName = document.getElementById('customer-name');
     page.customerPhone = document.getElementById('customer-phone');
@@ -72,9 +80,44 @@ const app = function () {
   }
 
   function _renderTable () {
+    state.allLeadTable.searchMode = false
     var data = _getAllLeads();
     page.allLeadTable.innerHTML = data.html;
     _renderAllLeadsTablePagination(data.pagi);
+  }
+
+  function _renderTableResult () {
+    state.allLeadTable.searchMode = true;
+    
+    state.allLeadTable.searchColumn = page.searchColumn.value;
+    state.allLeadTable.searchInput = page.searchInput.value;
+
+    var data = _getSearchResults();
+    page.searchNotification.innerHTML = data.count + ' kết quả';
+    
+    page.allLeadTable.innerHTML = data.html;
+    _renderAllLeadsTablePagination(data.pagi); 
+  }
+
+  function _getSearchResults(col, str) {
+    let data = Object.assign({}, state.cache);
+
+    var searchResult = data.data.filter(function(row) {
+      return ~row[state.allLeadTable.searchColumn].toString().toLowerCase().indexOf(state.allLeadTable.searchInput.toLowerCase());
+    }).sort(function (a, b) {
+      return new Date(b.timestamp) - new Date(a.timestamp);
+    });
+    
+    data.data = searchResult;
+  
+    var page = state.allLeadTable.activePage;
+    var paginated = paginate(searchResult, page);
+
+    return {
+      html: _renderLeadTable(paginated.posts),
+      pagi: paginated,
+      count: searchResult.length
+    };
   }
 
   function _getAllLeads () {
@@ -106,12 +149,22 @@ const app = function () {
 
   function _nextAllLeadsTablePage () {
     _incrementActivePage();
-    _renderTable ()
+    console.log(state.allLeadTable.searchMode);
+    if (state.allLeadTable.searchMode ) {
+      _renderTableResult ();
+    } else {
+      _renderTable ();
+    }
   }
 
   function _prevAllLeadsTablePage () {
     _decrementActivePage();
-    _renderTable ()
+    console.log(state.allLeadTable.searchMode);
+    if (state.allLeadTable.searchMode ) {
+      _renderTableResult ();
+    } else {
+      _renderTable ();
+    }
   }
 
   function _initEventListener() {
@@ -120,6 +173,7 @@ const app = function () {
     page.actionConfirm[0].onclick = function (e) { _updateLeadDetail();};
     page.actionConfirm[1].onclick = function (e) { _updateLeadDetail();};
     page.actionBack.onclick = function (e) { _backToCustomerList();};
+    page.searchButton.onclick = function (e) { _renderTableResult();};
 
     document.querySelector('body').addEventListener('click', function(event) {
       if (event.target.className.toLowerCase() === 'lead-detail-id') {
