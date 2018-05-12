@@ -74,38 +74,9 @@
           </div>
           <div class="modal-body">
             <p class="confirm-msg">Xác nhận mua khoá học [$_course] với giá ưu đãi duy nhất [$_price]</p>
-            <div class="ask-why my-hidden">
-              <h5>Vì sao ... [TODO]</h5>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="option1" checked>
-                <label class="form-check-label" for="exampleRadios1">
-                  Lý do 1
-                </label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios2" value="option2">
-                <label class="form-check-label" for="exampleRadios2">
-                  Lý do 2
-                </label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios3" value="option3">
-                <label class="form-check-label" for="exampleRadios3">
-                  Lý do 3
-                </label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios4" value="option4">
-                <label class="form-check-label" for="exampleRadios4">
-                  Lý do khác [TODO: thêm input box]
-                </label>
-              </div>
           </div>
           <div class="modal-footer">
-            <a href="#" class="cancel-btn">Bỏ qua</a>
             <button type="button" class="btn btn-success confirm-btn">XÁC NHẬN</button>
-            <button type="button" class="btn btn-secondary confirm-ask-why my-hidden">Gửi feedback</button>
-            <button type="button" class="btn btn-success go-back-btn my-hidden">QUAY LẠI ĐĂNG KÝ</button>
           </div>
         </div>
       </div>
@@ -117,32 +88,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
     <script>
-      $('.cancel-btn').on('click', function () {
-        // when customer click cancel
-        $('.confirm-msg').hide();
-        $('.confirm-ask-why').show();
-        $('.confirm-btn').hide();
-        $('.ask-why').show();
-        $('.cancel-btn').hide();
-        $('.go-back-btn').show();
-      });
       $('.confirm-btn').on('click', function () {
         // when customer click cancel
         alert('TODO: Chuyển thông tin khách hàng về crm. (Lúc này đếm confirm)');
         $('#exampleModal').modal('hide');
       });
-      $('.confirm-ask-why').on('click', function () {
-        alert('TODO: Cảm ơn feedback của bạn đã được ghi nhận. (Lúc này đếm feedback)');
-        $('#exampleModal').modal('hide');
-      });
-      $('.go-back-btn').on('click', function () {
-        $('.confirm-msg').show();
-        $('.confirm-ask-why').hide();
-        $('.confirm-btn').show();
-        $('.ask-why').hide();
-        $('.cancel-btn').show();
-        $('.go-back-btn').hide();
-      })
     </script>
   </body>
 </html>
