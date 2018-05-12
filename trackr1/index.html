@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+    <style>
+      .status-info, .upsale-header {
+        color: #757575;
+      }
+      .upsale-region, .upsale-offer {
+        background: #f7f7f7;
+      }
+      .original-price {
+        text-decoration: line-through;
+      }
+      .cancel-btn {
+        text-decoration: none;
+        color: #757575;
+        padding-right: 2em; 
+      }
+      .my-hidden {
+        display: none
+      }
+    </style>
+    <title>Học Excel Online - Demo Tracker</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row status-info m-3">
+        <div class="col">
+          <p class="text-center">Kích hoạt thành công. Bấm vào <a href="#">đây</a> để học.</p>
+        </div>
+      </div>
+
+      <div class="row upsale-region p-3">
+        <div class="col">
+          <h2 class="text-center upsale-header">Chỉ <code>299K</code> có ngay thêm khoá học</h2>
+          <h5 class="text-center upsale-header">Chỉ có hiệu lực ngay bây giờ.</h5>
+        </div>
+      </div>
+
+      <div class="row upsale-offer p-5">
+        <div class="col-sm-4">
+          <div class="card" style="width: 18rem;">
+            <img class="card-img-top" src="https://hocexcel.online/caches/cc_medium/cou_avatar/2017/04_29/8a25c318b3e938c2392f67769636fd60.png" alt="Card image cap">
+            <div class="card-body">
+              <h5 class="card-title">VBA101 - Tự động hoá Excel với lập trình VBA cho người mới bắt đầu</h5>
+              <p class="card-text">Học VBA để giúp bạn có thể thăng tiến và làm việc hiệu quả hơn tức thì.</p>
+              <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-8">
+          <h3>Học phí gốc: <span class="original-price">799,000 đ </span></h3>
+          <h3>Giá ưu đãi duy nhất cho bạn: <code class="upsale-price">299,000 đ </code></h3>
+          <button type="button" class="btn btn-success" data-toggle="modal" data-target="#exampleModal">XÁC NHẬN ĐĂNG KÝ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <!-- <h5 class="modal-title" id="exampleModalLabel">Modal title</h5> -->
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p class="confirm-msg">Xác nhận mua khoá học [$_course] với giá ưu đãi duy nhất [$_price]</p>
+            <div class="ask-why my-hidden">
+              <h5>Vì sao ... [TODO]</h5>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="option1" checked>
+                <label class="form-check-label" for="exampleRadios1">
+                  Lý do 1
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios2" value="option2">
+                <label class="form-check-label" for="exampleRadios2">
+                  Lý do 2
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios3" value="option3">
+                <label class="form-check-label" for="exampleRadios3">
+                  Lý do 3
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios4" value="option4">
+                <label class="form-check-label" for="exampleRadios4">
+                  Lý do khác [TODO: thêm input box]
+                </label>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <a href="#" class="cancel-btn">Bỏ qua</a>
+            <button type="button" class="btn btn-success confirm-btn">XÁC NHẬN</button>
+            <button type="button" class="btn btn-secondary confirm-ask-why my-hidden">Gửi feedback</button>
+            <button type="button" class="btn btn-success go-back-btn my-hidden">QUAY LẠI ĐĂNG KÝ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+    <script>
+      $('.cancel-btn').on('click', function () {
+        // when customer click cancel
+        $('.confirm-msg').hide();
+        $('.confirm-ask-why').show();
+        $('.confirm-btn').hide();
+        $('.ask-why').show();
+        $('.cancel-btn').hide();
+        $('.go-back-btn').show();
+      });
+      $('.confirm-btn').on('click', function () {
+        // when customer click cancel
+        alert('TODO: Chuyển thông tin khách hàng về crm. (Lúc này đếm confirm)');
+        $('#exampleModal').modal('hide');
+      });
+      $('.confirm-ask-why').on('click', function () {
+        alert('TODO: Cảm ơn feedback của bạn đã được ghi nhận. (Lúc này đếm feedback)');
+        $('#exampleModal').modal('hide');
+      });
+      $('.go-back-btn').on('click', function () {
+        $('.confirm-msg').show();
+        $('.confirm-ask-why').hide();
+        $('.confirm-btn').show();
+        $('.ask-why').hide();
+        $('.cancel-btn').show();
+        $('.go-back-btn').hide();
+      })
+    </script>
+  </body>
+</html>
