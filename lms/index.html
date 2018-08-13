@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Panda LMS</title>
+
+<!--   <link rel="stylesheet" href="css/main.css">
+  <link rel="icon" href="images/favicon.png"> -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+
+<style>
+	.panda-navigation-bar-bottom{
+	   z-index: 1000;
+	   position:fixed;
+	   left:0px;
+	   bottom:0px;
+	   height:50px;
+	   width:100%;
+	   /*border-top: 1px solid #ccc;*/
+	   background:#343A3B;
+   	   display: flex;
+       align-items: center;
+       justify-content: center;
+	}
+	.panda-menu-btn {
+	  text-align: center;
+	  flex-grow: 1;
+	}
+	.panda-menu-btn > i {
+		color: white;
+	}
+	.panda-header {
+	   z-index: 1;
+	   position:fixed;
+	   left:0px;
+	   top:0px;
+	   height:50px;
+	   width:100%;
+	   /*border-bottom: 1px solid #ccc;*/
+	   background:#fff;
+       display: flex;*/
+       align-items: center;
+       justify-content: space-between;
+       box-shadow: 0 3px 6px rgba(0,0,0,0.03), 0 3px 6px rgba(0,0,0,0.01);
+	}
+
+	.panda-header-item {
+	  display: flex;
+	  justify-content: center;
+	  flex-direction: column;
+	  text-align: center;
+	}
+
+	.panda-header-item > p {
+		margin-bottom: 0;
+	}
+	.panda-header-item :first-child {
+		margin-left: 20px;
+	}
+	.panda-header-item :last-child {
+		margin-right: 20px;
+	}
+	.panda-spacer {
+		width: 100%;
+		height: 50px;
+	}
+	body {
+		background-color: #F7F7F7;
+	}
+	.panda-main-section {
+		background-color: #F7F7F7;
+	}
+	.panda-cards {
+		margin-left: 20px;
+		margin-right: 20px;
+	}
+	.panda-card {
+		background: #fff;
+		border-radius: 2px;
+		height: 80px;
+		box-sizing: border-box;
+	    width: 100%;
+	    padding: 8px 12px;
+		margin-top: 10px;
+		box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+		display: flex;
+		flex-direction: column;
+	}
+	.panda-card:last-child {
+		margin-bottom: 60px;
+	}
+	.panda-card-item  {
+		/*display: block;*/
+		font-size: 0.8em;
+	}
+	.panda-card-row {
+		display: flex;
+		justify-content: space-between;
+	}
+	.panda-todo-badge {
+		padding: 0px 8px;
+		border-radius: 2px;
+		color: #FF7C7C;
+		border: 1px solid #FF7C7C;
+	}
+	.panda-reminder-badge {
+		padding: 0px 8px;
+		border-radius: 2px;
+		color: #347AF7;
+		border: 1px solid #347AF7;
+	}
+	.panda-won-badge {
+		padding: 0px 8px;
+		border-radius: 2px;
+		color: #30A64A;
+		border: 1px solid #30A64A;
+	}
+	.panda-lost-badge {
+		padding: 0px 8px;
+		border-radius: 2px;
+		color: #C4C4C4;
+		border: 1px solid #C4C4C4;
+	}
+	.panda-cancel-badge {
+		padding: 0px 8px;
+		border-radius: 2px;
+		color: #444;
+		border: 1px solid #444;
+	}
+	.panda-card-item-last-update {
+		padding: 1px 8px;
+		border-radius: 20px;
+		background: #eee;
+		color: #888;
+	}
+	.panda-card-item-name {
+		color: #347AF7;
+		font-size: 0.9em;
+	}
+	.panda-search-filter-area {
+		width: 100%;
+		height: 200px;
+		position: fixed;
+		bottom: 50px;
+		left: 0px;
+		background-color: #6E6E6E;
+		display: none;
+	}
+	.panda-search-filter-area-title {
+		text-align: center;
+		color: #fff;
+		padding: 8px 0px;
+	}
+	.panda-search-area {
+		padding: 0px 20px;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-around;
+	}
+	.panda-search-filter-area-title > p {margin: 0;}
+	.panda-search-button {
+		margin: 10px 0px;
+		background-color: #fff;
+		border-radius: 2px;
+		text-align: center;
+		vertical-align: middle;
+	}
+	.panda-filter-trigger-button-container > p {
+		text-align: center;
+		color: #fff;
+	}
+	.panda-filter-trigger-button-container {
+		padding: 0px 20px;
+	}
+	.panda-filter-trigger-button {
+		margin: 10px 0px;
+		background-color: #fff;
+		border-radius: 2px;
+		text-align: center;
+		vertical-align: middle;
+	}
+	#menu {
+		z-index: 10;
+	    position: fixed;
+	    top: 0;
+	    left: -376px;
+
+	    width: 375px;
+	    height: 100%;
+	    padding: 50px 30px;
+	    -webkit-box-sizing: border-box;
+	       -moz-box-sizing: border-box;
+	            box-sizing: border-box;
+
+	    -webkit-transition: all .3s ease-in;
+	       -moz-transition: all .3s ease-in;
+	         -o-transition: all .3s ease-in;
+	            transition: all .3s ease-in;
+	    text-align: center;
+
+	    background-color: #343A3B;
+	}
+	#menu ul {
+    padding: 0;
+    margin-top: 30px;
+	}
+
+	#menu ul li a {
+	    display: block;
+
+	    font-weight: 900;
+	    line-height: 50px;
+
+	    -webkit-transition: all .3s ease;
+	       -moz-transition: all .3s ease;
+	         -o-transition: all .3s ease;
+	            transition: all .3s ease;
+	    text-decoration: none;
+	    text-transform: uppercase;
+
+	    color: #232629;
+	    border-top: 1px solid #eee;
+	}
+	#menu ul li:last-child a {
+	    border-bottom: 1px solid #eee;
+	}
+	#menu ul li a:hover {
+	    letter-spacing: 1px;
+	}
+	body.open #menu {
+	    left: 0;
+	}
+	/*https://css-tricks.com/snippets/css/a-guide-to-flexbox/*/
+	</style>
+</head>
+
+<body>
+  <nav id="menu" role="navigation">         
+    <ul>
+      <li><a href="#">Tất cả Todo</a></li>
+      <li><a href="#">Sales Pipeline</a></li>
+      <li><a href="#">Item 3</a></li>
+    </ul>
+  </nav>
+
+  <div class="panda-header">
+	<div class="panda-header-item"><p>Tất cả Leads (12)</p></div>
+	<div class="panda-header-item"><i class="fas fa-sort-amount-up"></i></div>
+
+  </div>
+  <div class="panda-spacer">
+    &nbsp;
+  </div>
+
+  <div class="panda-main-section">
+	<div class="panda-temp-text"></div>
+  	<div class="panda-cards">
+  		<div class="panda-card">
+  			<div class="panda-card-row">
+  				<span class="panda-card-item panda-card-item-name">Ma Văn Thoại</span>
+  				<span class="panda-card-item panda-card-item-sale-step">S2 - Dang ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-card-item-product">D'Capitale ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-todo-badge panda-card-item panda-card-item-lead-age">5n</span>
+				<span class="panda-card-item panda-card-item-last-update">13.08.2018</span>
+  			</div>
+		</div>
+		<div class="panda-card">
+  			<div class="panda-card-row">
+  				<span class="panda-card-item panda-card-item-name">Nguyễn Xuân Bách</span>
+  				<span class="panda-card-item panda-card-item-sale-step">S3 - Hẹn ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-card-item-product">D'Capitale ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-reminder-badge panda-card-item panda-card-item-lead-age">1n</span>
+				<span class="panda-card-item panda-card-item-last-update">12.08.2018</span>
+  			</div>
+		</div>
+		<div class="panda-card">
+  			<div class="panda-card-row">
+  				<span class="panda-card-item panda-card-item-name">Hồng Nguyễn</span>
+  				<span class="panda-card-item panda-card-item-sale-step">S5 - Mua ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-card-item-product">D'Capitale ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-won-badge panda-card-item panda-card-item-lead-age">W</span>
+				<span class="panda-card-item panda-card-item-last-update">14.08.2018</span>
+  			</div>
+		</div>
+		<div class="panda-card">
+  			<div class="panda-card-row">
+  				<span class="panda-card-item panda-card-item-name">Hiep Nguyen</span>
+  				<span class="panda-card-item panda-card-item-sale-step">S2 - Dang ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-card-item-product">D'Capitale ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-lost-badge panda-card-item panda-card-item-lead-age">L</span>
+				<span class="panda-card-item panda-card-item-last-update">13.08.2018</span>
+  			</div>
+		</div>
+		<div class="panda-card">
+  			<div class="panda-card-row">
+  				<span class="panda-card-item panda-card-item-name">Thu Nguyen</span>
+  				<span class="panda-card-item panda-card-item-sale-step">S2 - Dang ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-card-item-product">D'Capitale ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-cancel-badge panda-card-item panda-card-item-lead-age">C</span>
+				<span class="panda-card-item panda-card-item-last-update">13.08.2018</span>
+  			</div>
+		</div>
+		<div class="panda-card">
+  			<div class="panda-card-row">
+  				<span class="panda-card-item panda-card-item-name">Ma Văn Thoại</span>
+  				<span class="panda-card-item panda-card-item-sale-step">S2 - Dang ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-card-item-product">D'Capitale ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-todo-badge panda-card-item-lead-age">5n</span>
+				<span class="panda-card-item panda-card-item-last-update">13.08.2018</span>
+  			</div>
+		</div>
+		<div class="panda-card">
+  			<div class="panda-card-row">
+  				<span class="panda-card-item panda-card-item-name">Hiep Nguyen</span>
+  				<span class="panda-card-item panda-card-item-sale-step">S2 - Dang ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-card-item-product">D'Capitale ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-lost-badge panda-card-item panda-card-item-lead-age">L</span>
+				<span class="panda-card-item panda-card-item-last-update">13.08.2018</span>
+  			</div>
+		</div>
+		<div class="panda-card">
+  			<div class="panda-card-row">
+  				<span class="panda-card-item panda-card-item-name">Ma Văn Thoại</span>
+  				<span class="panda-card-item panda-card-item-sale-step">S2 - Dang ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-card-item-product">D'Capitale ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-todo-badge panda-card-item-lead-age">5n</span>
+				<span class="panda-card-item panda-card-item-last-update">13.08.2018</span>
+  			</div>
+		</div>
+		<div class="panda-card">
+  			<div class="panda-card-row">
+  				<span class="panda-card-item panda-card-item-name">Ma Văn Thoại</span>
+  				<span class="panda-card-item panda-card-item-sale-step">S2 - Dang ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-card-item-product">D'Capitale ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-todo-badge panda-card-item-lead-age">5n</span>
+				<span class="panda-card-item panda-card-item-last-update">13.08.2018</span>
+  			</div>
+		</div>
+		<div class="panda-card">
+  			<div class="panda-card-row">
+  				<span class="panda-card-item panda-card-item-name">Ma Văn Thoại</span>
+  				<span class="panda-card-item panda-card-item-sale-step">S2 - Dang ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-card-item-product">D'Capitale ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-todo-badge panda-card-item-lead-age">5n</span>
+				<span class="panda-card-item panda-card-item-last-update">13.08.2018</span>
+  			</div>
+		</div>
+		<div class="panda-card">
+  			<div class="panda-card-row">
+  				<span class="panda-card-item panda-card-item-name">Ma Văn Thoại</span>
+  				<span class="panda-card-item panda-card-item-sale-step">S2 - Dang ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-card-item-product">D'Capitale ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-todo-badge panda-card-item-lead-age">5n</span>
+				<span class="panda-card-item panda-card-item-last-update">13.08.2018</span>
+  			</div>
+		</div>
+		<div class="panda-card">
+  			<div class="panda-card-row">
+  				<span class="panda-card-item panda-card-item-name">Ma Văn Thoại</span>
+  				<span class="panda-card-item panda-card-item-sale-step">S2 - Dang ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-card-item-product">D'Capitale ...</span>
+  			</div>
+			<div class="panda-card-row">
+				<span class="panda-card-item panda-todo-badge panda-card-item-lead-age">5n</span>
+				<span class="panda-card-item panda-card-item-last-update">13.08.2018</span>
+  			</div>
+		</div>
+  	</div>
+  </div>
+
+  <div class="panda-search-filter-area">
+  	<div class="panda-search-filter-area-title"><p>Tìm kiếm, lọc dữ liệu</p></div>
+  	<div class="panda-search-area">
+  		<input type="text" class="panda-search" placeholder="Search ...">
+  		<div class="panda-search-button">Tìm kiếm</div>
+  	</div>
+  	<div class="panda-filter-trigger-button-container">
+  		<p>Không muốn tìm kiểm đơn giản?</p>
+  		<div class="panda-filter-trigger-button">Mở chức năng lọc ...</div>
+  	</div>
+  </div>
+
+  <div class="panda-navigation-bar-bottom">
+		<div id="menu-toggle" class="panda-menu-btn panda-menu-item-menu"><i class="fas fa-bars"></i></div>
+		<div class="panda-menu-btn panda-menu-item-home"><i class="fas fa-home"></i></div>
+		<div class="panda-menu-btn panda-menu-item-search"><i class="fas fa-search"></i></div>
+		<div class="panda-menu-btn panda-menu-item-report"><i class="far fa-chart-bar"></i></div>
+  </div>
+<script>
+	var lead_details = {};
+	$('.panda-navigation-bar-bottom').on('click', '.fa-search',function () {
+		$(".panda-search-filter-area").toggle();
+		$('.panda-search-area').show();
+		$('.panda-filter-trigger-button-container').show();
+		$('.panda-search-filter-area-title > p')[0].innerText = "Tìm kiếm, lọc dữ liệu";
+	});
+
+	
+	$('.panda-navigation-bar-bottom').on('click', '.fa-phone',function () {
+		$('.panda-temp-text')[0].innerText = "Calling " + lead_details.lead_name;
+	});
+
+	$('.panda-navigation-bar-bottom').on('click', '.fa-arrow-alt-circle-up',function () {
+		$(".panda-search-filter-area").toggle();
+		$('.panda-search-area').hide();
+		$('.panda-filter-trigger-button-container').hide();
+		$('.panda-search-filter-area-title > p')[0].innerText = "Các chức năng thêm liên quan tới lead cụ thể này: thay đổi sales steps, đặt hẹn, chuyển status, ..."
+	});
+
+	$(".panda-card").on('click', function () {
+		lead_details.lead_name = $(this).find('.panda-card-item-name')[0].innerText;
+		// lead_details.sales_step = $(this).find('.panda-card-item-sale-step')[0].innerText;
+		
+		$('.panda-header-item > p')[0].innerText = lead_details.lead_name
+		$('.panda-cards').hide();
+		var action_phone = '<i class="fas fa-phone"></i>';
+		var action_search = '<i class="fas fa-search">';
+		var more_action = '<i class="fas fa-arrow-alt-circle-up"></i>';
+		var action_report = '<i class="far fa-chart-bar"></i>';
+
+		$('.panda-menu-item-search')[0].innerHTML = action_phone;
+		$('.panda-menu-item-report')[0].innerHTML = more_action;
+		$('.panda-temp-text').show();
+		$('.panda-temp-text')[0].innerHTML = "Thông tin của lead " + lead_details.lead_name;
+	});
+
+	$(".panda-menu-item-home").on('click', function () {
+		$('.panda-cards').show();
+		$('.panda-header-item > p')[0].innerText = "Tất cả Leads (12)";
+		var action_phone = '<i class="fas fa-phone"></i>';
+		var action_search = '<i class="fas fa-search">';
+		var more_action = '<i class="fas fa-arrow-alt-circle-up"></i>';
+		var action_report = '<i class="far fa-chart-bar"></i>';
+
+		$('.panda-menu-item-search')[0].innerHTML = action_search;
+		$('.panda-menu-item-report')[0].innerHTML = action_report;
+		$('.panda-temp-text').hide();
+	});
+</script>
+<script>
+	
+//Exelent little functions to use any time when class modification is needed
+function hasClass(ele, cls) {
+    return !!ele.className.match(new RegExp('(\\s|^)' + cls + '(\\s|$)'));
+}
+
+function addClass(ele, cls) {
+    if (!hasClass(ele, cls)) ele.className += " " + cls;
+}
+
+function removeClass(ele, cls) {
+    if (hasClass(ele, cls)) {
+        var reg = new RegExp('(\\s|^)' + cls + '(\\s|$)');
+        ele.className = ele.className.replace(reg, ' ');
+    }
+}
+
+//Add event from js the keep the marup clean
+function init() {
+    document.getElementById("menu-toggle").addEventListener("click", toggleMenu);
+}
+
+//The actual fuction
+function toggleMenu() {
+    var ele = document.getElementsByTagName('body')[0];
+    if (!hasClass(ele, "open")) {
+        addClass(ele, "open");
+    } else {
+        removeClass(ele, "open");
+    }
+}
+
+//Prevent the function to run before the document is loaded
+document.addEventListener('readystatechange', function() {
+    if (document.readyState === "complete") {
+        init();
+    }
+});
+</script>
+</body>
+
+</html>
