@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>CSS Grid is good</title>
+	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+	<style>
+		* { box-sizing: border-box;margin: 0;padding: 0; }
+		body {
+			font-family: 'Roboto', sans-serif;
+		}
+		.app {
+			display: grid;
+			grid-template-rows: 60px auto 50px;
+			grid-template-columns: 1fr;
+			height: 100vh;
+		}
+		.header {
+			background: #FFFFFF;
+			text-align: center;
+			line-height: 60px;
+			border-bottom: 1px solid #EFF0F3;
+	        box-shadow: 0 0 25px 0 rgba(0, 0, 0, 0.04);
+		}
+		.main {
+			background: #EFF0F3;
+			overflow: auto; 
+		}
+
+		.footer {
+			background: #373741;
+			display: grid;
+			grid-template-columns: repeat(5, 1fr);
+			text-align: center;
+		}
+		.footer i {
+			color: #FFFFFF;
+			line-height: 50px;
+
+		}
+		.card-item {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			grid-gap: 5px;
+			margin: 10px;
+			padding: 10px;
+			background: #FFFFFF;
+			box-shadow: 0px 1px 8px rgba(0, 0, 0, 0.1);
+			border-radius: 5px;
+		}
+		.card-info:nth-child(2n) {
+			text-align: right;
+		}
+		.card-info-name {
+			color: #347AF7;
+			font-weight: 500;
+			padding-left: 7px;
+		}
+		.card-info-steps span,
+		.card-info-last-activity span {
+			color: #888888;
+			padding: 3px 7px;
+			background: #EEEEEE;
+			border-radius: 5px;
+			font-size: 0.75em;
+		}
+		.card-info-created-date span {
+			color: #888888;
+			font-size: 0.75em;	
+			padding-left: 7px;
+		}
+		.fa-exclamation-circle {
+			color: #FF7C7C;
+			padding-right: 7px;
+		}
+		.fa-headset {
+			color: #DADADA;
+			padding-right: 7px;
+		}
+
+	</style>
+</head>
+<body>
+	<div class="app">
+		<header class="header">All leads</header>
+		<div class="main">
+			<div class="card-item">
+				<div class="card-info card-info-name">Nguyễn Xuân Bách 0</div>
+				<div class="card-info card-info-status"><i class="fas fa-exclamation-circle"></i></div>
+				<div class="card-info card-info-steps"><span>S2 - Đang liên hệ</span></div>
+				<div class="card-info card-info-last-activity"><span>1 ngày</span></div>
+				<div class="card-info card-info-created-date"><span>10.08.2018</span></div>
+				<div class="card-info card-info-next-activity"><i class="fas fa-headset"></i></div>
+			</div>
+			<div class="card-item">
+				<div class="card-info card-info-name">Nguyễn Xuân Bách 1</div>
+				<div class="card-info card-info-status"><i class="fas fa-exclamation-circle"></i></div>
+				<div class="card-info card-info-steps"><span>S2 - Đang liên hệ</span></div>
+				<div class="card-info card-info-last-activity"><span>1 ngày</span></div>
+				<div class="card-info card-info-created-date"><span>10.08.2018</span></div>
+				<div class="card-info card-info-next-activity"><i class="fas fa-headset"></i></div>
+			</div>
+			<div class="card-item">
+				<div class="card-info card-info-name">Nguyễn Xuân Bách 2</div>
+				<div class="card-info card-info-status"><i class="fas fa-exclamation-circle"></i></div>
+				<div class="card-info card-info-steps"><span>S2 - Đang liên hệ</span></div>
+				<div class="card-info card-info-last-activity"><span>1 ngày</span></div>
+				<div class="card-info card-info-created-date"><span>10.08.2018</span></div>
+				<div class="card-info card-info-next-activity"><i class="fas fa-headset"></i></div>
+			</div>
+			<div class="card-item">
+				<div class="card-info card-info-name">Nguyễn Xuân Bách 3</div>
+				<div class="card-info card-info-status"><i class="fas fa-exclamation-circle"></i></div>
+				<div class="card-info card-info-steps"><span>S2 - Đang liên hệ</span></div>
+				<div class="card-info card-info-last-activity"><span>1 ngày</span></div>
+				<div class="card-info card-info-created-date"><span>10.08.2018</span></div>
+				<div class="card-info card-info-next-activity"><i class="fas fa-headset"></i></div>
+			</div>
+			<div class="card-item">
+				<div class="card-info card-info-name">Nguyễn Xuân Bách 4</div>
+				<div class="card-info card-info-status"><i class="fas fa-exclamation-circle"></i></div>
+				<div class="card-info card-info-steps"><span>S2 - Đang liên hệ</span></div>
+				<div class="card-info card-info-last-activity"><span>1 ngày</span></div>
+				<div class="card-info card-info-created-date"><span>10.08.2018</span></div>
+				<div class="card-info card-info-next-activity"><i class="fas fa-headset"></i></div>
+			</div>
+			<div class="card-item">
+				<div class="card-info card-info-name">Nguyễn Xuân Bách 5</div>
+				<div class="card-info card-info-status"><i class="fas fa-exclamation-circle"></i></div>
+				<div class="card-info card-info-steps"><span>S2 - Đang liên hệ</span></div>
+				<div class="card-info card-info-last-activity"><span>1 ngày</span></div>
+				<div class="card-info card-info-created-date"><span>10.08.2018</span></div>
+				<div class="card-info card-info-next-activity"><i class="fas fa-headset"></i></div>
+			</div>
+			<div class="card-item">
+				<div class="card-info card-info-name">Nguyễn Xuân Bách 6</div>
+				<div class="card-info card-info-status"><i class="fas fa-exclamation-circle"></i></div>
+				<div class="card-info card-info-steps"><span>S2 - Đang liên hệ</span></div>
+				<div class="card-info card-info-last-activity"><span>1 ngày</span></div>
+				<div class="card-info card-info-created-date"><span>10.08.2018</span></div>
+				<div class="card-info card-info-next-activity"><i class="fas fa-headset"></i></div>
+			</div>
+			<div class="card-item">
+				<div class="card-info card-info-name">Nguyễn Xuân Bách 7</div>
+				<div class="card-info card-info-status"><i class="fas fa-exclamation-circle"></i></div>
+				<div class="card-info card-info-steps"><span>S2 - Đang liên hệ</span></div>
+				<div class="card-info card-info-last-activity"><span>1 ngày</span></div>
+				<div class="card-info card-info-created-date"><span>10.08.2018</span></div>
+				<div class="card-info card-info-next-activity"><i class="fas fa-headset"></i></div>
+			</div>
+			<div class="card-item">
+				<div class="card-info card-info-name">Nguyễn Xuân Bách 8</div>
+				<div class="card-info card-info-status"><i class="fas fa-exclamation-circle"></i></div>
+				<div class="card-info card-info-steps"><span>S2 - Đang liên hệ</span></div>
+				<div class="card-info card-info-last-activity"><span>1 ngày</span></div>
+				<div class="card-info card-info-created-date"><span>10.08.2018</span></div>
+				<div class="card-info card-info-next-activity"><i class="fas fa-headset"></i></div>
+			</div>
+			<div class="card-item">
+				<div class="card-info card-info-name">Nguyễn Xuân Bách 9</div>
+				<div class="card-info card-info-status"><i class="fas fa-exclamation-circle"></i></div>
+				<div class="card-info card-info-steps"><span>S2 - Đang liên hệ</span></div>
+				<div class="card-info card-info-last-activity"><span>1 ngày</span></div>
+				<div class="card-info card-info-created-date"><span>10.08.2018</span></div>
+				<div class="card-info card-info-next-activity"><i class="fas fa-headset"></i></div>
+			</div>
+			<div class="card-item">
+				<div class="card-info card-info-name">Nguyễn Xuân Bách 10</div>
+				<div class="card-info card-info-status"><i class="fas fa-exclamation-circle"></i></div>
+				<div class="card-info card-info-steps"><span>S2 - Đang liên hệ</span></div>
+				<div class="card-info card-info-last-activity"><span>1 ngày</span></div>
+				<div class="card-info card-info-created-date"><span>10.08.2018</span></div>
+				<div class="card-info card-info-next-activity"><i class="fas fa-headset"></i></div>
+			</div>
+		</div>
+		<div class="footer">
+			<i class="fas fa-bars"></i>
+			<i class="fas fa-table"></i>
+			<i class="fas fa-plus"></i>
+			<i class="fas fa-search"></i>
+			<i class="far fa-chart-bar"></i>
+		</div>
+	</div>
+</body>
+</html>
