@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>CSS Grid is good</title>
+	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+	<style>
+		* { box-sizing: border-box;margin: 0;padding: 0; }
+		body {
+			font-family: 'Roboto', sans-serif;
+		}
+		.app {
+			display: grid;
+			grid-template-rows: 60px auto 50px;
+			grid-template-columns: 1fr;
+			height: 100vh;
+		}
+		.header {
+			background: #FFFFFF;
+			text-align: center;
+			line-height: 60px;
+			border-bottom: 1px solid #EFF0F3;
+	        box-shadow: 0 0 25px 0 rgba(0, 0, 0, 0.04);
+	        display: grid;
+	        grid-template-columns: auto 80px;
+		}
+		.main {
+			background: #EFF0F3;
+			overflow: auto; 
+		}
+
+		.footer {
+			background: #373741;
+			display: grid;
+			grid-template-columns: repeat(5, 1fr);
+			text-align: center;
+		}
+		.footer i {
+			color: #FFFFFF;
+			line-height: 50px;
+
+		}
+		.card-item {
+			margin: 10px;
+			background: #FFFFFF;
+			box-shadow: 0px 1px 8px rgba(0, 0, 0, 0.1);
+			border-radius: 5px;
+		}
+
+		.fa-exclamation-circle {
+			color: #FF7C7C;
+			padding-right: 7px;
+		}
+		.fa-headset {
+			color: #DADADA;
+			padding-right: 7px;
+		}
+		.lead-count-info {
+			padding: 10px 10px 0 27px;
+			color: #888888;
+			font-size: 0.8em;
+		}
+		.header-title {
+			text-align: left;
+			padding-left: 27px;
+			color: #888888;
+			height: 60px;
+		}
+		.header-title span.lead-name {
+			font-weight: 700;
+			color: #347AF7;
+		}
+		.header-title span.sales-step {
+			color: #888888;
+			padding: 3px 7px;
+			background: #EEEEEE;
+			border-radius: 5px;
+			font-size: 0.5em;
+		}
+		.header-btn {
+			padding-right: 10px;
+		}
+		.card-item-header {
+			border-bottom: 1px solid #DADADA;
+			height: 50px;
+			line-height: 50px;
+			display: flex;
+			justify-content: space-between;
+		}
+		.card-item-header span.card-item-header-title {
+			padding-left: 17px;
+			color: #888888;
+		}
+		.card-item-header span i.fa-edit {
+			padding-right: 17px;
+			color: #347AF7;
+		}
+		.card-item-body {
+			display: grid;
+			grid-template-columns: 1fr;
+		}
+		.row-data {
+			display: grid;
+			grid-template-columns: 1fr 2fr;
+			margin-left: 17px;
+			margin-right: 17px;
+			border-bottom: 1px solid #DADADA;
+			height: 40px;
+			line-height: 40px;
+			vertical-align: middle;
+		}
+		.row-data:last-child {
+			padding-bottom: 10px;
+			border-bottom: none;
+		}
+		.row-data span:first-child {
+			color: #888888;
+			font-size: 0.7em;
+		}
+		.row-data span:last-child {
+			color: #347AF7;
+		}
+		.section {
+			text-align: center;
+			margin-top: 20px;
+		}
+		.section-title {
+			font-weight: 700;
+			color: #888888;
+		}
+		.card-action {
+			display: flex;
+			justify-content: space-around;
+		}
+		.card-action i {
+			font-size: 2.5em;
+			margin-top: 20px;
+			margin-bottom: 20px;
+		}
+		.action-email,
+		.action-meeting {
+			color: #DADADA;
+		}
+		.action-call {
+			color: #30A64A;
+		}
+	</style>
+</head>
+<body>
+	<div class="app">
+		<header class="header">
+			<div class="header-title">
+				<span class="lead-name">Nguyễn Xuân Bách</span>
+				<span class="sales-step">S2 - Đang liên hệ</span>
+			</div>
+			<div class="header-btn">
+				<i class="fas fa-headset"></i>
+				<i class="fas fa-exclamation-circle"></i>
+			</div>
+		</header>
+		<div class="main">
+			<!-- Thông tin khách hàng -->
+			<div class="card-item">
+				<div class="card-item-header">
+					<span class="card-item-header-title">Thông tin khách hàng</span>
+					<span><i class="far fa-edit"></i></span>
+				</div>
+				<div class="card-item-body">
+					<div class="row-data">
+						<span>Họ Tên</span>
+						<span>Nguyễn Xuân Bách</span>
+					</div>
+					<div class="row-data">
+						<span>Số điện thoại</span>
+						<span>0977972223</span>
+					</div>
+					<div class="row-data">
+						<span>Địa chỉ</span>
+						<span>Số 02 Lê Văn Lương ...</span>
+					</div>
+				</div>
+			</div>
+			<!-- Thông tin sản phẩm -->
+			<div class="card-item">
+				<div class="card-item-header">
+					<span class="card-item-header-title">Thông tin sản phẩm</span>
+					<span><i class="far fa-edit"></i></span>
+				</div>
+				<div class="card-item-body">
+					<div class="row-data">
+						<span>Tên SP</span>
+						<span>Nhà Phân Lô</span>
+					</div>
+					<div class="row-data">
+						<span>Giá trị</span>
+						<span>USD 499.000</span>
+					</div>
+					<div class="row-data">
+						<span>Thông tin thêm</span>
+						<span>Thông tin thêm về sản phẩm</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Lịch sử tương tác -->
+			<div class="section interactivity-history-section">
+				<div class="section-title">
+					Lịch sử tương tác >
+				</div>
+			</div>
+
+			<!-- Action -->
+
+			<div class="section action-section">
+				<div class="section-title">
+					Action
+				</div>
+				<div class="card-action card-item">
+					<i class="action-email far fa-envelope"></i>
+					<i class="action-call fas fa-phone"></i>
+					<i class="action-meeting far fa-clock"></i>
+				</div>
+			</div>
+
+		</div>
+		<div class="footer">
+			<i class="fas fa-bars"></i>
+			<i class="fas fa-table"></i>
+			<i class="fas fa-plus"></i>
+			<i class="fas fa-search"></i>
+			<i class="far fa-chart-bar"></i>
+		</div>
+	</div>
+</body>
+</html>
