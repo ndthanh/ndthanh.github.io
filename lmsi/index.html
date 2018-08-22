@@ -23,6 +23,8 @@
 			line-height: 60px;
 			border-bottom: 1px solid #EFF0F3;
 	        box-shadow: 0 0 25px 0 rgba(0, 0, 0, 0.04);
+	        display: grid;
+	        grid-template-columns: auto 60px;
 		}
 		.main {
 			background: #EFF0F3;
@@ -84,12 +86,25 @@
 			color: #888888;
 			font-size: 0.8em;
 		}
-
+		.fa-sort-alpha-up {
+			color: #347AF7;
+		}
+		.header-title {
+			text-align: left;
+			padding-left: 27px;
+			font-weight: 700;
+			color: #888888;
+		}
 	</style>
 </head>
 <body>
 	<div class="app">
-		<header class="header">All leads</header>
+		<header class="header">
+			<div class="header-title">All leads</div>
+			<div class="header-btn">
+				<i class="fas fa-sort-alpha-up"></i>
+			</div>
+		</header>
 		<div class="main">
 			<div class="lead-count-info"><span>Hiển thị 10 leads trên tổng số 2340 leads</span></div>
 			<div class="card-item">
