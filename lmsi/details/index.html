@@ -146,6 +146,81 @@
 		.action-call {
 			color: #30A64A;
 		}
+		.card-item-history {
+			margin: 10px;
+			background: #FFFFFF;
+			box-shadow: 0px 1px 8px rgba(0, 0, 0, 0.1);
+			border-radius: 5px;
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			grid-template-areas: 
+				"ta ta ta sta"
+				"it it ste ste"
+				"in in in in";
+		}
+		.telesales-action {
+			grid-area: ta;
+			margin-left: 17px;
+			text-align: left;
+			margin-top: 10px;
+			margin-bottom: 10px;
+		}
+		.sales-status {
+			grid-area: sta;
+			text-align: right;
+			margin-right: 17px;
+			margin-top: 10px;
+			margin-bottom: 10px;
+		}
+		.sales-status i.action-meeting {
+			color: #347AF7;	
+		}
+		.interaction-timestamp {
+			grid-area: it;
+			margin-left: 10px;
+			text-align: left;
+			color: #888888;
+		}
+		.interaction-timestamp span {
+		    padding: 3px 7px;
+			background: #FFFFFF;
+			font-size: 0.7em;
+		}
+		.sales-step {
+			grid-area: ste;
+			text-align: right;
+			margin-right: 17px;
+		}
+		.sales-step span {
+			color: #888888;
+		    padding: 3px 7px;
+		    background: #EEEEEE;
+		    border-radius: 5px;
+		    font-size: 0.7em;
+		}
+		.interaction-note {
+			grid-area: in;
+			margin-top: 10px;
+		}
+		.ta-sales {
+			text-align: left;
+			font-size: 0.7em;
+			color: #347AF7;
+			font-weight: 700;
+		}
+		.ta-action {
+			margin-left: 10px;
+			font-size: 0.7em;
+			color: #30A64A;
+		}
+		.interaction-note {
+			text-align: left;
+			margin-left: 17px;
+			font-size: 0.7em;
+			margin-bottom: 10px;
+			color: #888888;
+		}
+
 	</style>
 </head>
 <body>
@@ -209,7 +284,41 @@
 				<div class="section-title">
 					Lịch sử tương tác >
 				</div>
+				<div class="section-body">
+					<div class="card-item-history">
+						<div class="telesales-action">
+							<span class="ta-sales">Telesales A</span>
+							<span class="ta-action"><i class="action-call fas fa-phone"></i> Nhấc máy</span>
+						</div>
+						<div class="sales-status"><i class="action-meeting far fa-clock"></i></div>
+						<div class="interaction-timestamp"><span>12.08.2018 · 09:00</span></div>
+						<div class="sales-step"><span>S3 - Hẹn gặp</span></div>
+						<div class="interaction-note">Hẹn gặp vào 15.08.2018</div>
+					</div>
+					<div class="card-item-history">
+						<div class="telesales-action">
+							<span class="ta-sales">Telesales A</span>
+							<span class="ta-action"><i class="action-call fas fa-phone"></i> Nhấc máy</span>
+						</div>
+						<div class="sales-status"><i class="action-meeting far fa-clock"></i></div>
+						<div class="interaction-timestamp"><span>12.08.2018 · 09:00</span></div>
+						<div class="sales-step"><span>S3 - Hẹn gặp</span></div>
+						<div class="interaction-note">Hẹn gặp vào 15.08.2018</div>
+					</div>
+					<div class="card-item-history">
+						<div class="telesales-action">
+							<span class="ta-sales">Telesales A</span>
+							<span class="ta-action"><i class="action-call fas fa-phone"></i> Nhấc máy</span>
+						</div>
+						<div class="sales-status"><i class="action-meeting far fa-clock"></i></div>
+						<div class="interaction-timestamp"><span>12.08.2018 · 09:00</span></div>
+						<div class="sales-step"><span>S3 - Hẹn gặp</span></div>
+						<div class="interaction-note">Hẹn gặp vào 15.08.2018</div>
+					</div>
+				</div>
 			</div>
+
+
 
 			<!-- Action -->
 
