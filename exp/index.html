@@ -46,8 +46,9 @@
 
                 expectationIds.map((id) => {
                     var mapping = App.mapping.filter(m => m.id == id);
-                    mappingUsedByThisExpectation.push(mapping[0]);
-                })
+                    var tmp = App.jsonCopy(mapping[0]);
+                    mappingUsedByThisExpectation.push(tmp);
+                });
 
                 // console.log(mappingUsedByThisExpectation);
                 // lấy giá trị params của các mapping
@@ -111,6 +112,10 @@
 
                 var explanationDiv = e.target.parentNode.parentNode.querySelector('.expectation-explanation');
                 explanationDiv.innerHTML = test[0].explanation;
+            },
+
+            jsonCopy(src) {
+                return JSON.parse(JSON.stringify(src));
             },
 
             genParams(paramsArray) {
