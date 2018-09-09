@@ -1,0 +1,436 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CSS Grid is good</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+    <style>
+
+
+        * { box-sizing: border-box;margin: 0;padding: 0; }
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        .app {
+            display: grid;
+            grid-template-rows: 60px auto 50px;
+            grid-template-columns: 1fr;
+            height: 100vh;
+
+        }
+        .header {
+            background: #FFFFFF;
+            text-align: center;
+            line-height: 60px;
+            border-bottom: 1px solid #EFF0F3;
+            box-shadow: 0 0 25px 0 rgba(0, 0, 0, 0.04);
+            display: grid;
+            grid-template-columns: auto 80px;
+        }
+        .main {
+            background: #EFF0F3;
+            overflow: auto;
+        }
+        .footer {
+            background: #373741;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            text-align: center;
+        }
+        .footer i {
+            color: #FFFFFF;
+            line-height: 50px;
+        }
+
+        a{
+            text-decoration: none;
+        }
+        input{
+            outline: none;
+        }
+
+        .hide{
+            display: none!important;
+        }
+
+        .show{
+            display: block;
+        }
+
+        .sidebar{
+            display: grid;
+            grid-template-rows: auto 50px;
+            grid-template-columns: 1fr;
+            height: 100vh;
+        }
+
+        .menu-sidebar{
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+        }
+
+        .list-sidebar{
+            background: #343A3B;
+            display: grid;
+            grid-template-rows: 60px auto 50px;
+            grid-template-columns: 1fr;
+            border-bottom: 1px solid #212526;
+        }
+
+        .sidebar-hover{
+            background: rgba(0, 0, 0, 0.7);
+        }
+        .header-sidebar{
+            background: #6E6E6E;
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            justify-content: center;
+        }
+
+        .header-sidebar span{
+            color: #C4C4C4;
+            margin: auto 20px;
+        }
+
+        .header-sidebar img{
+            margin: auto;
+        }
+        .list-menu{
+            display: grid;
+            grid-template-rows: repeat(6,50px) auto;
+            grid-template-columns: 1fr;
+
+        }
+        .list-menu li{
+            border-bottom: 1px solid #212526;
+            padding-left: 20px;
+            margin-top: 17px;
+            color: white;
+            font-size: 14px;
+        }
+        .list-menu li i{
+            margin-right: 15px;
+        }
+
+        li{
+            list-style-type: none;
+        }
+        .footer-siderbar{
+            color: #888888;
+            margin: auto 20px;
+        }
+
+        .header-sort{
+            background: #FFFFFF;
+            text-align: center;
+            line-height: 60px;
+            border-bottom: 1px solid #EFF0F3;
+            box-shadow: 0 0 25px 0 rgba(0, 0, 0, 0.04);
+            color: #888888;
+        }
+        .sort-main{
+            margin: 10px;
+            background: #FFFFFF;
+            box-shadow: 0px 1px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            display: grid;
+            padding: 10px 15px;
+        }
+        .sort-main i{
+            text-align: end;
+            color: #DADADA;
+        }
+
+        .sort-main span{
+            color: #888888;
+            font-size: 15px;
+            margin: 10px 5px 20px 5px;
+
+        }
+        .button{
+            background: white;
+            border: 1px solid #347AF7;
+            padding: 5px 0;
+            font-size: 15px;
+            border-radius: 2px;
+            outline: none;
+            color: #347AF7;
+            margin:0 5px;
+            margin-bottom: 10px;
+
+        }
+
+        .sort-name{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            margin-bottom: 20px;
+
+        }
+
+        .button-active{
+            background: #347AF7;
+            color: white;
+        }
+        .save-sort{
+            display: grid;
+            grid-template-columns: 1fr;
+            margin-top: 80px;
+        }
+
+        .filter-inf{
+            margin: 20px;
+        }
+        .filter-inf span{
+            color: #777777;
+        }
+
+        .inf-fi{
+            margin: 10px;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        .inf-fi i{
+            margin-right: 10px;
+        }
+        .inf-fi-on{
+            margin-top: 5px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        .steps{
+            list-style-type: none;
+            border: 1px solid #347AF7;
+            color: #347AF7;
+            padding: 10px;
+
+        }
+
+        .steps i{
+            margin-right: 10px;
+        }
+        .steps-active{
+            background: #347AF7;
+            color: white;
+        }
+        .select-work{
+            border: 1px solid #C4C4C4;
+            padding: 10px 10px;
+            margin-top: 10px;
+            font-size: 15px;
+            color: #C4C4C4;
+            border-radius: 2px;
+            background: white;
+        }
+
+        .select-work i{
+            margin: 0 5px;
+        }
+
+        .select-work-active{
+            color: #347AF7;
+            border: 1px solid #347AF7;
+        }
+        .icon-right{
+            float: right;
+        }
+        .filter-alive{
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            border: 1px solid #347AF7;
+            border-radius: 2px;
+
+        }
+        .filter-alive span{
+            margin: auto;
+            color: #347AF7;
+        }
+
+        .filter-alive-select{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            margin: 5px;
+        }
+        .filter-alive-select .button{
+            margin: 0;
+        }
+
+        .filter-closed{
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            border: 1px solid #347AF7;
+            border-radius: 2px;
+        }
+        .filter-closed span{
+            margin: auto;
+            color: #347AF7;
+        }
+
+
+        .filter-closed-select{
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            margin: 5px;
+        }
+        .filter-closed-select .button{
+            margin: 0;
+        }
+        .filter-create{
+            display: grid;
+            grid-template-columns: 1fr;
+            margin: 20px 5px;
+        }
+
+    </style>
+
+</head>
+<body>
+    <div class="app">
+        <header class="header-sort">
+        <span>Lọc dữ liệu / Tạo bộ lọc</span>
+    </header>
+
+    <div class="main">
+
+
+        <div class="filter-inf">
+            <span>Bộ lọc:</span>
+            <div class="inf-fi">
+                <span><i class="fas fa-calendar-alt"></i>Ngày tạo : 01/08/2018 - 11/08/2018</span>
+                <div class="inf-fi-on">
+                    <span>S2 - Đang liên hệ</span>
+                    <span><i class="fas fa-exclamation"></i>Todo</span>
+                </div>
+            </div>
+
+
+        </div>
+        <div class="sort-main">
+            <span>Lọc theo thời gian</span>
+            <button class="button">Chọn khoảng ngày</button>
+        </div>
+
+        <div class="sort-main">
+            <span>Lọc theo trạng thái</span>
+            <div class="filter-alive">
+                <span>Alive</span>
+                <div class="filter-alive-select">
+                    <button class="button button-active">Todo</button>
+                    <button class="button ">Remind</button>
+                </div>
+            </div>
+
+            <div class="filter-closed">
+                <span>Closed</span>
+                <div class="filter-closed-select">
+                    <button class="button ">Won</button>
+                    <button class="button ">Lost</button>
+                    <button class="button">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sort-main">
+            <span>Lọc theo bước sales trong sales funnel</span>
+            <div class="work-need">
+                @include('.frontend.includes.list-steps')
+
+            </div>
+        </div>
+
+        <div class="filter-create">
+            <button class="button">Tạo bộ lọc</button>
+        </div>
+
+    </div>
+        <div class="footer">
+            <i class="fas fa-bars click-menu" ></i>
+            <a href="index"><i class="fas fa-table"></i></a>
+            <i class="fas fa-plus"></i>
+            <a href="search"><i class="fas fa-search"></i></a>
+            <i class="far fa-chart-bar"></i>
+        </div>
+    </div>
+
+    <div class="sidebar hide">
+        <div class="menu-sidebar">
+
+            <div class="list-sidebar">
+                <div class="header-sidebar" >
+                    <img src="/images/logo.png" width="43px" height="30px"/>
+                    <span>Panda LMS</span>
+                </div>
+                <ul class="list-menu">
+                    <li><i class="fas fa-list-ul"></i>Tất cả To Do</li>
+                    <li><i class="fas fa-forward"></i>Sales Pipeline</li>
+                    <li><i class="fas fa-circle"></i>Tất cả leads</li>
+                    <li><i class="fas fa-gift"></i>Leads chưa được phân</li>
+                    <li><i class="fas fa-filter"></i>Các bộ lọc tự tạo</li>
+                    <li><i class="fas fa-cog"></i>Settings</li>
+
+                </ul>
+                <div class="footer-siderbar">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </div>
+            </div>
+                <div class="sidebar-hover">
+                </div>
+        </div>
+
+        <div class="footer">
+            <i class="fas fa-bars click-menu"></i>
+            <i class="fas fa-table"></i>
+            <i class="fas fa-plus"></i>
+            <i class="fas fa-search"></i>
+            <i class="far fa-chart-bar"></i>
+        </div>
+    </div>
+
+
+    <script
+            src="https://code.jquery.com/jquery-1.12.4.js"
+            integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
+            crossorigin="anonymous">
+    </script>
+    <script>
+        $('.click-menu').on('click',function(){
+
+            if($('.app').hasClass('hide')){
+                $('.app').removeClass('hide');
+                $('.sidebar').addClass('hide');
+            }
+            else{
+                $('.app').addClass('hide');
+                $('.sidebar').removeClass('hide');
+            }
+        })
+
+        $('.selected-list').on('click',function(){
+
+        var scroll_to = $('div.main').scrollTop() + $(this).offset().top - $('div.main').offset().top;
+
+        $('div.main').animate({
+            scrollTop: scroll_to - 20
+        });
+        if($(this).parent('.work-need').find('.selected-steps').hasClass('show')){
+            $(this).parent('.work-need').find('.selected-steps').addClass('hide');
+            $(this).parent('.work-need').find('.selected-steps').removeClass('show');
+        }
+        else{
+            $(this).parent('.work-need').find('.selected-steps').removeClass('hide');
+            $(this).parent('.work-need').find('.selected-steps').addClass('show');
+        }
+
+    })
+
+    </script>
+
+
+</body>
+</html>

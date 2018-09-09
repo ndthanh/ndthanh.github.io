@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CSS Grid is good</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+    <style>
+
+
+        * { box-sizing: border-box;margin: 0;padding: 0; }
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        .app {
+            display: grid;
+            grid-template-rows: 60px auto 50px;
+            grid-template-columns: 1fr;
+            height: 100vh;
+
+        }
+        .header {
+            background: #FFFFFF;
+            text-align: center;
+            line-height: 60px;
+            border-bottom: 1px solid #EFF0F3;
+            box-shadow: 0 0 25px 0 rgba(0, 0, 0, 0.04);
+            display: grid;
+            grid-template-columns: auto 80px;
+        }
+        .main {
+            background: #EFF0F3;
+            overflow: auto;
+        }
+        .footer {
+            background: #373741;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            text-align: center;
+        }
+        .footer i {
+            color: #FFFFFF;
+            line-height: 50px;
+        }
+
+        a{
+            text-decoration: none;
+        }
+        input{
+            outline: none;
+            border: none;
+        }
+
+        .hide{
+            display: none!important;
+        }
+
+        .show{
+            display: block;
+        }
+
+        .sidebar{
+            display: grid;
+            grid-template-rows: auto 50px;
+            grid-template-columns: 1fr;
+            height: 100vh;
+        }
+
+        .menu-sidebar{
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+        }
+
+        .list-sidebar{
+            background: #343A3B;
+            display: grid;
+            grid-template-rows: 60px auto 50px;
+            grid-template-columns: 1fr;
+            border-bottom: 1px solid #212526;
+        }
+
+        .sidebar-hover{
+            background: rgba(0, 0, 0, 0.7);
+        }
+        .header-sidebar{
+            background: #6E6E6E;
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            justify-content: center;
+        }
+
+        .header-sidebar span{
+            color: #C4C4C4;
+            margin: auto 20px;
+        }
+
+        .header-sidebar img{
+            margin: auto;
+        }
+        .list-menu{
+            display: grid;
+            grid-template-rows: repeat(6,50px) auto;
+            grid-template-columns: 1fr;
+
+        }
+        .list-menu li{
+            border-bottom: 1px solid #212526;
+            padding-left: 20px;
+            margin-top: 17px;
+            color: white;
+            font-size: 14px;
+        }
+        .list-menu li i{
+            margin-right: 15px;
+        }
+
+        li{
+            list-style-type: none;
+        }
+        .footer-siderbar{
+            color: #888888;
+            margin: auto 20px;
+        }
+
+        .header-search{
+            background: #FFFFFF;
+            line-height: 60px;
+            border-bottom: 1px solid #EFF0F3;
+            box-shadow: 0 0 25px 0 rgba(0, 0, 0, 0.04);
+            display: grid;
+            grid-template-columns: 30px 6fr;
+            color: #DADADA;
+            font-size: 15px;
+        }
+        .header-search i{
+            margin-top: auto;
+            margin-bottom: auto;
+            margin-left: 20px;
+            font-size: 16px;
+        }
+
+        .header-search input{
+            font-size: 1em;
+            padding: 10px;
+        }
+
+        input::placeholder{
+            color: #888888;
+        }
+
+        .search{
+            display: grid;
+            grid-template-columns: 40px 6fr;
+        }
+
+        .button{
+            background: white;
+            border: 1px solid #347AF7;
+            padding: 5px 0;
+            font-size: 15px;
+            border-radius: 2px;
+            outline: none;
+            margin: 0 20px;
+            color: #347AF7;
+        }
+
+        .option-filter{
+            display: grid;
+            grid-template-rows: repeat(3,50px) auto;
+            text-align: center;
+        }
+
+        .option-filter span{
+            color: #888888;
+            font-size: 14px;
+            margin: auto;
+        }
+        .filter-created ul li{
+            margin-bottom: 20px;
+            color: #347AF7;
+        }
+
+    </style>
+
+</head>
+<body>
+    <div class="app">
+         <header class="header-search">
+            <i class="fas fa-angle-left"></i>
+        <div class="search">
+            <i class="fas fa-search"></i>
+            <input placeholder="Nhập thông tin tìm kiếm" />
+
+        </div>
+    </header>
+
+    <div class="main">
+        <div class="option-filter">
+            <span>hoặc</span>
+            <button class="button">Mở chức năng lọc</button>
+            <span>Bộ lọc tự tạo</span>
+            <div class="filter-created">
+                <ul>
+                    <li>Bộ lọc tự tạo 1</li>
+                    <li>Bộ lọc tự tạo 2</li>
+                    <li>Bộ lọc tự tạo 3</li>
+                </ul>
+
+            </div>
+        </div>
+
+
+
+    </div>
+        <div class="footer">
+            <i class="fas fa-bars click-menu" ></i>
+            <a href="index"><i class="fas fa-table"></i></a>
+            <i class="fas fa-plus"></i>
+            <a href="search"><i class="fas fa-search"></i></a>
+            <i class="far fa-chart-bar"></i>
+        </div>
+    </div>
+
+    <div class="sidebar hide">
+        <div class="menu-sidebar">
+
+            <div class="list-sidebar">
+                <div class="header-sidebar" >
+                    <img src="/images/logo.png" width="43px" height="30px"/>
+                    <span>Panda LMS</span>
+                </div>
+                <ul class="list-menu">
+                    <li><i class="fas fa-list-ul"></i>Tất cả To Do</li>
+                    <li><i class="fas fa-forward"></i>Sales Pipeline</li>
+                    <li><i class="fas fa-circle"></i>Tất cả leads</li>
+                    <li><i class="fas fa-gift"></i>Leads chưa được phân</li>
+                    <li><i class="fas fa-filter"></i>Các bộ lọc tự tạo</li>
+                    <li><i class="fas fa-cog"></i>Settings</li>
+
+                </ul>
+                <div class="footer-siderbar">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </div>
+            </div>
+                <div class="sidebar-hover">
+                </div>
+        </div>
+
+        <div class="footer">
+            <i class="fas fa-bars click-menu"></i>
+            <i class="fas fa-table"></i>
+            <i class="fas fa-plus"></i>
+            <i class="fas fa-search"></i>
+            <i class="far fa-chart-bar"></i>
+        </div>
+    </div>
+
+
+    <script
+            src="https://code.jquery.com/jquery-1.12.4.js"
+            integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
+            crossorigin="anonymous">
+    </script>
+    <script>
+        $('.click-menu').on('click',function(){
+
+            if($('.app').hasClass('hide')){
+                $('.app').removeClass('hide');
+                $('.sidebar').addClass('hide');
+            }
+            else{
+                $('.app').addClass('hide');
+                $('.sidebar').removeClass('hide');
+            }
+        })
+    </script>
+
+
+</body>
+</html>
