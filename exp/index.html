@@ -61,36 +61,14 @@
                         }
                     });
                 });
-                // console.log(tests);
-                tests.map((t, idx) => {
-                    // var mappingParams = mappingUsedByThisExpectation[idx].params;
-                    // console.log(mappingUsedByThisExpectation[idx].params);
-                    mappingUsedByThisExpectation[idx].params.map((mp,i) => {
-                        // mp[i].value = t[i].paramValue;
-                        console.log(tests[idx][i].paramValue);
-                        mp.value = tests[idx][i].paramValue;
-                        console.log("----------");
-                        console.log(mp.value);
+                console.log(tests);
 
-                        // console.log(mp);
-                        // mp.value = i + "|" + idx;
-                        // console.log(mp.value);
+                var x = mappingUsedByThisExpectation.map((mapping, idx) => {
+                    console.log(mapping.params);
+                    mapping.params.map((paramArr, i) => {
+                        paramArr.value = tests[idx][i].paramValue
                     });
-                    // console.log(mappingParams);
-                    // t.map((paramArray, i)=>{
-                    //     console.log(`mappingUsedByThisExpectation[${idx}].params[${i}].value = ${paramArray.paramValue}`);
-                    //     console.log("--------------------------------");
-                    //     mappingParams[i].value = paramArray.paramValue;
-                    // });
                 });
-
-                // Đoạn trên chưa debug được nên dùng tạm vòng lặp bình thường:
-
-                // for(let i = 0; i < tests.length; i ++){
-                //     for(let j = 0; j < tests[i].length; j ++){
-                //         mappingUsedByThisExpectation[i].params[j].value = tests[i][j].paramValue;
-                //     }
-                // }
 
                 console.log(mappingUsedByThisExpectation);
             },
