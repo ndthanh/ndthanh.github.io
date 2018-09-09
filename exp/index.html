@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .expectation {
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #888888;
+        }
+    </style>
+</head>
+<body>
+    <h2>Expectation Editor</h2>
+    <input type="button" value="Add Expectation" id="add-expectation">
+    <div id="expectations">
+        
+    </div>
+    <hr>
+    <h2>Kiểm tra</h2>
+
+<script>
+    (function() {
+        var App = {};
+        App = {
+            init() {
+                var addExpectation = document.getElementById('add-expectation');
+                addExpectation.addEventListener('click', App.createExpectation);
+            },
+            createExpectation() {
+                var expectations = document.getElementById('expectations');
+                var expectation = document.createElement('div');
+                expectation.className = 'expectation';
+                var html = `
+                <div class="expectation-test">
+                    <select class="select-test">
+                        <option value="0">Chọn 1 test</option>
+                `;
+                // generate option list từ mapping
+                
+                var options = App.mapping.map((oneMapping) => {
+                    return `<option value="${oneMapping.id}">${oneMapping.func.friendlyName}</option>`
+                });
+                html += options;
+                html += `
+                    </select>
+                    </div>
+                    <div class="expectation-params">
+                        <!-- generate params for test here -->
+                    </div>
+                    <p class="expectation-explanation"></p>
+                `;
+                expectation.innerHTML = html;
+
+                expectation.querySelector('.select-test').addEventListener('change', App.OnSelectTestChange)
+                
+                expectations.appendChild(expectation);
+            },
+            OnSelectTestChange(e) {
+                var id = parseInt(e.target.options[e.target.options.selectedIndex].value); // lấy id tương ứng
+                
+                var test = App.mapping.filter(oneMapping => oneMapping.id == id);          // tìm ID của mapping tương ứng
+                
+                var paramsDiv = e.target.parentNode.parentNode.querySelector('.expectation-params');
+                paramsDiv.innerHTML = App.genParams(test[0].params);
+
+                var explanationDiv = e.target.parentNode.parentNode.querySelector('.expectation-explanation');
+                explanationDiv.innerHTML = test[0].explanation;
+            },
+
+            genParams(paramsArray) {
+                return paramsArray.map((param) => {
+                    return `<input 
+                                type="text"
+                                data-technical-name="${param.technicalName}"
+                                placeholder="${param.friendlyName}">`
+                });
+            },
+            testCases: {
+                Should_ReturnTrue_When_NumberOfWorksheetsEqual( number ) {
+                    return number == 5;
+                }
+            },
+            utility: {
+                // https://gist.github.com/ndthanh/c860b8b9b5a9e545337021d1ca395b77
+                executeFunctionByName(functionName, context /*, args */) {
+                    var args = Array.prototype.slice.call(arguments, 2);
+                    var namespaces = functionName.split(".");
+                    var func = namespaces.pop();
+                    for(var i = 0; i < namespaces.length; i++) {
+                        context = context[namespaces[i]];
+                    }
+                    return context[func].apply(context, args);
+                }
+            },
+            mapping: [
+                {
+                    id: 1,
+                    explanation: "Kiểm tra số lượng worksheets có bằng {0} hay không",
+                    func: {
+                        technicalName: "Should_ReturnTrue_When_NumberOfWorksheetsEqual",
+                        friendlyName: "Kiểm tra số lượng Worksheets trong một Workbook"
+                    },
+                    params: [
+                        {
+                            technicalName: "numberOfWorksheets",
+                            friendlyName: "Số lượng Worksheets"
+                        }
+                    ]
+                },
+                {
+                    id: 2,
+                    explanation: "Kiểm tra sheet ở vị trí {0} có tên là {1} hay không?",
+                    func: {
+                        technicalName: "Should_ReturnTrue_WhenRightSheetNameByIndex",
+                        friendlyName: "Kiểm tra tên Worksheet bằng số thứ tự"
+                    },
+                    params: [
+                        {
+                            technicalName: "sheetName",
+                            friendlyName: "Tên Worksheet"
+                        },
+                        {
+                            technicalName: "sheetIndex",
+                            friendlyName: "Số thứ tự của Worksheet cần kiểm tra"
+                        }
+                    ]
+                }
+            ]
+
+        }
+
+        App.init();
+    })();
+</script>
+</body>
+</html>
