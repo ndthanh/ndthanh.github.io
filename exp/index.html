@@ -16,6 +16,7 @@
 <body>
     <h2>Expectation Editor</h2>
     <input type="button" value="Add Expectation" id="add-expectation">
+    <input type="button" value="Save Expectations" id="save-expectation">
     <div id="expectations">
         
     </div>
@@ -26,6 +27,72 @@
             init() {
                 var addExpectation = document.getElementById('add-expectation');
                 addExpectation.addEventListener('click', App.createExpectation);
+
+                var saveExpectations = document.getElementById('save-expectation');
+                saveExpectations.addEventListener('click', App.saveAllExpectation);
+            },
+            saveAllExpectation() {
+                let expectations = document.getElementsByClassName('expectation');
+                var mappingUsedByThisExpectation = [];
+                
+                // id của những mapping đang được "soạn bài"
+                let expectationIds = Array.from(expectations).map((expectation) => {
+                    return expectation.querySelector('.select-test').options.selectedIndex;
+                })
+
+                // console.log(expectationIds);
+                // array gồm toàn bộ mapping ids
+                let mappingIds = App.mapping.map((oneMapping) => oneMapping.id);
+
+                expectationIds.map((id) => {
+                    var mapping = App.mapping.filter(m => m.id == id);
+                    mappingUsedByThisExpectation.push(mapping[0]);
+                })
+
+                // console.log(mappingUsedByThisExpectation);
+                // lấy giá trị params của các mapping
+                
+                let tests = Array.from(expectations).map((expectation) => {
+                    var paramsArray = expectation.querySelector('.expectation-params').children;
+                    return Array.from(paramsArray).map((p, index) => {
+                        return {
+                            technicalName: p.getAttribute('data-technical-name'),
+                            paramValue: p.value
+                        }
+                    });
+                });
+                // console.log(tests);
+                tests.map((t, idx) => {
+                    // var mappingParams = mappingUsedByThisExpectation[idx].params;
+                    // console.log(mappingUsedByThisExpectation[idx].params);
+                    mappingUsedByThisExpectation[idx].params.map((mp,i) => {
+                        // mp[i].value = t[i].paramValue;
+                        console.log(tests[idx][i].paramValue);
+                        mp.value = tests[idx][i].paramValue;
+                        console.log("----------");
+                        console.log(mp.value);
+
+                        // console.log(mp);
+                        // mp.value = i + "|" + idx;
+                        // console.log(mp.value);
+                    });
+                    // console.log(mappingParams);
+                    // t.map((paramArray, i)=>{
+                    //     console.log(`mappingUsedByThisExpectation[${idx}].params[${i}].value = ${paramArray.paramValue}`);
+                    //     console.log("--------------------------------");
+                    //     mappingParams[i].value = paramArray.paramValue;
+                    // });
+                });
+
+                // Đoạn trên chưa debug được nên dùng tạm vòng lặp bình thường:
+
+                // for(let i = 0; i < tests.length; i ++){
+                //     for(let j = 0; j < tests[i].length; j ++){
+                //         mappingUsedByThisExpectation[i].params[j].value = tests[i][j].paramValue;
+                //     }
+                // }
+
+                console.log(mappingUsedByThisExpectation);
             },
             createExpectation() {
                 var expectations = document.getElementById('expectations');
@@ -123,6 +190,29 @@
                         {
                             technicalName: "sheetIndex",
                             friendlyName: "Số thứ tự của Worksheet cần kiểm tra"
+                        }
+                    ]
+                },
+                {
+                    id: 3,
+                    explanation: "Dummy Expectation để test",
+                    func: {
+                        technicalName: "ToTest",
+                        friendlyName: "Expectation để test"
+                    },
+                    params: [
+                        {
+                            technicalName: "sheetName",
+                            friendlyName: "Tên Worksheet"
+                        },
+                        {
+                            technicalName: "sheetIndex",
+                            friendlyName: "Số thứ tự của Worksheet cần kiểm tra"
+                        }
+                        ,
+                        {
+                            technicalName: "workbookName",
+                            friendlyName: "Tên Workbook"
                         }
                     ]
                 }
