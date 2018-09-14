@@ -1,0 +1,231 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <style>
+         body {
+                background: #FFFAD5;
+                color: #BD4932;
+
+                font-family: 'Roboto', sans-serif;
+                font-size: 62.5%;
+
+                -webkit-user-select: none;  /* Chrome all / Safari all */
+                -moz-user-select: none;     /* Firefox all */
+                -ms-user-select: none;
+            }
+
+            #container {
+                margin: auto;
+                width: 480px;
+            }
+
+            h1 {
+                margin: 0;
+                padding: 0;
+                font-size: 5.5em;
+            }
+
+            ul {
+                margin: 15px 0 25px 0;
+                padding: 0;
+                
+                list-style: none;
+            }
+
+            li {
+                margin: 0 0 25px 0;
+                font-size: 2.4em;
+            }
+
+            li:last-child {
+                margin: 0;
+            }
+
+            li .delete {
+                cursor: pointer;
+                display: inline-block;
+                padding: 0 10px 4px 10px;
+
+                border: 1px solid #BD4932;
+            }
+
+            li .delete:hover {
+                background: #BD4932;
+                color: #FFFAD5;
+            }
+
+            li .text {
+                display: inline;
+            }
+
+            #add-hint, #save-hint {
+                padding: 10px;
+                cursor: pointer;
+                background: #BD4932;
+                color: #FFFAD5;
+                border: 0;
+                font-size: 2.4em;
+            }
+
+            .hint-remove {
+                padding: 5px;
+                cursor: pointer;
+                background: #BD4932;
+                color: #FFFAD5;
+                border: 0;
+            }
+
+            [contentEditable=true] {
+                background-color: white;
+                padding: 5px;
+                margin: 10px;
+            }
+            /* https://stackoverflow.com/questions/20300138/is-it-possible-to-add-placeholder-in-div-tag */
+            div[contentEditable=true]:empty:not(:focus):before{
+                content:attr(data-placeholder);
+                color: #d8d8d8;
+            }
+            .hint-block {
+                padding: 10px;
+                border: 1px solid #888888;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="container">
+            <h1>Hint Editor</h1>
+            <ul id="list">
+                <!-- hint will be generate here -->
+            </ul>
+
+            <input id="add-hint" type="submit" value="Add hint">
+            <input id="save-hint" type="submit" value="Save">
+        </div>
+        <!-- <script src="app.js"></script> -->
+        <script>
+            (function() {
+                var App = {};
+
+                App = {
+                    /*-----
+                        Function: Initializes the application
+                    -----*/
+                    init: function() {
+                        var buttonAddHint = document.getElementById('add-hint');
+                        buttonAddHint.addEventListener('click', App.createHint);
+                        
+                        var buttonSave = document.getElementById('save-hint');
+                        buttonSave.addEventListener('click', App.utility.getHintsData);
+
+                        App.getAllHints();
+                    },
+                    
+                    data: [],
+
+                    /*-----
+                        Function: Create a new hint
+                    -----*/
+
+                    createHint: function () {
+                        var id = App.utility.uuidv4();
+                        var hint = {
+                            id: id,
+                            description: `Description for hint ${id}`,
+                            video: `Video link for hint ${id}`,
+                            image: `Image link for hint ${id}`,
+                            score: 10
+                        }
+                        App.data.push(hint);
+                        App.getAllHints(); // refresh the list
+                    },
+
+                    /*-----
+                        Function: Generates all created hints
+                    -----*/
+                    
+                    getAllHints: function() {
+                        var list = document.getElementById('list'); // gets the container element
+                        list.innerHTML = ''; // resets the list to nothing
+                        
+                        for(var i = 0; i < App.data.length; i++) { // loop through array that contains tasks
+                            var hint = document.createElement('li'); // create element
+                            hint.className = 'hint-block'; // add class
+                            hint.setAttribute('data-id', i); // add data attribute
+
+                            hint.innerHTML = `
+                                <div class="hint-index">#${App.data[i].id}</div>
+                                <div contenteditable="true" 
+                                    class="hint-description"
+                                    data-placeholder="Miêu tả gợi ý">
+                                    ${App.data[i].description}
+                                </div>
+                                <div contenteditable="true" 
+                                    class="hint-image-link"
+                                    data-placeholder="Link tới hình ảnh">
+                                    ${App.data[i].image}
+                                </div>
+                                <div contenteditable="true" 
+                                    class="hint-video-link"
+                                    data-placeholder="Link tới video">
+                                    ${App.data[i].video}
+                                </div>
+                                <div contenteditable="true" 
+                                    class="hint-score"
+                                    data-placeholder="Điểm cho phần gợi ý">
+                                    ${App.data[i].score}
+                                </div>
+                                <input class="hint-remove" type="submit" value="Remove">
+                            `;
+
+                            var removeButton = hint.querySelector('.hint-remove');
+                            removeButton.addEventListener('click', App.removeHint); // add 'click' listner to trigger task deletion
+                            list.appendChild(hint); // append to list
+                        }
+                    },
+
+                    /*-----
+                        Function: Remove a hint
+                    -----*/
+                    
+                    removeHint: function(e) {
+                        var hint = e.target.parentNode; // grab parent of element clicked
+                        var id = parseInt(hint.getAttribute('data-id')); // grab data-id to identify hint
+                        App.data.splice(id, 1 ); // remove hint from data array
+                        App.getAllHints(); // refresh the list
+                    },
+
+                    utility: {
+                        /*-----
+                            Function: Grabs hints data
+                        -----*/
+                        getHintsData: function () {
+                            var hints = document.getElementsByClassName('hint-block');
+                            var data = Array.from(hints).map(function(hint) {
+                                return {
+                                    id: parseInt(hint.getAttribute('data-id')),
+                                    description: hint.querySelector('.hint-description').innerHTML.trim(),
+                                    image: hint.querySelector('.hint-image-link').innerHTML.trim(),
+                                    video: hint.querySelector('.hint-video-link').innerHTML.trim(),
+                                    score: hint.querySelector('.hint-score').innerHTML.trim()
+                                }
+                            });
+                            console.log(data);
+                            return data;
+                        },
+                        uuidv4: function () {
+                            return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+                            )
+                        }
+                    }
+                }
+
+                App.init(); // initialize the app
+            })();
+        </script>
+    </body>
+</html>
