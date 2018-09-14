@@ -475,6 +475,46 @@
 		<div class="panda-menu-btn panda-menu-item-report"><i class="far fa-chart-bar"></i></div>
   </div>
 <script>
+
+	// let data = {
+	// 	leads: [
+			
+	// 		{card_item_name: 'Ma Văn Thoại',     card_sale_step: 'S2 - Dang ...', card_item_product: 'D\'Capitale ...', card_lead_age: '5n', card_last_update: '13.08.2018'},
+	// 		{card_item_name: 'Nguyễn Xuân Bách', card_sale_step: 'S3 - Hẹn ...', card_item_product: 'D\'Capitale ...', card_lead_age: '1n', card_last_update: '12.08.2018'},
+	// 		{card_item_name: 'Hồng Nguyễn',      card_sale_step: 'S5 - Mua ...', card_item_product: 'D\'Capitale ...', card_lead_age: 'W', card_last_update: '14.08.2018'},
+	// 		{card_item_name: 'Hiep Nguyen',      card_sale_step: 'S2 - Dang ...', card_item_product: 'D\'Capitale ...', card_lead_age: 'L', card_last_update: '15.08.2018'},
+	// 		{card_item_name: 'Thu Nguyen',       card_sale_step: 'S2 - Dang ...', card_item_product: 'D\'Capitale ...', card_lead_age: 'C', card_last_update: '15.08.2018'}
+
+	// 	]
+	// };
+
+	// function initData() {
+
+	// 	let htmlString = '';
+	// 	htmlString += data.leads.map(function (lead) {
+	// 		// cần html cho phần status W, L, C , Remind, Todo nữa
+	// 		return `<div class="panda-card">
+	// 					<div class="panda-card-row">
+	// 						<span class="panda-card-item panda-card-item-name">${lead.card_item_name}</span>
+	// 						<span class="panda-card-item panda-card-item-sale-step">${lead.card_sale_step}</span>
+	// 					</div>
+	// 					<div class="panda-card-row">
+	// 						<span class="panda-card-item panda-card-item-product">${lead.card_item_product}</span>
+	// 						</div>
+	// 					<div class="panda-card-row">
+	// 						<span class="panda-card-item ${
+	// 							if(lead.card_lead_age == 'W') {
+									
+	// 							}
+
+	// 						} panda-card-item-lead-age">${lead.card_lead_age}</span>
+	// 						<span class="panda-card-item panda-card-item-last-update">${lead.card_last_update}</span>
+	// 					</div>
+	// 				</div>`;
+	// 	});
+	// 	return htmlString;
+	// }
+
 	var lead_details = {};
 	$('.panda-navigation-bar-bottom').on('click', '.fa-search',function () {
 		$(".panda-search-filter-area").toggle();
