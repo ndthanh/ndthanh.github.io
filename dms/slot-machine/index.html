@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Quay số trúng thưởng</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style type="text/css">
+        html,body{
+            font-family:sans-serif;
+        }
+        body {
+            background-image: url('background.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        .homepage {
+            margin-top: 5%;
+            text-align: center;
+        }
+        .homepage > .home-title {
+            color:aliceblue;
+        }
+        .jumbotron {
+            text-align: center;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+            filter: alpha(opacity=50);  /* IE 5-7 */
+            -moz-opacity: 0.5;          /* Netscape */
+            -khtml-opacity: 0.5;        /* Safari 1.x */
+            opacity: 0.5;               /* Good browsers */
+        }
+        .content {
+            display: none;
+        }
+        #output{
+            text-transform:uppercase;
+            color:#6E97DF;
+            font-size:10em;
+            font-weight:bold;
+            text-shadow:0.08em 0em #fff;
+        }
+        .text-white-50 { color: rgba(255, 255, 255, .5); }
+        .bg-purple { background-color: var(--purple); }
+        .border-bottom { border-bottom: 1px solid #e5e5e5; }
+        .box-shadow { box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05); }
+        .lh-100 { line-height: 1; }
+        .lh-125 { line-height: 1.25; }
+        .lh-150 { line-height: 1.5; }
+        .content > .historyWinners {
+            margin-top: 50px;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+            filter: alpha(opacity=80);  /* IE 5-7 */
+            -moz-opacity: 0.8;          /* Netscape */
+            -khtml-opacity: 0.8;        /* Safari 1.x */
+            opacity: 0.8;               /* Good browsers */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="homepage">
+            <h3 class="home-title">Xin vui lòng chọn vòng</h3>
+            <a href="index.html?round=1" class="btn btn-light">Vòng 1</a>
+            <a href="index.html?round=2" class="btn btn-light">Vòng 2</a>
+            <a href="javascript:void(0)" class="btn btn-light btnClear">Làm mới dữ liệu trúng thưởng</a>
+        </div>
+
+        <div class="content">
+            <div class="jumbotron mt-3">
+                <div id="output">00000000</div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="buttons">
+                        <a class="btn btn-light float-left" href="javascript:history.back();">Trở lại trang chủ</a>
+                        <button class="btn btn-light btnTurning float-right">Quay thưởng</button>
+                    </div>
+                </div>
+            </div>
+            <div class="row historyWinners">
+                <div class="col-sm-12">
+                    <div class="my-3 p-3 bg-white rounded box-shadow">
+                        <h6 class="border-bottom border-gray pb-2 mb-0">Lịch sử trúng thưởng</h6>
+                        <div class="listHistorys"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal -->
+            <div class="modal fade" id="modalRemunerative" role="dialog">
+                <div class="modal-dialog">
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Thông báo hệ thống</h5>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="modal-body"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        let empRelList = [
+            { id: '00000001', name: 'Employee 1' },
+            { id: '00000002', name: 'Employee 2' },
+            { id: '00000003', name: 'Employee 3' },
+            { id: '00000004', name: 'Employee 4' },
+            { id: '00000005', name: 'Employee 5' },
+            { id: '00000006', name: 'Employee 6' },
+            { id: '00000007', name: 'Employee 7' },
+            { id: '00000008', name: 'Employee 8' },
+            { id: '00000009', name: 'Employee 9' },
+            { id: '00000010', name: 'Employee 10' },
+            { id: '00000011', name: 'Employee 11' },
+            { id: '00000012', name: 'Employee 12' },
+            { id: '00000013', name: 'Employee 13' },
+            { id: '00000014', name: 'Employee 14' },
+            { id: '00000015', name: 'Employee 15' },
+            { id: '00000016', name: 'Employee 16' },
+            { id: '00000017', name: 'Employee 17' },
+            { id: '00000018', name: 'Employee 18' },
+            { id: '00000019', name: 'Employee 19' },
+            { id: '00000020', name: 'Employee 20' },
+            { id: '00000021', name: 'Employee 21' },
+            { id: '00000022', name: 'Employee 22' },
+            { id: '00000023', name: 'Employee 23' },
+            { id: '00000024', name: 'Employee 24' },
+            { id: '00000025', name: 'Employee 25' },
+            { id: '00000026', name: 'Employee 26' },
+            { id: '00000027', name: 'Employee 27' },
+            { id: '00000028', name: 'Employee 28' },
+            { id: '00000029', name: 'Employee 29' },
+            { id: '00000030', name: 'Employee 30' },
+            { id: '00000031', name: 'Employee 31' },
+            { id: '00000032', name: 'Employee 32' },
+            { id: '00000033', name: 'Employee 33' },
+            { id: '00000034', name: 'Employee 34' },
+            { id: '00000035', name: 'Employee 35' },
+            { id: '00000036', name: 'Employee 36' },
+            { id: '00000037', name: 'Employee 37' },
+            { id: '00000038', name: 'Employee 38' },
+            { id: '00000039', name: 'Employee 39' },
+            { id: '00000040', name: 'Employee 40' },
+            { id: '00000041', name: 'Employee 41' },
+            { id: '00000042', name: 'Employee 42' },
+            { id: '00000043', name: 'Employee 43' },
+            { id: '00000044', name: 'Employee 44' },
+            { id: '00000045', name: 'Employee 45' },
+            { id: '00000046', name: 'Employee 46' },
+            { id: '00000047', name: 'Employee 47' },
+            { id: '00000048', name: 'Employee 48' },
+            { id: '00000049', name: 'Employee 49' },
+            { id: '00000050', name: 'Employee 50' },
+            { id: '00000051', name: 'Employee 51' },
+            { id: '00000052', name: 'Employee 52' },
+            { id: '00000053', name: 'Employee 53' },
+            { id: '00000054', name: 'Employee 54' },
+            { id: '00000055', name: 'Employee 55' },
+            { id: '00000056', name: 'Employee 56' },
+            { id: '00000057', name: 'Employee 57' },
+            { id: '00000058', name: 'Employee 58' },
+            { id: '00000059', name: 'Employee 59' },
+            { id: '00000060', name: 'Employee 60' },
+            { id: '00000061', name: 'Employee 61' },
+            { id: '00000062', name: 'Employee 62' },
+            { id: '00000063', name: 'Employee 63' },
+            { id: '00000064', name: 'Employee 64' },
+            { id: '00000065', name: 'Employee 65' },
+            { id: '00000066', name: 'Employee 66' },
+            { id: '00000067', name: 'Employee 67' },
+            { id: '00000068', name: 'Employee 68' },
+            { id: '00000069', name: 'Employee 69' },
+            { id: '00000070', name: 'Employee 70' },
+            { id: '00000071', name: 'Employee 71' },
+            { id: '00000072', name: 'Employee 72' },
+            { id: '00000073', name: 'Employee 73' },
+            { id: '00000074', name: 'Employee 74' },
+            { id: '00000075', name: 'Employee 75' },
+            { id: '00000076', name: 'Employee 76' },
+            { id: '00000077', name: 'Employee 77' },
+            { id: '00000078', name: 'Employee 78' },
+            { id: '00000079', name: 'Employee 79' },
+            { id: '00000080', name: 'Employee 80' },
+            { id: '00000081', name: 'Employee 81' },
+            { id: '00000082', name: 'Employee 82' },
+            { id: '00000083', name: 'Employee 83' },
+            { id: '00000084', name: 'Employee 84' },
+            { id: '00000085', name: 'Employee 85' },
+            { id: '00000086', name: 'Employee 86' },
+            { id: '00000087', name: 'Employee 87' },
+            { id: '00000088', name: 'Employee 88' },
+            { id: '00000089', name: 'Employee 89' },
+            { id: '00000090', name: 'Employee 90' },
+            { id: '00000091', name: 'Employee 91' },
+            { id: '00000092', name: 'Employee 92' },
+            { id: '00000093', name: 'Employee 93' },
+            { id: '00000094', name: 'Employee 94' },
+            { id: '00000095', name: 'Employee 95' },
+            { id: '00000096', name: 'Employee 96' },
+            { id: '00000097', name: 'Employee 97' },
+            { id: '00000098', name: 'Employee 98' },
+            { id: '00000099', name: 'Employee 99' },
+            { id: '00000100', name: 'Employee 100' },
+            { id: '00000101', name: 'Employee 101' },
+            { id: '00000102', name: 'Employee 102' },
+            { id: '00000103', name: 'Employee 103' },
+            { id: '00000104', name: 'Employee 104' },
+            { id: '00000105', name: 'Employee 105' },
+            { id: '00000106', name: 'Employee 106' },
+            { id: '00000107', name: 'Employee 107' },
+            { id: '00000108', name: 'Employee 108' },
+            { id: '00000109', name: 'Employee 109' },
+            { id: '00000110', name: 'Employee 110' },
+            { id: '00000111', name: 'Employee 111' },
+            { id: '00000112', name: 'Employee 112' },
+            { id: '00000113', name: 'Employee 113' },
+            { id: '00000114', name: 'Employee 114' },
+            { id: '00000115', name: 'Employee 115' },
+            { id: '00000116', name: 'Employee 116' },
+            { id: '00000117', name: 'Employee 117' },
+            { id: '00000118', name: 'Employee 118' },
+            { id: '00000119', name: 'Employee 119' },
+            { id: '00000120', name: 'Employee 120' },
+            { id: '00000121', name: 'Employee 121' },
+            { id: '00000122', name: 'Employee 122' },
+            { id: '00000123', name: 'Employee 123' },
+            { id: '00000124', name: 'Employee 124' },
+            { id: '00000125', name: 'Employee 125' },
+            { id: '00000126', name: 'Employee 126' },
+            { id: '00000127', name: 'Employee 127' },
+            { id: '00000128', name: 'Employee 128' },
+            { id: '00000129', name: 'Employee 129' },
+            { id: '00000130', name: 'Employee 130' },
+            { id: '00000131', name: 'Employee 131' },
+            { id: '00000132', name: 'Employee 132' },
+            { id: '00000133', name: 'Employee 133' },
+            { id: '00000134', name: 'Employee 134' },
+            { id: '00000135', name: 'Employee 135' },
+            { id: '00000136', name: 'Employee 136' },
+            { id: '00000137', name: 'Employee 137' },
+            { id: '00000138', name: 'Employee 138' },
+            { id: '00000139', name: 'Employee 139' },
+            { id: '00000140', name: 'Employee 140' },
+            { id: '00000141', name: 'Employee 141' },
+            { id: '00000142', name: 'Employee 142' },
+            { id: '00000143', name: 'Employee 143' },
+            { id: '00000144', name: 'Employee 144' },
+            { id: '00000145', name: 'Employee 145' },
+            { id: '00000146', name: 'Employee 146' },
+            { id: '00000147', name: 'Employee 147' },
+            { id: '00000148', name: 'Employee 148' },
+            { id: '00000149', name: 'Employee 149' },
+            { id: '00000150', name: 'Employee 150' },
+            { id: '00000151', name: 'Employee 151' },
+            { id: '00000152', name: 'Employee 152' },
+            { id: '00000153', name: 'Employee 153' },
+            { id: '00000154', name: 'Employee 154' },
+            { id: '00000155', name: 'Employee 155' },
+            { id: '00000156', name: 'Employee 156' },
+            { id: '00000157', name: 'Employee 157' },
+            { id: '00000158', name: 'Employee 158' },
+            { id: '00000159', name: 'Employee 159' },
+            { id: '00000160', name: 'Employee 160' },
+            { id: '00000161', name: 'Employee 161' },
+            { id: '00000162', name: 'Employee 162' },
+            { id: '00000163', name: 'Employee 163' },
+            { id: '00000164', name: 'Employee 164' },
+            { id: '00000165', name: 'Employee 165' },
+            { id: '00000166', name: 'Employee 166' },
+            { id: '00000167', name: 'Employee 167' },
+            { id: '00000168', name: 'Employee 168' },
+            { id: '00000169', name: 'Employee 169' },
+            { id: '00000170', name: 'Employee 170' },
+            { id: '00000171', name: 'Employee 171' },
+            { id: '00000172', name: 'Employee 172' },
+            { id: '00000173', name: 'Employee 173' },
+            { id: '00000174', name: 'Employee 174' },
+            { id: '00000175', name: 'Employee 175' },
+            { id: '00000176', name: 'Employee 176' },
+            { id: '00000177', name: 'Employee 177' },
+            { id: '00000178', name: 'Employee 178' },
+            { id: '00000179', name: 'Employee 179' },
+            { id: '00000180', name: 'Employee 180' },
+            { id: '00000181', name: 'Employee 181' },
+            { id: '00000182', name: 'Employee 182' },
+            { id: '00000183', name: 'Employee 183' },
+            { id: '00000184', name: 'Employee 184' },
+            { id: '00000185', name: 'Employee 185' },
+            { id: '00000186', name: 'Employee 186' },
+            { id: '00000187', name: 'Employee 187' },
+            { id: '00000188', name: 'Employee 188' },
+            { id: '00000189', name: 'Employee 189' },
+            { id: '00000190', name: 'Employee 190' },
+            { id: '00000191', name: 'Employee 191' },
+            { id: '00000192', name: 'Employee 192' },
+            { id: '00000193', name: 'Employee 193' },
+            { id: '00000194', name: 'Employee 194' },
+            { id: '00000195', name: 'Employee 195' },
+            { id: '00000196', name: 'Employee 196' },
+            { id: '00000197', name: 'Employee 197' },
+            { id: '00000198', name: 'Employee 198' },
+            { id: '00000199', name: 'Employee 199' },
+            { id: '00000200', name: 'Employee 200' },
+            { id: '00000201', name: 'Employee 201' },
+            { id: '00000202', name: 'Employee 202' },
+            { id: '00000203', name: 'Employee 203' },
+            { id: '00000204', name: 'Employee 204' },
+            { id: '00000205', name: 'Employee 205' },
+            { id: '00000206', name: 'Employee 206' },
+            { id: '00000207', name: 'Employee 207' },
+            { id: '00000208', name: 'Employee 208' },
+            { id: '00000209', name: 'Employee 209' },
+            { id: '00000210', name: 'Employee 210' },
+            { id: '00000211', name: 'Employee 211' },
+            { id: '00000212', name: 'Employee 212' },
+            { id: '00000213', name: 'Employee 213' },
+            { id: '00000214', name: 'Employee 214' },
+            { id: '00000215', name: 'Employee 215' },
+            { id: '00000216', name: 'Employee 216' },
+            { id: '00000217', name: 'Employee 217' },
+            { id: '00000218', name: 'Employee 218' },
+            { id: '00000219', name: 'Employee 219' },
+            { id: '00000220', name: 'Employee 220' },
+            { id: '00000221', name: 'Employee 221' },
+            { id: '00000222', name: 'Employee 222' },
+            { id: '00000223', name: 'Employee 223' },
+            { id: '00000224', name: 'Employee 224' },
+            { id: '00000225', name: 'Employee 225' },
+            { id: '00000226', name: 'Employee 226' },
+            { id: '00000227', name: 'Employee 227' },
+            { id: '00000228', name: 'Employee 228' },
+            { id: '00000229', name: 'Employee 229' },
+            { id: '00000230', name: 'Employee 230' },
+            { id: '00000231', name: 'Employee 231' },
+            { id: '00000232', name: 'Employee 232' },
+            { id: '00000233', name: 'Employee 233' },
+            { id: '00000234', name: 'Employee 234' },
+            { id: '00000235', name: 'Employee 235' },
+            { id: '00000236', name: 'Employee 236' },
+            { id: '00000237', name: 'Employee 237' },
+            { id: '00000238', name: 'Employee 238' },
+            { id: '00000239', name: 'Employee 239' },
+            { id: '00000240', name: 'Employee 240' },
+            { id: '00000241', name: 'Employee 241' },
+            { id: '00000242', name: 'Employee 242' },
+            { id: '00000243', name: 'Employee 243' },
+            { id: '00000244', name: 'Employee 244' },
+            { id: '00000245', name: 'Employee 245' },
+            { id: '00000246', name: 'Employee 246' },
+            { id: '00000247', name: 'Employee 247' },
+            { id: '00000248', name: 'Employee 248' },
+            { id: '00000249', name: 'Employee 249' },
+            { id: '00000250', name: 'Employee 250' },
+            { id: '00000251', name: 'Employee 251' },
+            { id: '00000252', name: 'Employee 252' },
+            { id: '00000253', name: 'Employee 253' },
+            { id: '00000254', name: 'Employee 254' },
+            { id: '00000255', name: 'Employee 255' },
+            { id: '00000256', name: 'Employee 256' },
+            { id: '00000257', name: 'Employee 257' },
+            { id: '00000258', name: 'Employee 258' },
+            { id: '00000259', name: 'Employee 259' },
+            { id: '00000260', name: 'Employee 260' },
+            { id: '00000261', name: 'Employee 261' },
+            { id: '00000262', name: 'Employee 262' },
+            { id: '00000263', name: 'Employee 263' },
+            { id: '00000264', name: 'Employee 264' },
+            { id: '00000265', name: 'Employee 265' },
+            { id: '00000266', name: 'Employee 266' },
+            { id: '00000267', name: 'Employee 267' },
+            { id: '00000268', name: 'Employee 268' },
+            { id: '00000269', name: 'Employee 269' },
+            { id: '00000270', name: 'Employee 270' },
+            { id: '00000271', name: 'Employee 271' },
+            { id: '00000272', name: 'Employee 272' },
+            { id: '00000273', name: 'Employee 273' },
+            { id: '00000274', name: 'Employee 274' },
+            { id: '00000275', name: 'Employee 275' },
+            { id: '00000276', name: 'Employee 276' },
+            { id: '00000277', name: 'Employee 277' },
+            { id: '00000278', name: 'Employee 278' },
+            { id: '00000279', name: 'Employee 279' },
+            { id: '00000280', name: 'Employee 280' },
+            { id: '00000281', name: 'Employee 281' },
+            { id: '00000282', name: 'Employee 282' },
+            { id: '00000283', name: 'Employee 283' },
+            { id: '00000284', name: 'Employee 284' },
+            { id: '00000285', name: 'Employee 285' },
+            { id: '00000286', name: 'Employee 286' },
+            { id: '00000287', name: 'Employee 287' },
+            { id: '00000288', name: 'Employee 288' },
+            { id: '00000289', name: 'Employee 289' },
+            { id: '00000290', name: 'Employee 290' },
+            { id: '00000291', name: 'Employee 291' },
+            { id: '00000292', name: 'Employee 292' },
+            { id: '00000293', name: 'Employee 293' },
+            { id: '00000294', name: 'Employee 294' },
+            { id: '00000295', name: 'Employee 295' },
+            { id: '00000296', name: 'Employee 296' },
+            { id: '00000297', name: 'Employee 297' },
+            { id: '00000298', name: 'Employee 298' },
+            { id: '00000299', name: 'Employee 299' },
+            { id: '00000300', name: 'Employee 300' },
+            { id: '00000301', name: 'Employee 301' },
+            { id: '00000302', name: 'Employee 302' },
+            { id: '00000303', name: 'Employee 303' },
+            { id: '00000304', name: 'Employee 304' },
+            { id: '00000305', name: 'Employee 305' },
+            { id: '00000306', name: 'Employee 306' },
+            { id: '00000307', name: 'Employee 307' },
+            { id: '00000308', name: 'Employee 308' },
+            { id: '00000309', name: 'Employee 309' },
+            { id: '00000310', name: 'Employee 310' },
+            { id: '00000311', name: 'Employee 311' },
+            { id: '00000312', name: 'Employee 312' },
+            { id: '00000313', name: 'Employee 313' },
+            { id: '00000314', name: 'Employee 314' },
+            { id: '00000315', name: 'Employee 315' },
+            { id: '00000316', name: 'Employee 316' },
+            { id: '00000317', name: 'Employee 317' },
+            { id: '00000318', name: 'Employee 318' },
+            { id: '00000319', name: 'Employee 319' },
+            { id: '00000320', name: 'Employee 320' },
+            { id: '00000321', name: 'Employee 321' },
+            { id: '00000322', name: 'Employee 322' },
+            { id: '00000323', name: 'Employee 323' },
+            { id: '00000324', name: 'Employee 324' },
+            { id: '00000325', name: 'Employee 325' },
+            { id: '00000326', name: 'Employee 326' },
+            { id: '00000327', name: 'Employee 327' },
+            { id: '00000328', name: 'Employee 328' },
+            { id: '00000329', name: 'Employee 329' },
+            { id: '00000330', name: 'Employee 330' },
+            { id: '00000331', name: 'Employee 331' },
+            { id: '00000332', name: 'Employee 332' },
+            { id: '00000333', name: 'Employee 333' },
+            { id: '00000334', name: 'Employee 334' },
+            { id: '00000335', name: 'Employee 335' },
+            { id: '00000336', name: 'Employee 336' },
+            { id: '00000337', name: 'Employee 337' },
+            { id: '00000338', name: 'Employee 338' },
+            { id: '00000339', name: 'Employee 339' },
+            { id: '00000340', name: 'Employee 340' },
+            { id: '00000341', name: 'Employee 341' },
+            { id: '00000342', name: 'Employee 342' },
+            { id: '00000343', name: 'Employee 343' },
+            { id: '00000344', name: 'Employee 344' },
+            { id: '00000345', name: 'Employee 345' },
+            { id: '00000346', name: 'Employee 346' },
+            { id: '00000347', name: 'Employee 347' },
+            { id: '00000348', name: 'Employee 348' },
+            { id: '00000349', name: 'Employee 349' },
+            { id: '00000350', name: 'Employee 350' },
+            { id: '00000351', name: 'Employee 351' },
+            { id: '00000352', name: 'Employee 352' },
+            { id: '00000353', name: 'Employee 353' },
+            { id: '00000354', name: 'Employee 354' },
+            { id: '00000355', name: 'Employee 355' },
+            { id: '00000356', name: 'Employee 356' },
+            { id: '00000357', name: 'Employee 357' },
+            { id: '00000358', name: 'Employee 358' },
+            { id: '00000359', name: 'Employee 359' },
+            { id: '00000360', name: 'Employee 360' },
+            { id: '00000361', name: 'Employee 361' },
+            { id: '00000362', name: 'Employee 362' },
+            { id: '00000363', name: 'Employee 363' },
+            { id: '00000364', name: 'Employee 364' },
+            { id: '00000365', name: 'Employee 365' },
+            { id: '00000366', name: 'Employee 366' },
+            { id: '00000367', name: 'Employee 367' },
+            { id: '00000368', name: 'Employee 368' },
+            { id: '00000369', name: 'Employee 369' },
+            { id: '00000370', name: 'Employee 370' },
+            { id: '00000371', name: 'Employee 371' },
+            { id: '00000372', name: 'Employee 372' },
+            { id: '00000373', name: 'Employee 373' },
+            { id: '00000374', name: 'Employee 374' },
+            { id: '00000375', name: 'Employee 375' },
+            { id: '00000376', name: 'Employee 376' },
+            { id: '00000377', name: 'Employee 377' },
+            { id: '00000378', name: 'Employee 378' },
+            { id: '00000379', name: 'Employee 379' },
+            { id: '00000380', name: 'Employee 380' },
+            { id: '00000381', name: 'Employee 381' },
+            { id: '00000382', name: 'Employee 382' },
+            { id: '00000383', name: 'Employee 383' },
+            { id: '00000384', name: 'Employee 384' },
+            { id: '00000385', name: 'Employee 385' },
+            { id: '00000386', name: 'Employee 386' },
+            { id: '00000387', name: 'Employee 387' },
+            { id: '00000388', name: 'Employee 388' },
+            { id: '00000389', name: 'Employee 389' },
+            { id: '00000390', name: 'Employee 390' },
+            { id: '00000391', name: 'Employee 391' },
+            { id: '00000392', name: 'Employee 392' },
+            { id: '00000393', name: 'Employee 393' },
+            { id: '00000394', name: 'Employee 394' },
+            { id: '00000395', name: 'Employee 395' },
+            { id: '00000396', name: 'Employee 396' },
+            { id: '00000397', name: 'Employee 397' },
+            { id: '00000398', name: 'Employee 398' },
+            { id: '00000399', name: 'Employee 399' },
+            { id: '00000400', name: 'Employee 400' },
+            { id: '00000401', name: 'Employee 401' },
+            { id: '00000402', name: 'Employee 402' },
+            { id: '00000403', name: 'Employee 403' },
+            { id: '00000404', name: 'Employee 404' },
+            { id: '00000405', name: 'Employee 405' },
+            { id: '00000406', name: 'Employee 406' },
+            { id: '00000407', name: 'Employee 407' },
+            { id: '00000408', name: 'Employee 408' },
+            { id: '00000409', name: 'Employee 409' },
+            { id: '00000410', name: 'Employee 410' },
+            { id: '00000411', name: 'Employee 411' },
+            { id: '00000412', name: 'Employee 412' },
+            { id: '00000413', name: 'Employee 413' },
+            { id: '00000414', name: 'Employee 414' },
+            { id: '00000415', name: 'Employee 415' },
+            { id: '00000416', name: 'Employee 416' },
+            { id: '00000417', name: 'Employee 417' },
+            { id: '00000418', name: 'Employee 418' },
+            { id: '00000419', name: 'Employee 419' },
+            { id: '00000420', name: 'Employee 420' },
+            { id: '00000421', name: 'Employee 421' },
+            { id: '00000422', name: 'Employee 422' },
+            { id: '00000423', name: 'Employee 423' },
+            { id: '00000424', name: 'Employee 424' },
+            { id: '00000425', name: 'Employee 425' },
+            { id: '00000426', name: 'Employee 426' },
+            { id: '00000427', name: 'Employee 427' },
+            { id: '00000428', name: 'Employee 428' },
+            { id: '00000429', name: 'Employee 429' },
+            { id: '00000430', name: 'Employee 430' },
+            { id: '00000431', name: 'Employee 431' },
+            { id: '00000432', name: 'Employee 432' },
+            { id: '00000433', name: 'Employee 433' },
+            { id: '00000434', name: 'Employee 434' },
+            { id: '00000435', name: 'Employee 435' },
+            { id: '00000436', name: 'Employee 436' },
+            { id: '00000437', name: 'Employee 437' },
+            { id: '00000438', name: 'Employee 438' },
+            { id: '00000439', name: 'Employee 439' },
+            { id: '00000440', name: 'Employee 440' },
+            { id: '00000441', name: 'Employee 441' },
+            { id: '00000442', name: 'Employee 442' },
+            { id: '00000443', name: 'Employee 443' },
+            { id: '00000444', name: 'Employee 444' },
+            { id: '00000445', name: 'Employee 445' },
+            { id: '00000446', name: 'Employee 446' },
+            { id: '00000447', name: 'Employee 447' },
+            { id: '00000448', name: 'Employee 448' },
+            { id: '00000449', name: 'Employee 449' },
+            { id: '00000450', name: 'Employee 450' },
+            { id: '00000451', name: 'Employee 451' },
+            { id: '00000452', name: 'Employee 452' },
+            { id: '00000453', name: 'Employee 453' },
+            { id: '00000454', name: 'Employee 454' },
+            { id: '00000455', name: 'Employee 455' },
+            { id: '00000456', name: 'Employee 456' },
+            { id: '00000457', name: 'Employee 457' },
+            { id: '00000458', name: 'Employee 458' },
+            { id: '00000459', name: 'Employee 459' },
+            { id: '00000460', name: 'Employee 460' },
+            { id: '00000461', name: 'Employee 461' },
+            { id: '00000462', name: 'Employee 462' },
+            { id: '00000463', name: 'Employee 463' },
+            { id: '00000464', name: 'Employee 464' },
+            { id: '00000465', name: 'Employee 465' },
+            { id: '00000466', name: 'Employee 466' },
+            { id: '00000467', name: 'Employee 467' },
+            { id: '00000468', name: 'Employee 468' },
+            { id: '00000469', name: 'Employee 469' },
+            { id: '00000470', name: 'Employee 470' },
+            { id: '00000471', name: 'Employee 471' },
+            { id: '00000472', name: 'Employee 472' },
+            { id: '00000473', name: 'Employee 473' },
+            { id: '00000474', name: 'Employee 474' },
+            { id: '00000475', name: 'Employee 475' },
+            { id: '00000476', name: 'Employee 476' },
+            { id: '00000477', name: 'Employee 477' },
+            { id: '00000478', name: 'Employee 478' },
+            { id: '00000479', name: 'Employee 479' },
+            { id: '00000480', name: 'Employee 480' },
+            { id: '00000481', name: 'Employee 481' },
+            { id: '00000482', name: 'Employee 482' },
+            { id: '00000483', name: 'Employee 483' },
+            { id: '00000484', name: 'Employee 484' },
+            { id: '00000485', name: 'Employee 485' },
+            { id: '00000486', name: 'Employee 486' },
+            { id: '00000487', name: 'Employee 487' },
+            { id: '00000488', name: 'Employee 488' },
+            { id: '00000489', name: 'Employee 489' },
+            { id: '00000490', name: 'Employee 490' },
+            { id: '00000491', name: 'Employee 491' },
+            { id: '00000492', name: 'Employee 492' },
+            { id: '00000493', name: 'Employee 493' },
+            { id: '00000494', name: 'Employee 494' },
+            { id: '00000495', name: 'Employee 495' },
+            { id: '00000496', name: 'Employee 496' },
+            { id: '00000497', name: 'Employee 497' },
+            { id: '00000498', name: 'Employee 498' },
+            { id: '00000499', name: 'Employee 499' },
+            { id: '00000500', name: 'Employee 500' },
+            { id: '00000501', name: 'Employee 501' },
+            { id: '00000502', name: 'Employee 502' },
+            { id: '00000503', name: 'Employee 503' },
+            { id: '00000504', name: 'Employee 504' },
+            { id: '00000505', name: 'Employee 505' },
+            { id: '00000506', name: 'Employee 506' },
+            { id: '00000507', name: 'Employee 507' },
+            { id: '00000508', name: 'Employee 508' },
+            { id: '00000509', name: 'Employee 509' },
+            { id: '00000510', name: 'Employee 510' },
+            { id: '00000511', name: 'Employee 511' },
+            { id: '00000512', name: 'Employee 512' },
+            { id: '00000513', name: 'Employee 513' },
+            { id: '00000514', name: 'Employee 514' },
+            { id: '00000515', name: 'Employee 515' },
+            { id: '00000516', name: 'Employee 516' },
+            { id: '00000517', name: 'Employee 517' },
+            { id: '00000518', name: 'Employee 518' },
+            { id: '00000519', name: 'Employee 519' },
+            { id: '00000520', name: 'Employee 520' },
+            { id: '00000521', name: 'Employee 521' },
+            { id: '00000522', name: 'Employee 522' },
+            { id: '00000523', name: 'Employee 523' },
+            { id: '00000524', name: 'Employee 524' },
+            { id: '00000525', name: 'Employee 525' },
+            { id: '00000526', name: 'Employee 526' },
+            { id: '00000527', name: 'Employee 527' },
+            { id: '00000528', name: 'Employee 528' },
+            { id: '00000529', name: 'Employee 529' },
+            { id: '00000530', name: 'Employee 530' },
+            { id: '00000531', name: 'Employee 531' },
+            { id: '00000532', name: 'Employee 532' },
+            { id: '00000533', name: 'Employee 533' },
+            { id: '00000534', name: 'Employee 534' },
+            { id: '00000535', name: 'Employee 535' },
+            { id: '00000536', name: 'Employee 536' },
+            { id: '00000537', name: 'Employee 537' },
+            { id: '00000538', name: 'Employee 538' },
+            { id: '00000539', name: 'Employee 539' },
+            { id: '00000540', name: 'Employee 540' },
+            { id: '00000541', name: 'Employee 541' },
+            { id: '00000542', name: 'Employee 542' },
+            { id: '00000543', name: 'Employee 543' },
+            { id: '00000544', name: 'Employee 544' },
+            { id: '00000545', name: 'Employee 545' },
+            { id: '00000546', name: 'Employee 546' },
+            { id: '00000547', name: 'Employee 547' },
+            { id: '00000548', name: 'Employee 548' },
+            { id: '00000549', name: 'Employee 549' },
+            { id: '00000550', name: 'Employee 550' },
+            { id: '00000551', name: 'Employee 551' },
+            { id: '00000552', name: 'Employee 552' },
+            { id: '00000553', name: 'Employee 553' },
+            { id: '00000554', name: 'Employee 554' },
+            { id: '00000555', name: 'Employee 555' },
+            { id: '00000556', name: 'Employee 556' },
+            { id: '00000557', name: 'Employee 557' },
+            { id: '00000558', name: 'Employee 558' },
+            { id: '00000559', name: 'Employee 559' },
+            { id: '00000560', name: 'Employee 560' },
+            { id: '00000561', name: 'Employee 561' },
+            { id: '00000562', name: 'Employee 562' },
+            { id: '00000563', name: 'Employee 563' },
+            { id: '00000564', name: 'Employee 564' },
+            { id: '00000565', name: 'Employee 565' },
+            { id: '00000566', name: 'Employee 566' },
+            { id: '00000567', name: 'Employee 567' },
+            { id: '00000568', name: 'Employee 568' },
+            { id: '00000569', name: 'Employee 569' },
+            { id: '00000570', name: 'Employee 570' },
+            { id: '00000571', name: 'Employee 571' },
+            { id: '00000572', name: 'Employee 572' },
+            { id: '00000573', name: 'Employee 573' },
+            { id: '00000574', name: 'Employee 574' },
+            { id: '00000575', name: 'Employee 575' },
+            { id: '00000576', name: 'Employee 576' },
+            { id: '00000577', name: 'Employee 577' },
+            { id: '00000578', name: 'Employee 578' },
+            { id: '00000579', name: 'Employee 579' },
+            { id: '00000580', name: 'Employee 580' },
+            { id: '00000581', name: 'Employee 581' },
+            { id: '00000582', name: 'Employee 582' },
+            { id: '00000583', name: 'Employee 583' },
+            { id: '00000584', name: 'Employee 584' },
+            { id: '00000585', name: 'Employee 585' },
+            { id: '00000586', name: 'Employee 586' },
+            { id: '00000587', name: 'Employee 587' },
+            { id: '00000588', name: 'Employee 588' },
+            { id: '00000589', name: 'Employee 589' },
+            { id: '00000590', name: 'Employee 590' },
+            { id: '00000591', name: 'Employee 591' },
+            { id: '00000592', name: 'Employee 592' },
+            { id: '00000593', name: 'Employee 593' },
+            { id: '00000594', name: 'Employee 594' },
+            { id: '00000595', name: 'Employee 595' },
+            { id: '00000596', name: 'Employee 596' },
+            { id: '00000597', name: 'Employee 597' },
+            { id: '00000598', name: 'Employee 598' },
+            { id: '00000599', name: 'Employee 599' },
+            { id: '00000600', name: 'Employee 600' },
+            { id: '00000601', name: 'Employee 601' },
+            { id: '00000602', name: 'Employee 602' },
+            { id: '00000603', name: 'Employee 603' },
+            { id: '00000604', name: 'Employee 604' },
+            { id: '00000605', name: 'Employee 605' },
+            { id: '00000606', name: 'Employee 606' },
+            { id: '00000607', name: 'Employee 607' },
+            { id: '00000608', name: 'Employee 608' },
+            { id: '00000609', name: 'Employee 609' },
+            { id: '00000610', name: 'Employee 610' },
+            { id: '00000611', name: 'Employee 611' },
+            { id: '00000612', name: 'Employee 612' },
+            { id: '00000613', name: 'Employee 613' },
+            { id: '00000614', name: 'Employee 614' },
+            { id: '00000615', name: 'Employee 615' },
+            { id: '00000616', name: 'Employee 616' },
+            { id: '00000617', name: 'Employee 617' },
+            { id: '00000618', name: 'Employee 618' },
+            { id: '00000619', name: 'Employee 619' },
+            { id: '00000620', name: 'Employee 620' },
+            { id: '00000621', name: 'Employee 621' },
+            { id: '00000622', name: 'Employee 622' },
+            { id: '00000623', name: 'Employee 623' },
+            { id: '00000624', name: 'Employee 624' },
+            { id: '00000625', name: 'Employee 625' },
+            { id: '00000626', name: 'Employee 626' },
+            { id: '00000627', name: 'Employee 627' },
+            { id: '00000628', name: 'Employee 628' },
+            { id: '00000629', name: 'Employee 629' },
+            { id: '00000630', name: 'Employee 630' },
+            { id: '00000631', name: 'Employee 631' },
+            { id: '00000632', name: 'Employee 632' },
+            { id: '00000633', name: 'Employee 633' },
+            { id: '00000634', name: 'Employee 634' },
+            { id: '00000635', name: 'Employee 635' },
+            { id: '00000636', name: 'Employee 636' },
+            { id: '00000637', name: 'Employee 637' },
+            { id: '00000638', name: 'Employee 638' },
+            { id: '00000639', name: 'Employee 639' },
+            { id: '00000640', name: 'Employee 640' },
+            { id: '00000641', name: 'Employee 641' },
+            { id: '00000642', name: 'Employee 642' },
+            { id: '00000643', name: 'Employee 643' },
+            { id: '00000644', name: 'Employee 644' },
+            { id: '00000645', name: 'Employee 645' },
+            { id: '00000646', name: 'Employee 646' },
+            { id: '00000647', name: 'Employee 647' },
+            { id: '00000648', name: 'Employee 648' },
+            { id: '00000649', name: 'Employee 649' },
+            { id: '00000650', name: 'Employee 650' },
+            { id: '00000651', name: 'Employee 651' },
+            { id: '00000652', name: 'Employee 652' },
+            { id: '00000653', name: 'Employee 653' },
+            { id: '00000654', name: 'Employee 654' },
+            { id: '00000655', name: 'Employee 655' },
+            { id: '00000656', name: 'Employee 656' },
+            { id: '00000657', name: 'Employee 657' },
+            { id: '00000658', name: 'Employee 658' },
+            { id: '00000659', name: 'Employee 659' },
+            { id: '00000660', name: 'Employee 660' },
+            { id: '00000661', name: 'Employee 661' },
+            { id: '00000662', name: 'Employee 662' },
+            { id: '00000663', name: 'Employee 663' },
+            { id: '00000664', name: 'Employee 664' },
+            { id: '00000665', name: 'Employee 665' },
+            { id: '00000666', name: 'Employee 666' },
+            { id: '00000667', name: 'Employee 667' },
+            { id: '00000668', name: 'Employee 668' },
+            { id: '00000669', name: 'Employee 669' },
+            { id: '00000670', name: 'Employee 670' },
+            { id: '00000671', name: 'Employee 671' },
+            { id: '00000672', name: 'Employee 672' },
+            { id: '00000673', name: 'Employee 673' },
+            { id: '00000674', name: 'Employee 674' },
+            { id: '00000675', name: 'Employee 675' },
+            { id: '00000676', name: 'Employee 676' },
+            { id: '00000677', name: 'Employee 677' },
+            { id: '00000678', name: 'Employee 678' },
+            { id: '00000679', name: 'Employee 679' },
+            { id: '00000680', name: 'Employee 680' },
+            { id: '00000681', name: 'Employee 681' },
+            { id: '00000682', name: 'Employee 682' },
+            { id: '00000683', name: 'Employee 683' },
+            { id: '00000684', name: 'Employee 684' },
+            { id: '00000685', name: 'Employee 685' },
+            { id: '00000686', name: 'Employee 686' },
+            { id: '00000687', name: 'Employee 687' },
+            { id: '00000688', name: 'Employee 688' },
+            { id: '00000689', name: 'Employee 689' },
+            { id: '00000690', name: 'Employee 690' },
+            { id: '00000691', name: 'Employee 691' },
+            { id: '00000692', name: 'Employee 692' },
+            { id: '00000693', name: 'Employee 693' },
+            { id: '00000694', name: 'Employee 694' },
+            { id: '00000695', name: 'Employee 695' },
+            { id: '00000696', name: 'Employee 696' },
+            { id: '00000697', name: 'Employee 697' },
+            { id: '00000698', name: 'Employee 698' },
+            { id: '00000699', name: 'Employee 699' },
+            { id: '00000700', name: 'Employee 700' },
+            { id: null, name: 'Relative 1', relatedTo: '00000001' },
+            { id: null, name: 'Relative 2', relatedTo: '00000002' },
+            { id: null, name: 'Relative 3', relatedTo: '00000003' },
+            { id: null, name: 'Relative 4', relatedTo: '00000004' },
+            { id: null, name: 'Relative 5', relatedTo: '00000005' },
+            { id: null, name: 'Relative 6', relatedTo: '00000006' },
+            { id: null, name: 'Relative 7', relatedTo: '00000007' },
+            { id: null, name: 'Relative 8', relatedTo: '00000008' },
+            { id: null, name: 'Relative 9', relatedTo: '00000009' },
+            { id: null, name: 'Relative 10', relatedTo: '00000010' },
+            { id: null, name: 'Relative 11', relatedTo: '00000011' },
+            { id: null, name: 'Relative 12', relatedTo: '00000012' },
+            { id: null, name: 'Relative 13', relatedTo: '00000013' },
+            { id: null, name: 'Relative 14', relatedTo: '00000014' },
+            { id: null, name: 'Relative 15', relatedTo: '00000015' },
+            { id: null, name: 'Relative 16', relatedTo: '00000016' },
+            { id: null, name: 'Relative 17', relatedTo: '00000017' },
+            { id: null, name: 'Relative 18', relatedTo: '00000018' },
+            { id: null, name: 'Relative 19', relatedTo: '00000019' },
+            { id: null, name: 'Relative 20', relatedTo: '00000020' },
+            { id: null, name: 'Relative 21', relatedTo: '00000021' },
+            { id: null, name: 'Relative 22', relatedTo: '00000022' },
+            { id: null, name: 'Relative 23', relatedTo: '00000023' },
+            { id: null, name: 'Relative 24', relatedTo: '00000024' },
+            { id: null, name: 'Relative 25', relatedTo: '00000025' },
+            { id: null, name: 'Relative 26', relatedTo: '00000026' },
+            { id: null, name: 'Relative 27', relatedTo: '00000027' },
+            { id: null, name: 'Relative 28', relatedTo: '00000028' },
+            { id: null, name: 'Relative 29', relatedTo: '00000029' },
+            { id: null, name: 'Relative 30', relatedTo: '00000030' },
+            { id: null, name: 'Relative 31', relatedTo: '00000031' },
+            { id: null, name: 'Relative 32', relatedTo: '00000032' },
+            { id: null, name: 'Relative 33', relatedTo: '00000033' },
+            { id: null, name: 'Relative 34', relatedTo: '00000034' },
+            { id: null, name: 'Relative 35', relatedTo: '00000035' },
+            { id: null, name: 'Relative 36', relatedTo: '00000036' },
+            { id: null, name: 'Relative 37', relatedTo: '00000037' },
+            { id: null, name: 'Relative 38', relatedTo: '00000038' },
+            { id: null, name: 'Relative 39', relatedTo: '00000039' },
+            { id: null, name: 'Relative 40', relatedTo: '00000040' },
+            { id: null, name: 'Relative 41', relatedTo: '00000041' },
+            { id: null, name: 'Relative 42', relatedTo: '00000042' },
+            { id: null, name: 'Relative 43', relatedTo: '00000043' },
+            { id: null, name: 'Relative 44', relatedTo: '00000044' },
+            { id: null, name: 'Relative 45', relatedTo: '00000045' },
+            { id: null, name: 'Relative 46', relatedTo: '00000046' },
+            { id: null, name: 'Relative 47', relatedTo: '00000047' },
+            { id: null, name: 'Relative 48', relatedTo: '00000048' },
+            { id: null, name: 'Relative 49', relatedTo: '00000049' },
+            { id: null, name: 'Relative 50', relatedTo: '00000050' },
+            { id: null, name: 'Relative 51', relatedTo: '00000051' },
+            { id: null, name: 'Relative 52', relatedTo: '00000052' },
+            { id: null, name: 'Relative 53', relatedTo: '00000053' },
+            { id: null, name: 'Relative 54', relatedTo: '00000054' },
+            { id: null, name: 'Relative 55', relatedTo: '00000055' },
+            { id: null, name: 'Relative 56', relatedTo: '00000056' },
+            { id: null, name: 'Relative 57', relatedTo: '00000057' },
+            { id: null, name: 'Relative 58', relatedTo: '00000058' },
+            { id: null, name: 'Relative 59', relatedTo: '00000059' },
+            { id: null, name: 'Relative 60', relatedTo: '00000060' },
+            { id: null, name: 'Relative 61', relatedTo: '00000061' },
+            { id: null, name: 'Relative 62', relatedTo: '00000062' },
+            { id: null, name: 'Relative 63', relatedTo: '00000063' },
+            { id: null, name: 'Relative 64', relatedTo: '00000064' },
+            { id: null, name: 'Relative 65', relatedTo: '00000065' },
+            { id: null, name: 'Relative 66', relatedTo: '00000066' },
+            { id: null, name: 'Relative 67', relatedTo: '00000067' },
+            { id: null, name: 'Relative 68', relatedTo: '00000068' },
+            { id: null, name: 'Relative 69', relatedTo: '00000069' },
+            { id: null, name: 'Relative 70', relatedTo: '00000070' },
+            { id: null, name: 'Relative 71', relatedTo: '00000071' },
+            { id: null, name: 'Relative 72', relatedTo: '00000072' },
+            { id: null, name: 'Relative 73', relatedTo: '00000073' },
+            { id: null, name: 'Relative 74', relatedTo: '00000074' },
+            { id: null, name: 'Relative 75', relatedTo: '00000075' },
+            { id: null, name: 'Relative 76', relatedTo: '00000076' },
+            { id: null, name: 'Relative 77', relatedTo: '00000077' },
+            { id: null, name: 'Relative 78', relatedTo: '00000078' },
+            { id: null, name: 'Relative 79', relatedTo: '00000079' },
+            { id: null, name: 'Relative 80', relatedTo: '00000080' },
+            { id: null, name: 'Relative 81', relatedTo: '00000081' },
+            { id: null, name: 'Relative 82', relatedTo: '00000082' },
+            { id: null, name: 'Relative 83', relatedTo: '00000083' },
+            { id: null, name: 'Relative 84', relatedTo: '00000084' },
+            { id: null, name: 'Relative 85', relatedTo: '00000085' },
+            { id: null, name: 'Relative 86', relatedTo: '00000086' },
+            { id: null, name: 'Relative 87', relatedTo: '00000087' },
+            { id: null, name: 'Relative 88', relatedTo: '00000088' },
+            { id: null, name: 'Relative 89', relatedTo: '00000089' },
+            { id: null, name: 'Relative 90', relatedTo: '00000090' },
+            { id: null, name: 'Relative 91', relatedTo: '00000091' },
+            { id: null, name: 'Relative 92', relatedTo: '00000092' },
+            { id: null, name: 'Relative 93', relatedTo: '00000093' },
+            { id: null, name: 'Relative 94', relatedTo: '00000094' },
+            { id: null, name: 'Relative 95', relatedTo: '00000095' },
+            { id: null, name: 'Relative 96', relatedTo: '00000096' },
+            { id: null, name: 'Relative 97', relatedTo: '00000097' },
+            { id: null, name: 'Relative 98', relatedTo: '00000098' },
+            { id: null, name: 'Relative 99', relatedTo: '00000099' },
+            { id: null, name: 'Relative 100', relatedTo: '00000100' },
+            { id: null, name: 'Relative 101', relatedTo: '00000101' },
+            { id: null, name: 'Relative 102', relatedTo: '00000102' },
+            { id: null, name: 'Relative 103', relatedTo: '00000103' },
+            { id: null, name: 'Relative 104', relatedTo: '00000104' },
+            { id: null, name: 'Relative 105', relatedTo: '00000105' },
+            { id: null, name: 'Relative 106', relatedTo: '00000106' },
+            { id: null, name: 'Relative 107', relatedTo: '00000107' },
+            { id: null, name: 'Relative 108', relatedTo: '00000108' },
+            { id: null, name: 'Relative 109', relatedTo: '00000109' },
+            { id: null, name: 'Relative 110', relatedTo: '00000110' },
+            { id: null, name: 'Relative 111', relatedTo: '00000111' },
+            { id: null, name: 'Relative 112', relatedTo: '00000112' },
+            { id: null, name: 'Relative 113', relatedTo: '00000113' },
+            { id: null, name: 'Relative 114', relatedTo: '00000114' },
+            { id: null, name: 'Relative 115', relatedTo: '00000115' },
+            { id: null, name: 'Relative 116', relatedTo: '00000116' },
+            { id: null, name: 'Relative 117', relatedTo: '00000117' },
+            { id: null, name: 'Relative 118', relatedTo: '00000118' },
+            { id: null, name: 'Relative 119', relatedTo: '00000119' },
+            { id: null, name: 'Relative 120', relatedTo: '00000120' },
+            { id: null, name: 'Relative 121', relatedTo: '00000121' },
+            { id: null, name: 'Relative 122', relatedTo: '00000122' },
+            { id: null, name: 'Relative 123', relatedTo: '00000123' },
+            { id: null, name: 'Relative 124', relatedTo: '00000124' },
+            { id: null, name: 'Relative 125', relatedTo: '00000125' },
+            { id: null, name: 'Relative 126', relatedTo: '00000126' },
+            { id: null, name: 'Relative 127', relatedTo: '00000127' },
+            { id: null, name: 'Relative 128', relatedTo: '00000128' },
+            { id: null, name: 'Relative 129', relatedTo: '00000129' },
+            { id: null, name: 'Relative 130', relatedTo: '00000130' },
+            { id: null, name: 'Relative 131', relatedTo: '00000131' },
+            { id: null, name: 'Relative 132', relatedTo: '00000132' },
+            { id: null, name: 'Relative 133', relatedTo: '00000133' },
+            { id: null, name: 'Relative 134', relatedTo: '00000134' },
+            { id: null, name: 'Relative 135', relatedTo: '00000135' },
+            { id: null, name: 'Relative 136', relatedTo: '00000136' },
+            { id: null, name: 'Relative 137', relatedTo: '00000137' },
+            { id: null, name: 'Relative 138', relatedTo: '00000138' },
+            { id: null, name: 'Relative 139', relatedTo: '00000139' },
+            { id: null, name: 'Relative 140', relatedTo: '00000140' },
+            { id: null, name: 'Relative 141', relatedTo: '00000141' },
+            { id: null, name: 'Relative 142', relatedTo: '00000142' },
+            { id: null, name: 'Relative 143', relatedTo: '00000143' },
+            { id: null, name: 'Relative 144', relatedTo: '00000144' },
+            { id: null, name: 'Relative 145', relatedTo: '00000145' },
+            { id: null, name: 'Relative 146', relatedTo: '00000146' },
+            { id: null, name: 'Relative 147', relatedTo: '00000147' },
+            { id: null, name: 'Relative 148', relatedTo: '00000148' },
+            { id: null, name: 'Relative 149', relatedTo: '00000149' },
+            { id: null, name: 'Relative 150', relatedTo: '00000150' },
+            { id: null, name: 'Relative 151', relatedTo: '00000151' },
+            { id: null, name: 'Relative 152', relatedTo: '00000152' },
+            { id: null, name: 'Relative 153', relatedTo: '00000153' },
+            { id: null, name: 'Relative 154', relatedTo: '00000154' },
+            { id: null, name: 'Relative 155', relatedTo: '00000155' },
+            { id: null, name: 'Relative 156', relatedTo: '00000156' },
+            { id: null, name: 'Relative 157', relatedTo: '00000157' },
+            { id: null, name: 'Relative 158', relatedTo: '00000158' },
+            { id: null, name: 'Relative 159', relatedTo: '00000159' },
+            { id: null, name: 'Relative 160', relatedTo: '00000160' },
+            { id: null, name: 'Relative 161', relatedTo: '00000161' },
+            { id: null, name: 'Relative 162', relatedTo: '00000162' },
+            { id: null, name: 'Relative 163', relatedTo: '00000163' },
+            { id: null, name: 'Relative 164', relatedTo: '00000164' },
+            { id: null, name: 'Relative 165', relatedTo: '00000165' },
+            { id: null, name: 'Relative 166', relatedTo: '00000166' },
+            { id: null, name: 'Relative 167', relatedTo: '00000167' },
+            { id: null, name: 'Relative 168', relatedTo: '00000168' },
+            { id: null, name: 'Relative 169', relatedTo: '00000169' },
+            { id: null, name: 'Relative 170', relatedTo: '00000170' },
+            { id: null, name: 'Relative 171', relatedTo: '00000171' },
+            { id: null, name: 'Relative 172', relatedTo: '00000172' },
+            { id: null, name: 'Relative 173', relatedTo: '00000173' },
+            { id: null, name: 'Relative 174', relatedTo: '00000174' },
+            { id: null, name: 'Relative 175', relatedTo: '00000175' },
+            { id: null, name: 'Relative 176', relatedTo: '00000176' },
+            { id: null, name: 'Relative 177', relatedTo: '00000177' },
+            { id: null, name: 'Relative 178', relatedTo: '00000178' },
+            { id: null, name: 'Relative 179', relatedTo: '00000179' },
+            { id: null, name: 'Relative 180', relatedTo: '00000180' },
+            { id: null, name: 'Relative 181', relatedTo: '00000181' },
+            { id: null, name: 'Relative 182', relatedTo: '00000182' },
+            { id: null, name: 'Relative 183', relatedTo: '00000183' },
+            { id: null, name: 'Relative 184', relatedTo: '00000184' },
+            { id: null, name: 'Relative 185', relatedTo: '00000185' },
+            { id: null, name: 'Relative 186', relatedTo: '00000186' },
+            { id: null, name: 'Relative 187', relatedTo: '00000187' },
+            { id: null, name: 'Relative 188', relatedTo: '00000188' },
+            { id: null, name: 'Relative 189', relatedTo: '00000189' },
+            { id: null, name: 'Relative 190', relatedTo: '00000190' },
+            { id: null, name: 'Relative 191', relatedTo: '00000191' },
+            { id: null, name: 'Relative 192', relatedTo: '00000192' },
+            { id: null, name: 'Relative 193', relatedTo: '00000193' },
+            { id: null, name: 'Relative 194', relatedTo: '00000194' },
+            { id: null, name: 'Relative 195', relatedTo: '00000195' },
+            { id: null, name: 'Relative 196', relatedTo: '00000196' },
+            { id: null, name: 'Relative 197', relatedTo: '00000197' },
+            { id: null, name: 'Relative 198', relatedTo: '00000198' },
+            { id: null, name: 'Relative 199', relatedTo: '00000199' },
+            { id: null, name: 'Relative 200', relatedTo: '00000200' },
+            { id: null, name: 'Relative 201', relatedTo: '00000201' },
+            { id: null, name: 'Relative 202', relatedTo: '00000202' },
+            { id: null, name: 'Relative 203', relatedTo: '00000203' },
+            { id: null, name: 'Relative 204', relatedTo: '00000204' },
+            { id: null, name: 'Relative 205', relatedTo: '00000205' },
+            { id: null, name: 'Relative 206', relatedTo: '00000206' },
+            { id: null, name: 'Relative 207', relatedTo: '00000207' },
+            { id: null, name: 'Relative 208', relatedTo: '00000208' },
+            { id: null, name: 'Relative 209', relatedTo: '00000209' },
+            { id: null, name: 'Relative 210', relatedTo: '00000210' },
+            { id: null, name: 'Relative 211', relatedTo: '00000211' },
+            { id: null, name: 'Relative 212', relatedTo: '00000212' },
+            { id: null, name: 'Relative 213', relatedTo: '00000213' },
+            { id: null, name: 'Relative 214', relatedTo: '00000214' },
+            { id: null, name: 'Relative 215', relatedTo: '00000215' },
+            { id: null, name: 'Relative 216', relatedTo: '00000216' },
+            { id: null, name: 'Relative 217', relatedTo: '00000217' },
+            { id: null, name: 'Relative 218', relatedTo: '00000218' },
+            { id: null, name: 'Relative 219', relatedTo: '00000219' },
+            { id: null, name: 'Relative 220', relatedTo: '00000220' },
+            { id: null, name: 'Relative 221', relatedTo: '00000221' },
+            { id: null, name: 'Relative 222', relatedTo: '00000222' },
+            { id: null, name: 'Relative 223', relatedTo: '00000223' },
+            { id: null, name: 'Relative 224', relatedTo: '00000224' },
+            { id: null, name: 'Relative 225', relatedTo: '00000225' },
+            { id: null, name: 'Relative 226', relatedTo: '00000226' },
+            { id: null, name: 'Relative 227', relatedTo: '00000227' },
+            { id: null, name: 'Relative 228', relatedTo: '00000228' },
+            { id: null, name: 'Relative 229', relatedTo: '00000229' },
+            { id: null, name: 'Relative 230', relatedTo: '00000230' },
+            { id: null, name: 'Relative 231', relatedTo: '00000231' },
+            { id: null, name: 'Relative 232', relatedTo: '00000232' },
+            { id: null, name: 'Relative 233', relatedTo: '00000233' },
+            { id: null, name: 'Relative 234', relatedTo: '00000234' },
+            { id: null, name: 'Relative 235', relatedTo: '00000235' },
+            { id: null, name: 'Relative 236', relatedTo: '00000236' },
+            { id: null, name: 'Relative 237', relatedTo: '00000237' },
+            { id: null, name: 'Relative 238', relatedTo: '00000238' },
+            { id: null, name: 'Relative 239', relatedTo: '00000239' },
+            { id: null, name: 'Relative 240', relatedTo: '00000240' },
+            { id: null, name: 'Relative 241', relatedTo: '00000241' },
+            { id: null, name: 'Relative 242', relatedTo: '00000242' },
+            { id: null, name: 'Relative 243', relatedTo: '00000243' },
+            { id: null, name: 'Relative 244', relatedTo: '00000244' },
+            { id: null, name: 'Relative 245', relatedTo: '00000245' },
+            { id: null, name: 'Relative 246', relatedTo: '00000246' },
+            { id: null, name: 'Relative 247', relatedTo: '00000247' },
+            { id: null, name: 'Relative 248', relatedTo: '00000248' },
+            { id: null, name: 'Relative 249', relatedTo: '00000249' },
+            { id: null, name: 'Relative 250', relatedTo: '00000250' },
+            { id: null, name: 'Relative 251', relatedTo: '00000251' },
+            { id: null, name: 'Relative 252', relatedTo: '00000252' },
+            { id: null, name: 'Relative 253', relatedTo: '00000253' },
+            { id: null, name: 'Relative 254', relatedTo: '00000254' },
+            { id: null, name: 'Relative 255', relatedTo: '00000255' },
+            { id: null, name: 'Relative 256', relatedTo: '00000256' },
+            { id: null, name: 'Relative 257', relatedTo: '00000257' },
+            { id: null, name: 'Relative 258', relatedTo: '00000258' },
+            { id: null, name: 'Relative 259', relatedTo: '00000259' },
+            { id: null, name: 'Relative 260', relatedTo: '00000260' },
+            { id: null, name: 'Relative 261', relatedTo: '00000261' },
+            { id: null, name: 'Relative 262', relatedTo: '00000262' },
+            { id: null, name: 'Relative 263', relatedTo: '00000263' },
+            { id: null, name: 'Relative 264', relatedTo: '00000264' },
+            { id: null, name: 'Relative 265', relatedTo: '00000265' },
+            { id: null, name: 'Relative 266', relatedTo: '00000266' },
+            { id: null, name: 'Relative 267', relatedTo: '00000267' },
+            { id: null, name: 'Relative 268', relatedTo: '00000268' },
+            { id: null, name: 'Relative 269', relatedTo: '00000269' },
+            { id: null, name: 'Relative 270', relatedTo: '00000270' },
+            { id: null, name: 'Relative 271', relatedTo: '00000271' },
+            { id: null, name: 'Relative 272', relatedTo: '00000272' },
+            { id: null, name: 'Relative 273', relatedTo: '00000273' },
+            { id: null, name: 'Relative 274', relatedTo: '00000274' },
+            { id: null, name: 'Relative 275', relatedTo: '00000275' },
+            { id: null, name: 'Relative 276', relatedTo: '00000276' },
+            { id: null, name: 'Relative 277', relatedTo: '00000277' },
+            { id: null, name: 'Relative 278', relatedTo: '00000278' },
+            { id: null, name: 'Relative 279', relatedTo: '00000279' },
+            { id: null, name: 'Relative 280', relatedTo: '00000280' },
+            { id: null, name: 'Relative 281', relatedTo: '00000281' },
+            { id: null, name: 'Relative 282', relatedTo: '00000282' },
+            { id: null, name: 'Relative 283', relatedTo: '00000283' },
+            { id: null, name: 'Relative 284', relatedTo: '00000284' },
+            { id: null, name: 'Relative 285', relatedTo: '00000285' },
+            { id: null, name: 'Relative 286', relatedTo: '00000286' },
+            { id: null, name: 'Relative 287', relatedTo: '00000287' },
+            { id: null, name: 'Relative 288', relatedTo: '00000288' },
+            { id: null, name: 'Relative 289', relatedTo: '00000289' },
+            { id: null, name: 'Relative 290', relatedTo: '00000290' },
+            { id: null, name: 'Relative 291', relatedTo: '00000291' },
+            { id: null, name: 'Relative 292', relatedTo: '00000292' },
+            { id: null, name: 'Relative 293', relatedTo: '00000293' },
+            { id: null, name: 'Relative 294', relatedTo: '00000294' },
+            { id: null, name: 'Relative 295', relatedTo: '00000295' },
+            { id: null, name: 'Relative 296', relatedTo: '00000296' },
+            { id: null, name: 'Relative 297', relatedTo: '00000297' },
+            { id: null, name: 'Relative 298', relatedTo: '00000298' },
+            { id: null, name: 'Relative 299', relatedTo: '00000299' },
+            { id: null, name: 'Relative 300', relatedTo: '00000300' }
+        ];
+
+        var url = new URLSearchParams(window.location.search);
+        $(document).ready(function(){
+            if (url.get('round')) {
+                $('.homepage').hide();
+                $('.content').show();
+            }
+            $('a.btnClear').on('click', function() {
+                localStorage.clear();
+                window.alert('Đã làm mới dữ liệu thành công.');
+            });
+
+            let hWins = JSON.parse(localStorage.getItem('historyWinners_'+url.get('round')));
+            if (null !== hWins) {
+                hWins.ids.forEach((item, stt) => {
+                    let html = `
+                        <div class="media text-muted pt-3 ">
+                            <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                                <strong class="d-block text-gray-dark">${stt+1}: Nhân viên ${ item.name } đã trúng thưởng</strong>
+                            </p>
+                        </div>
+                    `;
+                    if (null !== item.relative) {
+                        html = `
+                        <div class="media text-muted pt-3 ">
+                            <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                                <strong class="d-block text-gray-dark">${stt+1}: ${ item.name } là người thân của nhân viên ${ item.relative } đã trúng thưởng</strong>
+                            </p>
+                        </div>
+                        `;
+                    }
+                    $('.listHistorys').append(html);
+                });
+            }
+
+            var getWinner = (round) => {
+                if (2 == round) {
+                    let win = JSON.parse(localStorage.getItem('winners'));
+                    let windIds = [];
+                    if (null !== win) {
+                        windIds = win.ids;
+                    }
+                    empRelList = empRelList.filter(item => null !== item.id && windIds.indexOf(item.id) === -1);
+                }
+                let empl = empRelList[Math.floor(Math.random() * empRelList.length)];
+                if (null === empl.id) {
+                    empl.id = empl.relatedTo + '-1';
+                }
+                return empl;
+            }, getName = (id) => {
+                let tem, data = {};
+                if (id.indexOf('-1') > -1) {
+                    tem = empRelList.filter(item => undefined !== item.relatedTo && item.relatedTo === id.replace('-1',''));
+                    tem2 = empRelList.filter(item => undefined === item.relatedTo && tem[0].relatedTo === item.id);
+                    data.name = tem[0].name;
+                    data.relative = tem2[0].name;
+                } else {
+                    tem = empRelList.filter(item => undefined === item.relatedTo && item.id === id);
+                    data.name = tem[0].name;
+                }
+                return data;
+            };
+            var btnTurning = $('button.btnTurning');
+            btnTurning.on('click', function() {
+                s(url.get('round'));
+                $(this).attr('disabled', !0);
+            });
+            let s = (round) => {
+                var theLetters = "0123456789";
+                var winner = getWinner(round);
+                var winnerId = winner.id;
+
+
+                var speed = 50;
+                var increment = 8;
+                var clen = winnerId.length;
+                var si = 0;
+                var stri = 0;
+                var block = "";
+                var fixed = "";
+                rustle(clen*increment+1);
+                function rustle (i) {
+                    setTimeout(function () {
+                        if (--i){rustle(i);}
+                        nextFrame(i);
+                        si = si + 1;
+                    }, speed);
+                };
+
+                function nextFrame(pos){
+                    for (var i=0; i<clen-stri; i++) {
+                        var num = Math.floor(theLetters.length * Math.random());
+                        var letter = theLetters.charAt(num);
+                        block = block + letter;
+                    }
+                    if (si == (increment-1)){
+                        stri++;
+                    }
+                    if (si == increment){
+                        fixed = fixed +  winnerId.charAt(stri - 1);
+                        si = 0;
+                    }
+                    $("#output").html(fixed + block);
+                    block = "";
+                    if (fixed.length === winnerId.length) {
+                        if (1 == round) {
+                            let win = JSON.parse(localStorage.getItem('winners'));
+                            if (null === win) {
+                                localStorage.setItem('winners', JSON.stringify({ids:[winnerId]}));
+                            } else {
+                                win.ids.push(winnerId);
+                                localStorage.setItem('winners',JSON.stringify(win));
+                            }
+                        }
+                        let remunerative = $('#modalRemunerative');
+                        let w = getName(winnerId);
+                        let html = `
+                            <h5>Xin chúc mừng ${w.name} đã may mắn trúng thưởng</h5>
+                        `;
+                        if (undefined !== w.relative) {
+                            html =  `
+                            <h5>Xin chúc mừng ${w.name} là người thân của nhân viên ${ w.relative } đã may mắn trúng thưởng</h5>
+                        `;
+                        }
+
+                        let hWin = JSON.parse(localStorage.getItem('historyWinners_'+round)), stt = 1;
+                        if (null === hWin) {
+                            localStorage.setItem('historyWinners_'+round, JSON.stringify({ids:[{id: winnerId, name: w.name, relative: undefined !== w.relative ? w.relative : null}]}));
+                        } else {
+                            hWin.ids.push({id: winnerId, name: w.name, relative: undefined !== w.relative ? w.relative : null});
+                            stt = hWin.ids.length;
+                            localStorage.setItem('historyWinners_'+round,JSON.stringify(hWin));
+                        }
+
+                        let html2 = `
+                        <div class="media text-muted pt-3 ">
+                            <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                                <strong class="d-block text-gray-dark">${stt}: Nhân viên ${ w.name } đã trúng thưởng</strong>
+                            </p>
+                        </div>
+                        `;
+                        if (undefined !== w.relative) {
+                            html2 = `
+                            <div class="media text-muted pt-3 ">
+                                <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                                    <strong class="d-block text-gray-dark">${stt}: ${ w.name } là người thân của nhân viên ${ w.relative } đã trúng thưởng</strong>
+                                </p>
+                            </div>
+                            `;
+                        }
+                        $('.listHistorys').append(html2)
+                        remunerative.find('.modal-body').html(html);
+                        remunerative.modal();
+                        console.log(btnTurning)
+                        btnTurning.removeAttr('disabled');
+                    }
+                }
+            };
+        });
+    </script>
+</body>
+</html>
