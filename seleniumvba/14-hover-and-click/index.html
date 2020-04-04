@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tự động hoá Web với Excel VBA và Selenium</title>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <!-- Compiled and minified CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    />
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <style>
+      .nav-grey {
+        background-color: cornflowerblue;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="nav-grey">
+      <div class="nav-wrapper">
+        <a href="/seleniumvba" class="brand-logo"
+          >&nbsp;&nbsp;dtnguyen.business</a
+        >
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+          <li>
+            <a
+              target="_blank"
+              href="https://www.linkedin.com/in/ducthanhnguyen/"
+              >LinkedIn</a
+            >
+          </li>
+          <li>
+            <a target="_blank" href="https://youtube.com/user/ductnguy"
+              >YouTube</a
+            >
+          </li>
+          <li><a target="_blank" href="https://hocexcel.online">Blog</a></li>
+        </ul>
+      </div>
+    </nav>
+    <br />
+    <div class="container">
+      <!-- Dropdown Trigger -->
+      <a class="dropdown-trigger btn" href="#" data-target="dropdown1"
+        >Drop Me!</a
+      >
+
+      <!-- Dropdown Structure -->
+      <ul id="dropdown1" class="dropdown-content">
+        <li><a href="#!">one</a></li>
+        <li><a href="#!">two</a></li>
+        <li class="divider" tabindex="-1"></li>
+        <li><a href="#!">three</a></li>
+        <li>
+          <a href="#!">four</a>
+        </li>
+        <li>
+          <a href="#!">five</a>
+        </li>
+      </ul>
+    </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var elems = document.querySelectorAll(".dropdown-trigger");
+        var instances = M.Dropdown.init(elems, { hover: true });
+      });
+      var ul = document.getElementById("dropdown1");
+      ul.onclick = function (event) {
+        var target = event.target;
+        alert("You've clicked " + target.text);
+      };
+    </script>
+  </body>
+</html>

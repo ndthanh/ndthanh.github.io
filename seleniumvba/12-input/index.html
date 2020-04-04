@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tự động hoá Web với Excel VBA và Selenium</title>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <!-- Compiled and minified CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    />
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <style>
+      .nav-grey {
+        background-color: cornflowerblue;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="nav-grey">
+      <div class="nav-wrapper">
+        <a href="/seleniumvba" class="brand-logo"
+          >&nbsp;&nbsp;dtnguyen.business</a
+        >
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+          <li>
+            <a
+              target="_blank"
+              href="https://www.linkedin.com/in/ducthanhnguyen/"
+              >LinkedIn</a
+            >
+          </li>
+          <li>
+            <a target="_blank" href="https://youtube.com/user/ductnguy"
+              >YouTube</a
+            >
+          </li>
+          <li><a target="_blank" href="https://hocexcel.online">Blog</a></li>
+        </ul>
+      </div>
+    </nav>
+    <br />
+    <div class="container">
+      <div class="row">
+        <form class="col s12">
+          <div class="row">
+            <div class="input-field col s6">
+              <input
+                placeholder="Placeholder"
+                id="first_name"
+                type="text"
+                class="validate"
+              />
+              <label for="first_name">First Name</label>
+            </div>
+            <div class="input-field col s6">
+              <input id="last_name" type="text" class="validate" />
+              <label for="last_name">Last Name</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-field col s12">
+              <input
+                disabled
+                value="I am not editable"
+                id="disabled"
+                type="text"
+                class="validate"
+              />
+              <label for="disabled">Disabled</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-field col s12">
+              <input id="password" type="password" class="validate" />
+              <label for="password">Password</label>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="input-field col s12">
+              <input id="email" type="email" class="validate" />
+              <label for="email">Email</label>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="input-field col s12">
+              <input id="address" type="text" class="validate" />
+              <label for="address">Address</label>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col s12">
+              This is an inline input field:
+              <div class="input-field inline">
+                <input id="email_inline" type="email" class="validate" />
+                <label for="email_inline">Email</label>
+                <span
+                  class="helper-text"
+                  data-error="wrong"
+                  data-success="right"
+                  >Helper text</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="input-field col s12">
+              <input id="cmnd" type="text" class="validate" />
+              <label for="cmnd">CMND</label>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
