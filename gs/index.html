@@ -39,9 +39,12 @@
         e.preventDefault();
         fetch(scriptURL, { method: "POST", body: new FormData(form) })
           //   .then(response => console.log("Success!", response))
-          .then(response =>
-            window.location.replace("https://hocexcel.online/cart/thanh-toan")
-          )
+          .then(response => {
+            alert(
+              "Đăng ký thành công, chúng tôi sẽ liên hệ với bạn qua Email!"
+            );
+            window.location.replace("https://hocexcel.online");
+          })
           .catch(error =>
             alert(
               "Có lỗi xảy ra khi đăng ký, hãy liên hệ Listen@hocexcel.online để được hỗ trợ!"
