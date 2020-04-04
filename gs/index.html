@@ -6,15 +6,30 @@
     <title>Document</title>
   </head>
   <body>
+    <a
+      class="text-333 "
+      href="https://hocexcel.online/course/preview/pbi101-microsoft-power-bi-desktop-business-intelligence-trong-tam-tay"
+      target="_blank"
+      >PBI101 - Microsoft Power BI Desktop, Business Intelligence trong tầm
+      tay</a
+    >
     <form name="submit-to-google-sheet">
       <input name="name" type="text" placeholder="Name" required />
       <input name="email" type="email" placeholder="Email" required />
       <input name="mobile" type="text" placeholder="Số điện thoại" required />
+      <input name="url" type="hidden" value="" />
       <button type="submit">Send</button>
     </form>
     <script src="https://wzrd.in/standalone/formdata-polyfill"></script>
     <script src="https://wzrd.in/standalone/promise-polyfill@latest"></script>
     <script src="https://wzrd.in/standalone/whatwg-fetch@latest"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementsByName(
+          "url"
+        ).value = document.getElementsByClassName("text-333")[0].href;
+      });
+    </script>
     <script>
       const scriptURL =
         "https://script.google.com/macros/s/AKfycbxKGTk6lyFQxCbVPJPimW6DCZ1c9FzOnRRg_BTbEGifWoEvBuA_/exec";
@@ -23,8 +38,15 @@
       form.addEventListener("submit", e => {
         e.preventDefault();
         fetch(scriptURL, { method: "POST", body: new FormData(form) })
-          .then(response => console.log("Success!", response))
-          .catch(error => console.error("Error!", error.message));
+          //   .then(response => console.log("Success!", response))
+          .then(response =>
+            window.location.replace("https://hocexcel.online/cart/thanh-toan")
+          )
+          .catch(error =>
+            alert(
+              "Có lỗi xảy ra khi đăng ký, hãy liên hệ Listen@hocexcel.online để được hỗ trợ!"
+            )
+          );
       });
     </script>
   </body>
