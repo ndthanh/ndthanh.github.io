@@ -160,9 +160,20 @@
     >
     <div class="form-container">
       <form name="submit-to-google-sheet">
-        <input name="email" type="email" placeholder="Email" required />
+        <input
+          name="email"
+          type="email"
+          placeholder="Email"
+          inputmode="email"
+          required
+        />
         <input name="name" type="text" placeholder="Name" />
-        <input name="mobile" type="text" placeholder="Số điện thoại" />
+        <input
+          name="mobile"
+          type="text"
+          placeholder="Số điện thoại"
+          inputmode="tel"
+        />
         <input name="url" type="hidden" value="" />
         <button type="submit">Đăng ký</button>
       </form>
