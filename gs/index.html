@@ -7,7 +7,7 @@
   </head>
   <body>
     <a
-      class="text-333 "
+      class="text-333"
       href="https://hocexcel.online/course/preview/pbi101-microsoft-power-bi-desktop-business-intelligence-trong-tam-tay"
       target="_blank"
       >PBI101 - Microsoft Power BI Desktop, Business Intelligence trong tầm
@@ -25,27 +25,29 @@
     <script src="https://wzrd.in/standalone/whatwg-fetch@latest"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        document.getElementsByName(
-          "url"
-        )[0].value = document.getElementsByClassName("text-333")[0].href;
+        document.getElementsByName("url")[0].value = Array.from(
+          document.querySelectorAll(".text-333")
+        )
+          .map((a) => a.href)
+          .join("#");
       });
     </script>
     <script>
       const scriptURL =
-        "https://script.google.com/macros/s/AKfycbxKGTk6lyFQxCbVPJPimW6DCZ1c9FzOnRRg_BTbEGifWoEvBuA_/exec";
+        "https://script.google.com/macros/s/AKfycbwm5DCGvy0UooFmhELUzm0m-_Vv92rghs1AXd7jq8Y0KNg5-oXx/exec";
       const form = document.forms["submit-to-google-sheet"];
 
-      form.addEventListener("submit", e => {
+      form.addEventListener("submit", (e) => {
         e.preventDefault();
         fetch(scriptURL, { method: "POST", body: new FormData(form) })
           //   .then(response => console.log("Success!", response))
-          .then(response => {
+          .then((response) => {
             alert(
               "Đăng ký thành công, chúng tôi sẽ liên hệ với bạn qua Email!"
             );
             window.location.replace("https://hocexcel.online");
           })
-          .catch(error =>
+          .catch((error) =>
             alert(
               "Có lỗi xảy ra khi đăng ký, hãy liên hệ Listen@hocexcel.online để được hỗ trợ!"
             )
