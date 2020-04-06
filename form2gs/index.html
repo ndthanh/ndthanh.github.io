@@ -27,7 +27,7 @@
       body {
         background: #eee;
         color: var(--purple);
-        padding: 10% 5%;
+        padding: 5% 5%;
         font-family: system, -apple-system, BlinkMacSystemFont, "Segoe UI",
           Roboto, sans-serif;
         line-height: 1.4;
@@ -43,11 +43,11 @@
         align-items: center;
         justify-content: center;
         text-align: center;
-        width: 350px;
+        width: 320px;
         min-height: 300px;
         margin: 0 auto;
         box-shadow: 0 10px 50px 0 #ccc;
-        margin-bottom: 2rem;
+        /* margin-bottom: 2rem; */
       }
 
       input,
@@ -145,10 +145,10 @@
         animation: dash 1.5s ease-in-out infinite;
       }
     </style>
-    <script src="https://unpkg.com/prefixfree@1.0.0/prefixfree.min.js"></script>
+    <!-- <script src="https://unpkg.com/prefixfree@1.0.0/prefixfree.min.js"></script>
     <script src="https://wzrd.in/standalone/formdata-polyfill@latest"></script>
     <script src="https://wzrd.in/standalone/promise-polyfill@latest"></script>
-    <script src="https://wzrd.in/standalone/whatwg-fetch@latest"></script>
+    <script src="https://wzrd.in/standalone/whatwg-fetch@latest"></script> -->
   </head>
   <body>
     <div class="form-container">
@@ -168,6 +168,7 @@
           inputmode="tel"
         />
         <input name="url" type="hidden" value="" />
+        <input name="source" type="hidden" value="wp" />
         <button type="submit">Đăng ký</button>
       </form>
 
@@ -186,8 +187,12 @@
         </div>
       </div>
 
-      <p class="js-success-message is-hidden">Thành công!</p>
-      <p class="js-error-message is-hidden">Error!</p>
+      <p class="js-success-message is-hidden">
+        Đăng ký thành công! Thanh sẽ liên hệ với bạn qua Email.
+      </p>
+      <p class="js-error-message is-hidden">
+        Có lỗi xảy ra, hãy liên hệ email Listen@hocexcel.online để đăng ký!
+      </p>
     </div>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
@@ -195,7 +200,7 @@
           window.location != window.parent.location
             ? document.referrer
             : document.location.href;
-        console.log(url);
+
         document.getElementsByName("url")[0].value = url;
       });
     </script>
