@@ -151,13 +151,6 @@
     <script src="https://wzrd.in/standalone/whatwg-fetch@latest"></script>
   </head>
   <body>
-    <a
-      class="text-333"
-      href="https://hocexcel.online/course/preview/pbi101-microsoft-power-bi-desktop-business-intelligence-trong-tam-tay"
-      target="_blank"
-      >PBI101 - Microsoft Power BI Desktop, Business Intelligence trong tầm
-      tay</a
-    >
     <div class="form-container">
       <form name="submit-to-google-sheet">
         <input
@@ -198,11 +191,12 @@
     </div>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        document.getElementsByName("url")[0].value = Array.from(
-          document.querySelectorAll(".text-333")
-        )
-          .map((a) => a.href)
-          .join("#");
+        var url =
+          window.location != window.parent.location
+            ? document.referrer
+            : document.location.href;
+        console.log(url);
+        document.getElementsByName("url")[0].value = url;
       });
     </script>
     <script>

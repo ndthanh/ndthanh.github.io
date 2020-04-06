@@ -20,9 +20,9 @@
       <input name="url" type="hidden" value="" />
       <button type="submit">Send</button>
     </form>
-    <script src="https://wzrd.in/standalone/formdata-polyfill"></script>
+    <!-- <script src="https://wzrd.in/standalone/formdata-polyfill"></script>
     <script src="https://wzrd.in/standalone/promise-polyfill@latest"></script>
-    <script src="https://wzrd.in/standalone/whatwg-fetch@latest"></script>
+    <script src="https://wzrd.in/standalone/whatwg-fetch@latest"></script> -->
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         document.getElementsByName("url")[0].value = Array.from(
@@ -38,20 +38,26 @@
       const form = document.forms["submit-to-google-sheet"];
 
       form.addEventListener("submit", (e) => {
+        const submitBtn = document.querySelector("form > button");
+        submitBtn.innerText = "Gửi thông tin ...";
+        submitBtn.disabled = true;
         e.preventDefault();
         fetch(scriptURL, { method: "POST", body: new FormData(form) })
           //   .then(response => console.log("Success!", response))
           .then((response) => {
+            submitBtn.innerText = "THÀNH CÔNG";
             alert(
               "Đăng ký thành công, chúng tôi sẽ liên hệ với bạn qua Email!"
             );
             window.location.replace("https://hocexcel.online");
           })
-          .catch((error) =>
+          .catch((error) => {
+            submitBtn.innerText = "Đăng ký lại";
+            submitBtn.disabled = false;
             alert(
               "Có lỗi xảy ra khi đăng ký, hãy liên hệ Listen@hocexcel.online để được hỗ trợ!"
-            )
-          );
+            );
+          });
       });
     </script>
   </body>
