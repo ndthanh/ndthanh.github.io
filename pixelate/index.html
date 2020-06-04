@@ -1,0 +1,113 @@
+<html>
+    <head></head>
+    <body>
+        <span>Image File:</span>
+        <!-- <input type="text" id="image-url" size="120" value="https://dl.dropboxusercontent.com/u/22049094/_pica.jpg"><br> -->
+        <input type="file" onchange="onFileSelected(event)">
+        <span>Level of pixelation (1 - 100) :</span>
+        <input type="text" min="1" max="100" value="100" id="factor"><br>
+        <textarea rows="3" cols="100"></textarea>
+        <button onclick="getImg()">Pixelate</button><br>
+        <p></p>
+        <h3></h3>
+        <canvas id="demo" width="0" height="0"></canvas><br>
+        <img id="myimage" height="200">
+<script>
+function onFileSelected(event) {
+  var selectedFile = event.target.files[0];
+  var reader = new FileReader();
+
+  var imgtag = document.getElementById("myimage");
+  imgtag.title = selectedFile.name;
+
+  reader.onload = function(event) {
+    img.src = event.target.result;
+  };
+
+  reader.readAsDataURL(selectedFile);
+}
+
+function getImg() {
+    img.onload = function () {
+        demo.width = img.width;
+        demo.height= img.height;
+        init();
+        pixelate();
+    }
+    demo.width = img.width;
+    demo.height= img.height;
+    init();
+    pixelate();
+    // img.src = document.getElementById('image-url').value;
+}
+
+var ctx = demo.getContext('2d'),
+    img = new Image,
+    value = factor.value,
+    color = [],
+    text = '',
+    count = 0,
+    progress = 0;
+
+var fw, fh, w, h, x, y, p;
+
+// img.crossOrigin = 'http://profile.ak.fbcdn.net/crossdomain.xml';
+
+var totalCell = 0;
+
+function init() {
+    value = document.getElementById('factor').value
+
+    w = img.width;
+    h = img.height;
+
+    /// calculate the factor
+    fw = (img.width / value)|0,
+    fh = (img.height / value)|0;
+
+    x = w/(2*fw);
+    y = h/(2*fh);
+
+    totalCell = fw*fh;
+    console.log({w, h, fw, fh, x, y})
+    /// turn off image smoothing (prefixed in some browsers)
+    ctx.imageSmoothingEnabled =
+    ctx.mozImageSmoothingEnabled =
+    ctx.msImageSmoothingEnabled =
+    ctx.webkitImageSmoothingEnabled = false;
+
+    document.getElementsByTagName('p')[0].innerHTML = "Dimension: " + fw + " by " + fh;
+    
+}
+
+function pixelate() {
+    var i = 0; 
+    var j = 0;
+
+    ctx.drawImage(img, 0, 0, fw, fh);
+    ctx.drawImage(demo, 0, 0, fw, fh, 0, 0, img.width, img.height);
+    
+    var loop = setInterval(function() {
+        count ++;
+
+        if(j == fw ) {
+            j = 0;
+            text += '\n';
+            i++;
+        }
+
+        if(i == fh) {
+            clearInterval(loop);
+            document.getElementsByTagName('textarea')[0].innerHTML = text;
+        }
+        p = ctx.getImageData(x + j * 2 * x, y + i * 2 * y, 1, 1).data;
+        text += p[0] + ';' + p[1] + ';' + p[2] + '\t';
+        
+        progress = Math.floor((count/totalCell) * 100);
+        document.getElementsByTagName('h3')[0].innerHTML = progress + ' %';
+        j++;
+    },10);
+}
+</script>
+</body>
+</html>
