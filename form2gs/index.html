@@ -167,8 +167,8 @@
           placeholder="Số điện thoại"
           inputmode="tel"
         />
-        <input name="url" type="hidden" value="" />
-        <input name="source" type="hidden" value="wp" />
+        <input name="url" type="hidden" value="https://hocexcel.online/course/preview/vba101-tu-dong-hoa-excel-voi-lap-trinh-vba-cho-nguoi-moi-bat-dau" />
+        <input name="source" type="hidden" value="https://blog.hocexcel.online/bat-dau-voi-excel-macros-va-lap-trinh-vba.html" />
         <button type="submit">Đăng ký</button>
       </form>
 
@@ -188,7 +188,7 @@
       </div>
 
       <p class="js-success-message is-hidden">
-        Đăng ký thành công! Thanh sẽ liên hệ với bạn qua Email.
+        Đăng ký thành công! Thanh sẽ liên hệ với bạn qua Email, bạn nhớ check mail nhé, cả hòm thư Spam nữa :)
       </p>
       <p class="js-error-message is-hidden">
         Có lỗi xảy ra, hãy liên hệ email Listen@hocexcel.online để đăng ký!
@@ -206,7 +206,7 @@
     </script>
     <script>
       const scriptURL =
-        "https://script.google.com/macros/s/AKfycbwm5DCGvy0UooFmhELUzm0m-_Vv92rghs1AXd7jq8Y0KNg5-oXx/exec";
+        "https://script.google.com/a/macros/hocexcel.online/s/AKfycbym88Lv1S4BEEAtPadTSiBpRTIFpXkPRDmVrFPRokmskM7VIaEY/exec";
       const form = document.forms["submit-to-google-sheet"];
       const loading = document.querySelector(".js-loading");
       const successMessage = document.querySelector(".js-success-message");
@@ -226,7 +226,7 @@
       }
 
       function showSuccessMessage(response) {
-        console.log("Success!", response);
+
         setTimeout(() => {
           successMessage.classList.remove("is-hidden");
           loading.classList.add("is-hidden");
@@ -234,7 +234,7 @@
       }
 
       function showErrorMessage(error) {
-        console.error("Error!", error.message);
+
         setTimeout(() => {
           errorMessage.classList.remove("is-hidden");
           loading.classList.add("is-hidden");
