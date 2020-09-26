@@ -35,6 +35,7 @@
         <div class="d-flex align-items-center justify-content-between">
           <div class="logo">
             <div class="site-logo">
+              <!-- todo02 Thay đổi thương hiệu tại đây nếu cần -->
               <a href="index.html" class="js-logo-clone">ShopMax</a>
             </div>
           </div>
@@ -68,14 +69,15 @@
           <div class="col-md-6">
           	<!-- todo07 Thay đổi ID sản phẩm, tên sản phẩm -->
             <h2 class="text-black" data-product-id="P01" id="product-name">Gray Shoe</h2>
+            <!-- todo08 Thay đổi miêu tả cho sản phẩm -->
             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Pariatur, vitae, explicabo? Incidunt facere, natus soluta dolores iusto! Molestiae expedita veritatis nesciunt doloremque sint asperiores fuga voluptas, distinctio, aperiam, ratione dolore.</p>
             <p class="mb-4">Ex numquam veritatis debitis minima quo error quam eos dolorum quidem perferendis. Quos repellat dignissimos minus, eveniet nam voluptatibus molestias omnis reiciendis perspiciatis illum hic magni iste, velit aperiam quis.</p>
-            <!-- todo08 Thay đổi giá tiền -->
+            <!-- todo09 Thay đổi giá tiền -->
             <p><strong class="text-primary h4" id="product-price">VND 500.000</strong></p>
             <div class="mb-1 d-flex">
               <div class="form-group">
 			    <label for="product-sizes">Chọn cỡ</label>
-			    <!-- todo09 Thay đổi cỡ -->
+			    <!-- todo10 Thay đổi cỡ -->
 			    <select class="form-control" id="product-sizes">
 			      <option>41</option>
 			      <option>42</option>
@@ -87,7 +89,7 @@
             </div>
             
 			<button id="btn-buy" type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
-			  Mua hàng <!-- todo10 Thay đổi nút bấm nếu cần -->
+			  Mua hàng <!-- todo11 Thay đổi nút bấm nếu cần -->
 			</button>
           </div>
         </div>
@@ -99,6 +101,7 @@
       	<div class="row justify-content-center mb-5">
           <div class="col-md-7 site-section-heading text-center pt-4">
             <h2>Chi tiết sản phẩm</h2>
+            <!-- todo12 Viết thông tin chi tiết cho sản phẩm -->
           </div>
         </div>
       </div>
@@ -108,6 +111,7 @@
       <div class="container">
         <div class="row">
           <div class="col-md-6 col-lg-3 mb-4 mb-lg-0">
+            <!-- todo13 Thay đổi thông tin promo nếu cần -->
             <h3 class="footer-heading mb-4">Promo</h3>
             <a href="#" class="block-6">
               <img src="images/about_1.jpg" alt="Image placeholder" class="img-fluid rounded mb-4">
@@ -118,6 +122,7 @@
           <div class="col-lg-5 ml-auto mb-5 mb-lg-0">
             <div class="row">
               <div class="col-md-12">
+                <!-- todo14 Thay đổi đường dẫn nếu cần -->
                 <h3 class="footer-heading mb-4">Quick Links</h3>
               </div>
               <div class="col-md-6 col-lg-4">
@@ -147,6 +152,7 @@
           
           <div class="col-md-6 col-lg-3">
             <div class="block-5 mb-5">
+              <!-- todo15 Thay đổi thông tin liên lạc -->
               <h3 class="footer-heading mb-4">Contact Info</h3>
               <ul class="list-unstyled">
                 <li class="address">203 Fake St. Mountain View, San Francisco, California, USA</li>
@@ -204,7 +210,7 @@
 	      <form name="submit-to-google-sheet">
 		      <div class="modal-body">
 		      	<p id="product-info"></p>
-		        
+		      <!-- todo16 Thay đổi thông tin nhận từ khách hàng -->
 				  <div class="form-group row">
 	                <div class="col-md-12">
 	                  <label for="customer_name" class="text-black">Tên của bạn <span class="text-danger">*</span></label>
@@ -229,7 +235,7 @@
 	                  <input type="text" class="form-control" id="customer_address" name="customer_address" required>
 	                </div>
 	              </div>
-				  <input type="hidden" name="product_id">
+				        <input type="hidden" name="product_id">
 		      </div>
 		      <div class="modal-footer">
 		        <button type="submit" class="btn btn-primary">Đặt hàng</button>
