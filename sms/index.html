@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -26,11 +27,12 @@
     <body>
     <a id="call-button">CALL</a>      
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzeOUsg7tNfjgw8jMVXBsMD56cfiGXIzte7UiuS6306a-EdhYoa6AS9q5xHxwviOa-z/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycby5RSwiqgoV6iTy24eSJC9otsvISuySjpSl1nCXZQW5OReZJT_GHdDABMSSPShbObc5/exec";
         setInterval(function() {
           fetch( API_URL ).then(function (response) {
                 return response.json();
             }).then(function (json) {
+            	console.log(json);
                 let custInfo = JSON.parse(json.data);
                 const callBtn =  document.getElementById("call-button")
                 callBtn.href = `tel:${custInfo.mobile}`;
