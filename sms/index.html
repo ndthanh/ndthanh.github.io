@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>GS Call Passer</title>
+    <style type="text/css">
+      #call-button {
+        width: 100vw;
+        height: 30vh;
+        background: #00FF7F;
+        position: fixed;
+        bottom: 0;
+        text-decoration: none;
+        color: white;
+        font-size: 3em;
+        height: 30vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+    <body>
+    <a id="call-button">CALL</a>      
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzeOUsg7tNfjgw8jMVXBsMD56cfiGXIzte7UiuS6306a-EdhYoa6AS9q5xHxwviOa-z/exec";
+        setInterval(function() {
+          fetch( API_URL ).then(function (response) {
+                return response.json();
+            }).then(function (json) {
+                let custInfo = JSON.parse(json.data);
+                const callBtn =  document.getElementById("call-button")
+                callBtn.href = `tel:${custInfo.mobile}`;
+                callBtn.textContent = `GỌI ${custInfo.mobile}`;
+            });
+        }, 1000);
+    </script>
+    </body>
+</html>
