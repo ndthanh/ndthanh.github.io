@@ -26,11 +26,12 @@
             };
 
             const response = await fetch(API_URL, options);
+            console.log(response);
             if(response.success) {
-              alert(response.message);
+              console.log('if true', response);
               html5QrcodeScanner.clear();
             } else {
-              alert(response.message);
+              console.log('if not true', response);
             }
         }
 
