@@ -23,7 +23,7 @@
 
         const API_URL = "https://script.google.com/macros/s/AKfycbz6ovNhUYQ0rVbZO5rIgwFOC5fkCprpaKfPUqHuzg_83c9E0Lwaq82EghRlB7plYXgbyw/exec";
         
-        const html5QrCode = new Html5Qrcode("reader");
+        let html5QrCode;
         const config = { fps: 2, qrbox: 250 };
       
         const qrCodeSuccessCallback = message => { onScanSuccess(message) }
@@ -41,6 +41,8 @@
               .then(data => { setTimeout(()=> startScan(), 1000) });
         }
         function startScan() {
+          document.getElementById('reader').innerHTML = '';
+          html5QrCode = new Html5Qrcode("reader");
           html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
         }
         startScan();
