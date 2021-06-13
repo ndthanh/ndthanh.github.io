@@ -23,6 +23,7 @@
         const qrCodeSuccessCallback = message => { onScanSuccess(message) }
         
         async function onScanSuccess(qrCodeMessage) {
+            html5QrCode.stop(); 
             const options = {
               method: 'POST',
               contentType: 'application/json',
@@ -35,7 +36,6 @@
                   alert(data.message)
                   window.location.reload(false);
               });
-            html5QrCode.stop();                  
         }
         function startScan() {
           html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
