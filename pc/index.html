@@ -33,12 +33,10 @@
             const response = await fetch(API_URL, options)
               .then(response => response.json())
               .then(data => {
-                if(data.success) {
-                  html5QrCode.stop();
-                  window.location.reload(false);
-                }
                   alert(data.message)
+                  window.location.reload(false);
               });
+            html5QrCode.stop();                  
         }
         function startScan() {
           html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
