@@ -28,7 +28,7 @@
         const config = { fps: 10, qrbox: 250 };
 
         // Select back camera or fail with `OverconstrainedError`.
-        html5QrCode.start({ facingMode: { exact: "environment"} }, config, qrCodeSuccessCallback);
+        html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
 
         // const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 30, qrbox: 250 });
         
