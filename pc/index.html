@@ -29,7 +29,7 @@
             if (response.getResponseCode() == 200) {
               const res = JSON.parse(response.getContentText())
               html5QrcodeScanner.clear();
-              alert(response.getContentText())
+              console.log(response.getContentText())
             } else {
               alert('else');
               html5QrcodeScanner.clear();
