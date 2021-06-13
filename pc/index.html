@@ -14,9 +14,7 @@
     <button style="width: 320px; margin: 0 auto;" id="save-work-station">Start Scan</button>
     <div style="width: 320px; margin: 0 auto;" id="reader"></div>
     <script>
-      document.getElementById('save-work-station').addEventListener('click', startScan)
-    </script>
-    <script>
+
         const API_URL = "https://script.google.com/macros/s/AKfycbz6ovNhUYQ0rVbZO5rIgwFOC5fkCprpaKfPUqHuzg_83c9E0Lwaq82EghRlB7plYXgbyw/exec";
         const ws = localStorage.getItem('ws')
         
@@ -44,6 +42,7 @@
         function startScan() {
           html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
         }
+        document.getElementById('save-work-station').addEventListener('click', startScan)
     </script>
     </body>
 </html>
