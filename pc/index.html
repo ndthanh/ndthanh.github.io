@@ -24,13 +24,9 @@
         const ws = localStorage.getItem('ws')
         
         const html5QrCode = new Html5Qrcode("reader");
+        const config = { fps: 5, qrbox: 250 };
+      
         const qrCodeSuccessCallback = message => { onScanSuccess(message) }
-        const config = { fps: 10, qrbox: 250 };
-
-        // Select back camera or fail with `OverconstrainedError`.
-        html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
-
-        // const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 30, qrbox: 250 });
         
         async function onScanSuccess(qrCodeMessage) {
             const options = {
@@ -48,8 +44,8 @@
                   alert(data.message)
               });
         }
-
-        // html5QrcodeScanner.render(onScanSuccess);
+      
+        html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
     </script>
     </body>
 </html>
