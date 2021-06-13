@@ -25,14 +25,9 @@
               body: JSON.stringify({ ws: ws, class: qrCodeMessage })
             };
 
-            const response = await fetch(API_URL, options);
-            console.log(response);
-            if(response.success) {
-              console.log('if true', response);
-              html5QrcodeScanner.clear();
-            } else {
-              console.log('if not true', response);
-            }
+            const response = await fetch(API_URL, options)
+              .then(response => response.json())
+              .then(data => console.log(data));
         }
 
         html5QrcodeScanner.render(onScanSuccess);
