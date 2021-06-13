@@ -10,13 +10,27 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.0.3/html5-qrcode.min.js"></script>
   </head>
     <body>
+    <input type="text" name="workstation" class="workstation" placeholder="Work Station">
+    <button id="save-work-station">Lưu</button>
     <div style="width: 320px; margin: 0 auto;" id="reader"></div>
     <script>
+      document.getElementById('save-work-station').addEventListener('click', () => {
+        const ws = document.querySelector('workstation').value
+        localStorage.setItem('ws',ws)
+      })
+    </script>
+    <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbz6ovNhUYQ0rVbZO5rIgwFOC5fkCprpaKfPUqHuzg_83c9E0Lwaq82EghRlB7plYXgbyw/exec";
-        const urlParams = new URLSearchParams(window.location.search);
-        const ws = urlParams.get('ws');
-      
-        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 30, qrbox: 250 });
+        const ws = localStorage.getItem('ws')
+        
+        const html5QrCode = new Html5Qrcode("reader");
+        const qrCodeSuccessCallback = message => { onScanSuccess(message) }
+        const config = { fps: 10, qrbox: 250 };
+
+        // Select back camera or fail with `OverconstrainedError`.
+        html5QrCode.start({ facingMode: { exact: "environment"} }, config, qrCodeSuccessCallback);
+
+        // const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 30, qrbox: 250 });
         
         async function onScanSuccess(qrCodeMessage) {
             const options = {
@@ -29,13 +43,13 @@
               .then(response => response.json())
               .then(data => {
                 if(data.success) {
-                  html5QrcodeScanner.clear();
+                  html5QrCode.stop();
                 }
                   alert(data.message)
               });
         }
 
-        html5QrcodeScanner.render(onScanSuccess);
+        // html5QrcodeScanner.render(onScanSuccess);
     </script>
     </body>
 </html>
