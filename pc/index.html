@@ -5,13 +5,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Production Flow Control</title>
-    <style type="text/css">
-    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.0.3/html5-qrcode.min.js"></script>
   </head>
     <body>
     <input style="width: 320px; margin: 0 auto;" type="text" name="workstation" class="workstation" placeholder="Work Station">
-    <button style="width: 320px; margin: 0 auto;" id="save-work-station">Start Scan</button>
     <div style="width: 320px; margin: 0 auto;" id="reader"></div>
     <script>
 
@@ -32,15 +29,12 @@
 
             const response = await fetch(API_URL, options)
               .then(response => response.json())
-              .then(data => {
-                  alert(data.message)
-                  startScan()
-              });
+              .then(data => { setInterval(()=> startScan(), 1000) });
         }
         function startScan() {
           html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
         }
-        document.getElementById('save-work-station').addEventListener('click', startScan)
+        startScan();
     </script>
     </body>
 </html>
