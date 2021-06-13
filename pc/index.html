@@ -27,7 +27,12 @@
 
             const response = await fetch(API_URL, options)
               .then(response => response.json())
-              .then(data => console.log(data));
+              .then(data => {
+                if(data.success) {
+                  html5QrcodeScanner.clear();
+                }
+                  alert(data.message)
+              });
         }
 
         html5QrcodeScanner.render(onScanSuccess);
