@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Production Flow Control</title>
+    <style type="text/css">
+    </style>
+    <script src="https://raw.githubusercontent.com/mebjas/html5-qrcode/master/dist/html5-qrcode.min.js"></script>
+  </head>
+    <body>
+    <div style="width: 500px" id="reader"></div>
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbz6ovNhUYQ0rVbZO5rIgwFOC5fkCprpaKfPUqHuzg_83c9E0Lwaq82EghRlB7plYXgbyw/exec";
+        const urlParams = new URLSearchParams(window.location.search);
+        const ws = urlParams.get('ws');
+      
+        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        
+        async function onScanSuccess(qrCodeMessage) {
+            const const options = {
+              method: 'POST',
+              contentType: 'application/json',
+              body: JSON.stringify({ ws: ws, class: qrCodeMessage })
+            };
+
+            const response = await fetch(API_URL, options);
+            console.log(response)
+            html5QrcodeScanner.clear();
+        }
+
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
+    </body>
+</html>
