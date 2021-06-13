@@ -28,6 +28,7 @@
             const response = await fetch(API_URL, options);
             if (response.getResponseCode() == 200) {
               const res = JSON.parse(response.getContentText())
+              html5QrcodeScanner.clear();
               alert(response.getContentText())
             } else {
               alert('else');
