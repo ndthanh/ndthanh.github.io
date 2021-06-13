@@ -26,13 +26,11 @@
             };
 
             const response = await fetch(API_URL, options);
-            if (response.getResponseCode() == 200) {
-              const res = JSON.parse(response.getContentText())
+            if(response.success) {
+              alert(response.message);
               html5QrcodeScanner.clear();
-              console.log(response.getContentText())
             } else {
-              alert('else');
-              html5QrcodeScanner.clear();
+              alert(response.message);
             }
         }
 
