@@ -11,13 +11,10 @@
   </head>
     <body>
     <input type="text" name="workstation" class="workstation" placeholder="Work Station">
-    <button id="save-work-station">Lưu</button>
+    <button id="save-work-station">Start Scan</button>
     <div style="width: 320px; margin: 0 auto;" id="reader"></div>
     <script>
-      document.getElementById('save-work-station').addEventListener('click', () => {
-        const ws = document.querySelector('.workstation').value
-        localStorage.setItem('ws',ws)
-      })
+      document.getElementById('save-work-station').addEventListener('click', startScan)
     </script>
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbz6ovNhUYQ0rVbZO5rIgwFOC5fkCprpaKfPUqHuzg_83c9E0Lwaq82EghRlB7plYXgbyw/exec";
@@ -32,7 +29,7 @@
             const options = {
               method: 'POST',
               contentType: 'application/json',
-              body: JSON.stringify({ ws: ws, class: qrCodeMessage })
+              body: JSON.stringify({ ws: document.querySelector('.workstation').value, class: qrCodeMessage })
             };
 
             const response = await fetch(API_URL, options)
@@ -44,8 +41,9 @@
                   alert(data.message)
               });
         }
-      
-        html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
+        function startScan() {
+          html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
+        }
     </script>
     </body>
 </html>
