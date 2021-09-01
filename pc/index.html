@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <base target="_top">
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Production Flow Control</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.0.3/html5-qrcode.min.js"></script>
+  </head>
+    <body>
+    <div class="columns is-mobile">
+      <div class="column">
+        <input type="text" name="workstation" class="workstation input is-fullwidth" placeholder="Work Station">
+      </div>
+      <div class="column"><button class="button is-fullwidth" onclick="startScan()" id="start-scan">Start Scan</button></div>
+    </div>
+    <div class="columns is-mobile">
+      <div style="width: 320px; margin: 0 auto;" id="reader"></div>
+    </div>
+    <script>
+
+        const API_URL = "https://script.google.com/macros/s/AKfycbz6ovNhUYQ0rVbZO5rIgwFOC5fkCprpaKfPUqHuzg_83c9E0Lwaq82EghRlB7plYXgbyw/exec";
+        
+        let html5QrCode;
+        const config = { fps: 2, qrbox: 250 };
+      
+        const qrCodeSuccessCallback = message => { onScanSuccess(message) }
+        
+        async function onScanSuccess(qrCodeMessage) {
+            html5QrCode.stop(); 
+            const options = {
+              method: 'POST',
+              contentType: 'application/json',
+              body: JSON.stringify({ ws: document.querySelector('.workstation').value, class: qrCodeMessage })
+            };
+
+            const response = await fetch(API_URL, options)
+              .then(response => response.json())
+              .then(data => { setTimeout(()=> startScan(), 1000) });
+        }
+        function startScan() {
+          document.getElementById('reader').innerHTML = '';
+          html5QrCode = new Html5Qrcode("reader");
+          html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
+        }
+        startScan();
+    </script>
+    </body>
+</html>
