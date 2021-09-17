@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta
+      name="viewport"
+      content="user-scalable=no, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1"
+    />
+    <meta name="description" content="Generate Bootstrap friendly form html for your app or website." />
+    <meta name="theme-color" content="#232323" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="prefetch" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700" />
+    <link rel="preload" href="/assets/js/site.min.js" as="script" />
+    <link rel="preload" href="/assets/js/vendor.min.js" as="script" />
+    <link rel="stylesheet" href="/assets/css/site.min.css" />
+    <link rel="stylesheet" href="/assets/css/vendor.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai-sublime.min.css"
+    />
+    <link rel="apple-touch-icon" sizes="57x57" href="/assets/img/apple-icon-57x57.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/assets/img/apple-icon-60x60.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/assets/img/apple-icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/assets/img/apple-icon-76x76.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/assets/img/apple-icon-114x114.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/assets/img/apple-icon-120x120.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/assets/img/apple-icon-144x144.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/assets/img/apple-icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-icon-180x180.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/android-icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16x16.png" />
+    <meta name="msapplication-TileColor" content="#232323" />
+    <meta name="msapplication-TileImage" content="assets/img/ms-icon-144x144.png" />
+    <title>Tạo form HTML nhanh bằng cách kéo thả</title>
+    <meta property="og:url" content="https://formbuilder.online" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Tạo form HTML nhanh bằng cách kéo thả" />
+    <meta property="og:description" content="Tạo form HTML nhanh bằng cách kéo thả" />
+    <meta property="og:image" content="https://formbuilder.online/assets/img/screenshot.png" />
+  </head>
+
+  <body>
+    <div class="site-wrap container">
+
+      <!-- MAIN CONTENT -->
+      <div id="main-content-wrap" class="outer">
+        <div class="animated-taglines">
+          <h2 class="tagline">
+            <span>Tạo</span>
+            <span>Form</span>
+            <span>HTML</span>
+          </h2>
+          <h2 class="tagline full-featured">Bằng cách<strong> kéo thả</strong>, nhanh gọn, đơn giản</h2>
+        </div>
+        <section id="main_content" class="inner">
+          <div id="lang-select-wrap" class="pull-right">
+            <select id="setLanguage" class="form-control">
+                            
+              <option value="de-DE">
+                Deutsch
+              </option>
+
+              <option value="en-US">
+                English (US)
+              </option>
+              
+              <option value="fr-FR">
+                français
+              </option>
+              
+              <option value="vi-VN">
+                tiếng Việt
+              </option>
+              
+            </select>
+          </div>
+          <div class="build-form"></div>
+          <div class="render-form clearfix">
+            <form id="rendered-form">
+              <p class="cta">Add some fields to the formBuilder and render them here.</p>
+            </form>
+            <div class="btn-group pull-right">
+              <button type="button" id="render-form-button" class="btn btn-secondary edit-form">Edit Form</button>
+              <button type="button" id="copy-html" class="btn btn-primary copy-html">Copy HTML</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="/assets/js/vendor.min.js?v=3.7.3"></script>
+    <script src="/assets/js/form-builder.min.js?v=3.7.3"></script>
+    <script src="/assets/js/form-render.min.js?v=3.7.3"></script>
+    <script src="/assets/js/site.min.js?v=3.7.3"></script>
+    <script>
+      if ('serviceWorker' in navigator && window.location.href.indexOf('formbuilder.online') !== -1) {
+        navigator.serviceWorker.register('service-worker.js').then(function(registration) {
+          console.log('service worker registered')
+        })
+      }
+    </script>
+  </body>
+</html>
