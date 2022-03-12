@@ -6,7 +6,6 @@
   -->
 
   <head>
-    <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" type="text/css">
     <link href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" rel="stylesheet" type="text/css">
     <link href="https://cdn.jsdelivr.net/npm/quasar@2.5.5/dist/quasar.prod.css" rel="stylesheet" type="text/css">
@@ -26,7 +25,14 @@
               :rules="[val => !!val || 'Chưa nhập Email', isValidEmail]"
               hint="Hãy nhập Email hợp lệ">  
              </q-input>
-            <q-select :loading="isLoadingData" class="full-width q-mb-md" outlined v-model="selectedResource" :options="resources" label="Tài liệu bạn muốn download"></q-select>
+            <q-select 
+              :loading="isLoadingData" 
+              class="full-width q-mb-md" 
+              outlined 
+              v-model="selectedResource" 
+              :options="resources"
+              @update:model-value="getCurrentVideoUrl()"
+              label="Tài liệu bạn muốn download"></q-select>
             
             <q-banner v-if="isSharingError" class="text-white bg-red full-width q-mb-md">
               {{ sharingErrorMessage }}
@@ -37,6 +43,11 @@
             </q-banner>
             
             <q-btn class="full-width q-mb-md" outline @click="downloadResource" size="lg" color="primary" label="Tải tài liệu" :loading="isLoading"></q-btn>
+            
+            <q-video
+              :ratio="16/9"
+              :src="activeVideoUrl">
+            </q-video>
           </div>
         </div>
       </div>
@@ -66,10 +77,14 @@
             sharingErrorMessage: '',
             resources: [],
             selectedResource: null,
+            activeVideoUrl: 'https://www.youtube.com/embed/OJW_Rm6upb8',
             email: ''
           }
         },
         methods: {
+          getCurrentVideoUrl() {
+            this.activeVideoUrl = 'https://www.youtube.com/embed/' + this.selectedResource.video_url.split('?v=')[1]
+          },
           NOTIFY(msg, type = 1) {
             this.$q.notify({
                 message: msg,
