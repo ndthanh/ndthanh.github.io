@@ -23,7 +23,10 @@
               label="Email của bạn"
               class="full-width q-mb-md"
               :rules="[val => !!val || 'Chưa nhập Email', isValidEmail]"
-              hint="Hãy nhập Email hợp lệ">  
+              hint="Hãy nhập Email hợp lệ">
+                <template v-slot:append>
+                  <q-icon name="far fa-envelope" /> 
+                </template>
              </q-input>
             <q-select 
               :loading="isLoadingData" 
