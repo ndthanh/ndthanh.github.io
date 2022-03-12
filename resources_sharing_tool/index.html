@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+  <!--
+    WARNING! Make sure that you match all Quasar related
+    tags to the same version! (Below it's "@2.5.5")
+  -->
+
+  <head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" type="text/css">
+    <link href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" rel="stylesheet" type="text/css">
+    <link href="https://cdn.jsdelivr.net/npm/quasar@2.5.5/dist/quasar.prod.css" rel="stylesheet" type="text/css">
+  </head>
+
+  <body>
+    <!-- example of injection point where you write your app template -->
+    <div id="q-app">
+      <div class="q-pa-md">
+        <div class="row">
+          <div class="col q-gutter-xs">
+            <q-input 
+              v-model="email" 
+              outlined
+              label="Email của bạn"
+              class="full-width q-mb-md"
+              :rules="[val => !!val || 'Chưa nhập Email', isValidEmail]"
+              hint="Hãy nhập Email hợp lệ">  
+             </q-input>
+            <q-select :loading="isLoadingData" class="full-width q-mb-md" outlined v-model="selectedResource" :options="resources" label="Tài liệu bạn muốn download"></q-select>
+            
+            <q-banner v-if="isSharingError" class="text-white bg-red full-width q-mb-md">
+              {{ sharingErrorMessage }}
+            </q-banner>
+            
+            <q-banner v-if="isSharingSuccess" class="text-white bg-green full-width q-mb-md">
+              {{ sharingSuccessMessage }}
+            </q-banner>
+            
+            <q-btn class="full-width q-mb-md" outline @click="downloadResource" size="lg" color="primary" label="Tải tài liệu" :loading="isLoading"></q-btn>
+          </div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- Add the following at the end of your body tag -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quasar@2.5.5/dist/quasar.umd.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quasar@2.5.5/dist/icon-set/fontawesome-v5.umd.prod.js"></script>
+     
+    <script>
+      /*
+        Example kicking off the UI. Obviously, adapt this to your specific needs.
+        Assumes you have a <div id="q-app"></div> in your <body> above
+       */
+      
+      const API = 'https://script.google.com/macros/s/AKfycbwSTCDrYUJu36UyG2VmdT0pr9z55Tx9iTJFMeYHpofDM5N7eYimEUsIFhSbAy2QFngu/exec'
+      
+      const app = Vue.createApp({
+        data () {
+          return {
+            isLoading: false,
+            isSharingSuccess: false,
+            isLoadingData: true,
+            isSharingError: false,
+            sharingSuccessMessage: '',
+            sharingErrorMessage: '',
+            resources: [],
+            selectedResource: null,
+            email: ''
+          }
+        },
+        methods: {
+          NOTIFY(msg, type = 1) {
+            this.$q.notify({
+                message: msg,
+                progress: true,
+                type: type == 1 ? 'positive' : 'negative',
+                color: type == 1 ? 'green' : 'red',
+                position: 'top',
+                timeout: 2000
+            })
+          },
+          downloadResource() {
+            if(!this.email) {            
+              this.NOTIFY('Vui lòng nhập email!', false)
+              return;
+            }
+            
+            if(!this.selectedResource) {
+              this.NOTIFY('Bạn chưa chọn tài liệu muốn download!', false)
+              return;
+            }
+            
+            if('Email không hợp lệ' === this.isValidEmail(this.email)) {
+              this.NOTIFY('Vui lòng nhập email hợp lệ!', false)
+              return;
+            }
+ 
+            this.isLoading = true
+            this.isSharingSuccess = false
+            this.isSharingError = false
+
+            postData(`${API}`, {email: this.email, ...this.selectedResource})
+            .then(data => {
+              this.isLoading = false
+              const { success, message } = data
+              
+              if(!success) {
+                this.isSharingError = true
+                this.sharingErrorMessage = message
+                return
+              }
+              
+              this.isSharingSuccess = true
+              this.sharingSuccessMessage = message
+            })
+          },
+          isValidEmail(val) {
+            const emailPattern = /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/;
+            return emailPattern.test(val) || 'Email không hợp lệ';
+          },
+          getResourcesList() {
+            fetch(`${API}?action=GET_RESOURCES_LIST`)
+              .then(response => response.json())
+              .then(data => {
+                this.isLoadingData = false
+                this.resources = data
+                this.resources.map(resource => {
+                  resource.label = resource.resource_display_name
+                })
+            })
+          }
+        },
+        mounted() {
+          this.getResourcesList()
+        }
+      })
+
+      app.use(Quasar)
+      Quasar.iconSet.set(Quasar.iconSet.fontawesomeV5)
+      app.mount('#q-app')
+    </script>
+    <script>
+       async function postData(url = '', data = {}) {
+        // Default options are marked with *
+        const response = await fetch(url, {
+          method: 'POST', // *GET, POST, PUT, DELETE, etc.
+          // mode: 'no-cors', // no-cors, *cors, same-origin, cors
+          // cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+          // credentials: 'same-origin', // include, *same-origin, omit
+          // headers: {
+            // 'Content-Type': 'application/json'
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+          // },
+          // redirect: 'follow', // manual, *follow, error
+          // referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+          body: JSON.stringify(data) // body data type must match "Content-Type" header
+        });
+        return response.json(); // parses JSON response into native JavaScript objects
+      }
+
+    </script>
+  </body>
+</html>
