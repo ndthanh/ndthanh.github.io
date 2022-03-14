@@ -18,7 +18,7 @@
     <div id="q-app">
       <div class="q-ma-md">
         <div class="row">
-          <div class="col q-gutter-md">
+          <div class="col-12 col-md q-gutter-md">
 
             <div class="text-h4">
               ADP <q-badge color="primary">v0.0.1</q-badge>
@@ -30,7 +30,7 @@
         </div>
 
         <div class="row">
-          <div class="col q-gutter-xs">
+          <div class="col-12 col-md q-gutter-xs">
 
             <div class="text-overline">
               Thông tin sản phẩm
@@ -206,7 +206,13 @@
               .then(response => response.json())
               .then(data => {
                 this.isLoadingProductData = false
-                this.product = data.product
+                if(data.success) {
+                  this.product = data.product
+                } else {
+                  this.NOTIFY('Có lỗi xảy ra khi tải dữ liệu', false)
+                  this.NOTIFY(data.msg, false)
+                }
+                
             })
           },
           activateWarranty() {
