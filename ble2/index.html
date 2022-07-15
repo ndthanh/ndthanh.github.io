@@ -6,12 +6,15 @@
 </head>
 <body>
   
-  <button id="request-bt" value="start"></button>
+  <button id="request-bt" value="start">Start</button>
   
   <script>
     const button = document.querySelector('#request-bt')
     button.addEventListener('click', function(event) {
-      navigator.bluetooth.requestDevice({ filters: [{}] })
+	navigator.bluetooth.requestDevice({
+	  acceptAllDevices: true,
+	  optionalServices: ['battery_service'] // Required to access service later.
+	})
         .then(device => { console.log(device) })
         .catch(error => { console.error(error); })
     });
