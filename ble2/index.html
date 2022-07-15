@@ -1,44 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-	<meta charset="UTF-8">
-	<title>Bluetooth WebAPI</title>
+  <meta charset="UTF-8">
+  <title>Bluetooth WebAPI</title>
 </head>
+
 <body>
-  
-  <button id="request-bt" value="start">Start</button>
-  
+
+  <button
+    id="request-bt"
+    value="start"
+  >Start</button>
+  <div id="log">
+    <p>Click Start to begin ...</p>
+  </div>
+
   <script>
     const button = document.querySelector('#request-bt')
     button.addEventListener('click', onButtonClick)
     async function onButtonClick() {
-    try {
-      log('Requesting Bluetooth Device...');
+      try {
+        log('Requesting Bluetooth Device...');
 
-      const device = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
-	optionalServices: ['battery_service'] // Required to access service later.
-      })
+        const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: ['battery_service'] // Required to access service later.
+        })
 
-      log('Connecting to GATT Server...');
-      const server = await device.gatt.connect();
+        log('Connecting to GATT Server...');
+        const server = await device.gatt.connect();
 
-      log('Getting Battery Service...');
-      const service = await server.getPrimaryService('battery_service');
+        log('Getting Battery Service...');
+        const service = await server.getPrimaryService('battery_service');
 
-      log('Getting Battery Level Characteristic...');
-      const characteristic = await service.getCharacteristic('battery_level');
+        log('Getting Battery Level Characteristic...');
+        const characteristic = await service.getCharacteristic('battery_level');
 
-      log('Reading Battery Level...');
-      const value = await characteristic.readValue();
+        log('Reading Battery Level...');
+        const value = await characteristic.readValue();
 
-      log('> Battery Level is ' + value.getUint8(0) + '%');
-    } catch(error) {
-      log('Argh! ' + error);
+        log('> Battery Level is ' + value.getUint8(0) + '%');
+      } catch (error) {
+        log('Argh! ' + error);
+      }
     }
-  }
-	  
-  function log(s) { console.log(s) }
+
+    function log(s) {
+      const logPad = document.querySelector('#log')
+      logPad.innerHTML += `<p>${s}</p>`
+      console.log(s)
+    }
 //     button.addEventListener('click', function(event) {
 // 	navigator.bluetooth.requestDevice({
 // 	  acceptAllDevices: true,
@@ -69,6 +81,7 @@
 //         .catch(error => { console.error(error); })
 //     });
   </script>
-    
+
 </body>
+
 </html>
