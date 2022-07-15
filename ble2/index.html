@@ -15,7 +15,13 @@
 	  acceptAllDevices: true,
 	  optionalServices: ['battery_service'] // Required to access service later.
 	})
-        .then(device => { console.log(device) })
+        .then(device => { 
+	  console.log(device) 
+	  return device.gatt.connect(); // try to connect
+	})
+	.then(server => {
+	  console.log(server)
+	})
         .catch(error => { console.error(error); })
     });
   </script>
