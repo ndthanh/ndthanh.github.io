@@ -16,11 +16,11 @@
 	  optionalServices: ['battery_service'] // Required to access service later.
 	})
         .then(device => { 
-	  console.log(device) 
+	  console.log('Đã kết nối tới device: ', device) 
 	  return device.gatt.connect(); // try to connect
 	})
 	.then(server => {
-	  console.log(server)
+	  console.log('Server: ', server)
 	})
         .catch(error => { console.error(error); })
     });
