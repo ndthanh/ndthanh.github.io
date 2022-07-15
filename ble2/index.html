@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Bluetooth WebAPI</title>
+</head>
+<body>
+  
+  <button id="request-bt" value="start"></button>
+  
+  <script>
+    const button = document.querySelector('#request-bt')
+    button.addEventListener('click', function(event) {
+      navigator.bluetooth.requestDevice({ filters: [{}] })
+        .then(device => { console.log(device) })
+        .catch(error => { console.error(error); })
+    });
+  </script>
+    
+</body>
+</html>
