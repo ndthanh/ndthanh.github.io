@@ -10,35 +10,61 @@
   
   <script>
     const button = document.querySelector('#request-bt')
-    button.addEventListener('click', function(event) {
-	navigator.bluetooth.requestDevice({
-	  acceptAllDevices: true,
-	  optionalServices: ['battery_service'] // Required to access service later.
-	})
-        .then(device => { 
-	  console.log('Đã kết nối tới device: ', device) 
-	  return device.gatt.connect(); // try to connect
-	})
-	.then(server => {
-	  console.log('Server: ', server)
-	  // Getting Battery Service…
-	  return server.getPrimaryService('battery_service')
-	})
-	.then(service => {
-	  console.log('service: ', service)
-	  // Getting Battery Level Characteristic…
-	  return service.getCharacteristic('battery_level')
-	})
-	.then(characteristic => {
-	  console.log('characteristic: ', characteristic)
-	  // Reading Battery Level…
-	  return characteristic.readValue();
-	})
-	.then(value => {
-	  console.log(`Battery percentage is ${value.getUint8(0)}`)
-	})
-        .catch(error => { console.error(error); })
-    });
+    button.addEventListener('click', onButtonClick)
+    async function onButtonClick() {
+    try {
+      log('Requesting Bluetooth Device...');
+      const device = await navigator.bluetooth.requestDevice({
+	filters: [{services: ['battery_service']}]});
+
+      log('Connecting to GATT Server...');
+      const server = await device.gatt.connect();
+
+      log('Getting Battery Service...');
+      const service = await server.getPrimaryService('battery_service');
+
+      log('Getting Battery Level Characteristic...');
+      const characteristic = await service.getCharacteristic('battery_level');
+
+      log('Reading Battery Level...');
+      const value = await characteristic.readValue();
+
+      log('> Battery Level is ' + value.getUint8(0) + '%');
+    } catch(error) {
+      log('Argh! ' + error);
+    }
+  }
+	  
+  function log(s) { console.log(s) }
+//     button.addEventListener('click', function(event) {
+// 	navigator.bluetooth.requestDevice({
+// 	  acceptAllDevices: true,
+// 	  optionalServices: ['battery_service'] // Required to access service later.
+// 	})
+//         .then(device => { 
+// 	  console.log('Đã kết nối tới device: ', device) 
+// 	  return device.gatt.connect(); // try to connect
+// 	})
+// 	.then(server => {
+// 	  console.log('Server: ', server)
+// 	  // Getting Battery Service…
+// 	  return server.getPrimaryService('battery_service')
+// 	})
+// 	.then(service => {
+// 	  console.log('service: ', service)
+// 	  // Getting Battery Level Characteristic…
+// 	  return service.getCharacteristic('battery_level')
+// 	})
+// 	.then(characteristic => {
+// 	  console.log('characteristic: ', characteristic)
+// 	  // Reading Battery Level…
+// 	  return characteristic.readValue();
+// 	})
+// 	.then(value => {
+// 	  console.log(`Battery percentage is ${value.getUint8(0)}`)
+// 	})
+//         .catch(error => { console.error(error); })
+//     });
   </script>
     
 </body>
