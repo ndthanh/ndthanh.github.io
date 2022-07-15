@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insight Demo</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+    <style>img { width: 500px; height: 500px; margin: 0 auto; display: block; opacity: 0 }</style>
+  </head>
+  <body>
+    <button id="connect">connect</button>
+    <span id="device"></span>
+    <span id="batteryLevel"></span>
+    <br/>
+    <img id="deckcard" width="226">
+
+    <script src="insight.js"></script>
+    <script>
+      var deckCardImage = document.querySelector('#deckcard');
+
+      document.querySelector('#connect').addEventListener('click', function() {
+        document.querySelector('#device').textContent = '';
+        document.querySelector('#batteryLevel').textContent = '';
+        insight.connect()
+        .then(() => {
+          document.querySelector('#device').textContent = insight.device.id;
+          return Promise.all([
+            insight.getBatteryLevel().then(handleBatteryLevel),
+            insight.startNotificationsDeckCard().then(handleDeckCard)
+          ]);
+        })
+        .catch(error => {
+          console.error('Argh!', error);
+        });
+      });
+
+      function handleBatteryLevel(batteryLevel) {
+        document.querySelector('#batteryLevel').textContent = 'Battery: ' + batteryLevel + '%';
+      }
+
+      function handleDeckCard(deckCard) {
+        deckCard.addEventListener('characteristicvaluechanged', event => {
+          var code = insight.parseDeckCard(event.target.value);
+          deckCardImage.src = 'img/' + code + '.svg';
+          deckCardImage.onload = () => {
+            deckCardImage.style.opacity = 1;
+            setTimeout(() => { deckCardImage.style.opacity = 0; }, 3e3);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,207 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="theme-color" content="#757575">
+    <meta name='description' content="As seen on TV!">
+    <link rel='manifest' href='manifest.json'>
+    <title>Arcade Machine</title>
+    <link rel="icon" sizes="192x192" href="icon.png">
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100vw;
+        font-family: Roboto, Arial, Helvetica, sans-serif;
+      }
+      
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #757575;
+        color: #757575;
+        user-select: none;
+      }
+
+      h1 {
+        color: #ddd;
+        margin-top: 36px;
+        font-weight: 100;
+        font-size: 14px;
+      }
+
+      .container {
+        text-align: center;
+      }
+
+      .container div {
+        margin: 12px;
+      }
+
+      .button {
+        cursor: default;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 50%;
+        border: 0;
+        width: 108px;
+        height: 96px;
+        line-height: 96px;
+        display: inline-block;
+        background: #B71C1C;
+        background: -webkit-linear-gradient(left top, #D32F2F, #B71C1C);
+        box-shadow: 0 3px 4px rgba(0,0,0,0.4);
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+        color: #eee;
+        transform: rotate(-10deg);
+      }
+
+      .button.pressed {
+        background: #E53935;
+        background: -webkit-linear-gradient(left top, #E57373, #E53935);
+      }
+
+      pre {
+        font-size: small;
+        white-space: pre-line;
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        margin: 0;
+        color: #eee;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="container">
+      <div>
+        <div class="button" data-axis="x" data-value="1">LEFT</div>
+        <div class="button" data-axis="x" data-value="2">RIGHT</div>
+      </div>
+      <div>
+        <div class="button" data-axis="y" data-value="1">BACK</div>
+        <div class="button" data-axis="y" data-value="2">FORWARD</div>
+      </div>
+      <div>
+        <div class="button" data-axis="z" data-value="1">DOWN</div>
+        <div class="button" data-axis="z" data-value="2">UP</div>
+      </div>
+      <h1>Arcade Machine<br/>by François & Jérôme</h1>
+      <pre></pre>
+    </div>
+
+    <script>
+
+      const STOP = 0;
+      const MINUS = 1;
+      const PLUS = 2;
+
+      var motorCharacteristic;
+
+      var motorCommand = { x: STOP, y: STOP, z: STOP };
+
+      var queue = [];
+
+      function onButtonPressed(event) {
+        event.target.classList.add('pressed');
+        pushCommand(event.target.dataset.axis, event.target.dataset.value);
+      }
+
+      function onButtonReleased(event) {
+        if (!event.target.classList.contains('pressed')) {
+          return;
+        }
+        event.target.classList.remove('pressed');
+        pushCommand(event.target.dataset.axis, STOP);
+      }
+
+      function pushCommand(axis, value) {
+        let command = motorCommand;
+        command[axis] = parseInt(value);
+
+        queue.push(command);
+
+        if (queue.length == 1) {
+          sendMotorCommands();
+        }
+      }
+     
+      function sendMotorCommands() {
+        if (!motorCharacteristic) {
+          return navigator.bluetooth.requestDevice({filters: [{name: 'Arcade Machine'}], optionalServices: [0x1900]})
+          .then(device => {
+            device.addEventListener('gattserverdisconnected', onDisconnected);
+            return device.gatt.connect();
+          })
+          .then(server => server.getPrimaryService(0x1900))
+          .then(service => service.getCharacteristic(0x1901))
+          .then(characteristic => {
+            motorCharacteristic = characteristic;
+            log('Ready');
+          })
+          .catch(e => {
+            // TODO: Switch to log when PointerEvents bug is fixed.
+            console.log(e);
+          })
+          .then(_ => {
+            reset();
+          });
+        }
+
+        return Promise.resolve()
+        .then(_ => {
+          if (!motorCharacteristic.service.device.gatt.connected) {
+            // Device is not connected anymore, let's reconnect.
+            return motorCharacteristic.service.device.gatt.connect();
+          } 
+        })
+        .then(_ => {
+          motorCommand = queue[0];
+          log(JSON.stringify(motorCommand));
+          let value = new Uint8Array([motorCommand.x, motorCommand.y, motorCommand.z, 0]);
+          return motorCharacteristic.writeValue(value);
+        })
+        .catch(e => {
+          log('Error: ' + e);
+          reset();
+        })
+        .then(_ => {
+          queue.shift();
+          // Send pending motor commands if any.
+          if (queue.length) {
+            return sendMotorCommands();
+          }
+        });
+      }
+
+      function reset() {
+        queue = [];
+        motorCommand = { x: STOP, y: STOP, z: STOP };
+      }
+
+      function onDisconnected() {
+        log('Disconnected!');
+      }
+
+      function log(text) {
+        document.querySelector('pre').textContent = text;
+      }
+
+      for (const button of document.querySelectorAll('.button')) {
+        button.style.width = Math.floor((Math.random() * 20) + 118) + 'px';
+        button.style.marginRight = Math.floor((Math.random() * 20) + 12) + 'px';
+        button.addEventListener('pointerdown', onButtonPressed);
+        button.addEventListener('pointerleave', onButtonReleased);
+        button.addEventListener('pointerup', onButtonReleased);
+      }
+
+      navigator.serviceWorker.register('sw.js');
+    </script>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Espruino</title>
+  </head>
+  <body>
+    <button>Test</button>
+    <script src="https://espruino.github.io/js/puck.js"></script>
+    <script>
+      document.querySelector('button').addEventListener('click', function() {
+        Puck.write("LED1.set()\n")
+      });
+    </script>
+  </body>
+</html>
+

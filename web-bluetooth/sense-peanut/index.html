@@ -1,0 +1,320 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sense Peanut</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="https://code.getmdl.io/1.2.0/material.blue-indigo.min.css" />
+    <script defer src="https://code.getmdl.io/1.2.0/material.min.js"></script>
+    <style>
+      #dashboard { padding: 12px }
+      #dashboard > button { margin-bottom: 2px; }
+      #chart { padding: 24px; padding-bottom: 0; }
+      #console {
+        height: 100px;
+        overflow-y: overlay;
+        font-family: "DejaVu Sans Mono", "Everson Mono", FreeMono, Menlo, Terminal, monospace;
+        font-size: small;
+        background-color: #212121;
+        color: #AEEA00;
+        padding: 12px 4px;
+        margin: 0;
+        line-height: 16px;
+      }
+      [data-color="blue"] { color: #00a9ce; }
+      [data-color="green"] { color: #aadb1e; }
+      [data-color="orange"] { color: #ff5c39; }
+      #buttons { min-height: 36px; line-height: 36px; }
+      #scanPeanuts { float: right; margin-right: 12px; }
+      .separator { color: rgba(0,0,0,.26); }
+    </style>
+  </head>
+  <body>
+    <div id="dashboard">
+      <div id="buttons">
+        <span style="padding: 0 16px;">🥜</span>
+        <button class="mdl-button mdl-js-button mdl-button--icon" id="scanPeanuts"><i class="material-icons">search</i></button>
+      </div>
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="battery" disabled>Get Battery</button>
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="buzz" disabled>Buzz</button>
+      <span class="separator">|</span>
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="temperature" disabled>Get Temperature</button>
+      <span class="separator">|</span>
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="guardState" disabled>Get Guard State</button>
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="turnOnGuard" disabled>Turn on Guard</button>
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="turnOffGuard" disabled>Turn off Guard</button>
+    </div>
+
+    <div id="console"></div>
+    <div id="charts"></div>
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="sense-peanut.js"></script>
+    <script>
+      var $ = document.querySelector.bind(document);
+
+      var peanuts = [];
+
+      var activePeanut;
+
+      const MY_PEANUTS = {
+        '00:A0:50:46:06:1A': {
+          'color': 'orange',
+          'label': '46:06:1A',
+          'type': 'guard',
+          'factoryKey': 'e4e7ba283c9e524bc559c51a27f388f0',
+        },
+        '00:A0:50:0C:11:08': {
+          'color': 'blue',
+          'label': '0C:11:08',
+          'type': 'thermo',
+          'factoryKey': '2cd1d05935bfb2138f346bb24b9cbc23',
+        },
+        '00:A0:50:06:13:18': {
+          'color': 'green',
+          'label': '06:13:18',
+          'type': 'thermo',
+          'factoryKey': 'ebaed4451f6e8bcc0f84a8c3d3574a8c',
+        }
+      };
+
+      $('#scanPeanuts').addEventListener('click', function() {
+        log('Scanning for peanuts...');
+        let peanut = new Peanut();
+        peanut.connect()
+        .then(_ => { log('Connected to ' + peanut.device.name); })
+        .then(_ => peanut.getInitData())
+        .then(initData => { log('Init Data: ' + JSON.stringify(initData)); })
+        .then(_ => peanut.getMacAddress())
+        .then(macAddress => {
+          if (!MY_PEANUTS[macAddress]) {
+            return Promise.reject('Argh! Read https://github.com/beaufortfrancois/sandbox/blob/gh-pages/web-bluetooth/sense-peanut/README.md first!');
+          }
+          log('Mac Address: ' + macAddress);
+          peanut.color = MY_PEANUTS[macAddress].color;
+          log('Peanut color: ' + peanut.color);
+          peanut.factoryKey = MY_PEANUTS[macAddress].factoryKey;
+          peanut.mac = macAddress;
+          peanut.type = MY_PEANUTS[macAddress].type;
+          peanut.label = MY_PEANUTS[macAddress].label;
+        })
+        .then(_ => peanut.getPlainText())
+        .then(clearText => peanut.setFactoryCipher(peanut.factoryKey, clearText))
+        .then(_ => peanut.setTime())
+        .then(_ => peanut.updateConnectionParameters())
+        .then(_ => peanut.startNotifications(handleNotifications))
+        .then(_ => {
+          log('Successfully authenticated!');
+          activePeanut = peanut;
+          peanuts.push(activePeanut);
+
+          if (!$('[data-mac="' + peanut.mac + '"]')) {
+            const newButton = document.createElement('button');
+            newButton.classList.add('mdl-button', 'mdl-js-button');
+            newButton.dataset.mac = peanut.mac;
+            newButton.dataset.color = peanut.color;
+            newButton.textContent = peanut.label;
+            newButton.addEventListener('click', onConnectButtonClick);
+            $('#buttons').appendChild(newButton);
+            peanut.rgbColor = window.getComputedStyle(newButton).color;
+            drawChart(activePeanut);
+            window.onresize();
+          }
+
+          for (const button of document.querySelectorAll('button[data-color]')) {
+            if (peanut.mac == button.dataset.mac) {
+              button.disabled = false;
+              setTimeout(function() {
+                $('#battery').disabled = false;
+                $('#temperature').disabled = false;
+                $('#buzz').disabled = false;
+                $('#guardState').disabled = false;
+                $('#turnOnGuard').disabled = false;
+                $('#turnOffGuard').disabled = false;
+                updateButtonsColor(button);
+              }, 200);
+            }
+          }
+         })
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      function onConnectButtonClick(event) {
+        let mac = event.target.dataset.mac;
+        activePeanut = peanuts.find(peanut => peanut.mac == mac);
+        updateButtonsColor(event.target);
+      }
+
+      function updateButtonsColor(button) {
+        let color = getComputedStyle(button).getPropertyValue('color');
+        for (const actionButton of document.querySelectorAll('#dashboard > button')) {
+          actionButton.style.color = color;
+        }
+      }
+
+      document.querySelector('#battery').addEventListener('click', function() {
+        log('Getting battery...');
+        activePeanut.getBattery()
+        .then(data => handleNotifications(data, activePeanut))
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      document.querySelector('#temperature').addEventListener('click', function() {
+        log('Getting temperature...');
+        activePeanut.getTemperature()
+        .then(data => handleNotifications(data, activePeanut))
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      document.querySelector('#buzz').addEventListener('click', function() {
+        log('Requesting buzz...');
+        activePeanut.buzz()
+        .then(_ => {
+          log('Buzz!');
+        })
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      document.querySelector('#guardState').addEventListener('click', function() {
+        log('Getting guard state...');
+        activePeanut.getGuardState()
+        .then(data => handleNotifications(data, activePeanut))
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      document.querySelector('#turnOnGuard').addEventListener('click', function() {
+        log('Turning ON guard...');
+        activePeanut.turnOnGuard()
+        .then(_ => {
+          log('Guard is turned ON.');
+        })
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      document.querySelector('#turnOffGuard').addEventListener('click', function() {
+        log('Turning OFF guard...');
+        activePeanut.turnOffGuard()
+        .then(_ => {
+          log('Guard is turned OFF.');
+        })
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      function handleNotifications(data, peanut) {
+        if (data.temperatureCelsius) {
+          let item = {
+            peanutColor: peanut.color,
+            peanutMac: peanut.mac,
+            temperatureCelsius: data.temperatureCelsius,
+          }
+          //TODO: Don't use localStorage.
+          localStorage.setItem(data.timeStampMs, JSON.stringify(item));
+          updateChart(peanut, data.timeStampMs, data.temperatureCelsius);
+        } else if (data.alert) {
+          let item = {
+            peanutColor: peanut.color,
+            peanutMac: peanut.mac,
+            alert: data.alert,
+          }
+          //TODO: Don't use localStorage.
+          localStorage.setItem(data.timeStampMs, JSON.stringify(item));
+          updateChart(peanut, data.timeStampMs, data.alert);
+        }
+        let timeStamp = new Date(data.timeStampMs).toLocaleString();
+        delete(data.timeStampMs);
+        data.peanutColor = peanut.color;
+        log(timeStamp + ' ' + JSON.stringify(data));
+      }
+
+      function log(text) {
+        document.querySelector('#console').innerHTML += text + '<br/>';
+        document.querySelector('#console').scrollTop += 100;
+      }
+
+      /* Charts stuff */
+
+      google.charts.load('current', {packages: ['corechart']});
+
+      function drawChart(peanut) {
+        const div = document.createElement('div');
+        div.id = peanut.color + peanut.mac.split(':').join('');
+        $('#charts').appendChild(div);
+        peanut.data = new google.visualization.DataTable();
+        peanut.data.addColumn('datetime', 'Time');
+        peanut.data.addColumn('number', '🥜 ' + peanut.mac.substr(9, 8));
+
+        for (var i = 0, len = localStorage.length; i < len; i++) {
+          let dateTime = new Date(parseInt(localStorage.key(i)));
+          let item = JSON.parse(localStorage.getItem(localStorage.key(i)));
+          if (item.peanutMac === peanut.mac) {
+            if (item.temperatureCelsius) {
+              let temperature = parseFloat(item.temperatureCelsius);
+              peanut.data.addRows([ [dateTime, temperature] ]);
+            } else if (item.alert) {
+              let data = parseInt(item.alert);
+              peanut.data.addRows([ [dateTime, data] ]);
+            }
+          }
+        }
+
+        if (peanut.type == 'thermo') {
+          peanut.chart = new google.visualization.LineChart($('#' + div.id));
+          peanut.chartOptions = {
+            interpolateNulls: true,
+            fontName: 'Roboto',
+            curveType: 'function',
+            colors: [peanut.rgbColor],
+            width: document.body.clientWidth,
+            height: (window.innerHeight - 224) / 2,
+            legend: 'none',
+            lineWidth: 3,
+            vAxis: {
+              format: '#.## °C'
+            },
+            hAxis: {
+              gridlines: {
+                color: '#fff'
+              }
+            }
+          };
+        } else if (peanut.type == 'guard') {
+          peanut.chart = new google.visualization.ScatterChart($('#' + div.id));
+          peanut.chartOptions = {
+            fontName: 'Roboto',
+            colors: [peanut.rgbColor],
+            width: document.body.clientWidth,
+            height: (window.innerHeight - 224) / 2,
+            legend: 'none',
+            hAxis: {
+              gridlines: {
+                color: '#fff'
+              }
+            }
+          };
+        }
+
+        if (peanut.data.getNumberOfRows()) {
+          peanut.chart.draw(peanut.data, peanut.chartOptions);
+        }
+      }
+
+      function updateChart(peanut, timeStampMs, data) {
+        let dateTime = new Date(timeStampMs);
+        peanut.data.addRows([ [dateTime, data] ]);
+        peanut.data.sort([{'column': 0}]);
+        peanut.chart.draw(peanut.data, peanut.chartOptions);
+      }
+
+      window.onresize = function() {
+        for (const peanut of peanuts) {
+          peanut.chartOptions.width = document.body.clientWidth;
+          peanut.chartOptions.height = (window.innerHeight - 224) / 2;
+          peanut.chart.draw(peanut.data, peanut.chartOptions);
+        }
+      }
+
+    </script>
+  </body>
+</html>
