@@ -1,30 +1,6 @@
 const app = Vue.createApp({
   data() {
-    return {
-      dealerId: null,
-      productSN: null,
-      product: {
-        ten_san_pham: '',
-        thoi_han_bao_hanh: 0,
-        dung_luong: '',
-        mau_sac: '',
-        trang_thai: '',
-        thoi_diem: '',
-        dai_ly: '',
-        bao_hanh_den: ''
-      },
-      isLoadingProductData: false,
-      isActivatingInProgress: false,
-      isProcessingWarranty: false,
-      status: {
-        'kich_hoat_bao_hanh': 'Đã kích hoạt bảo hành',
-        'xu_ly_bao_hanh': 'Xử lý bảo hành',
-        'dai_ly_nhap_kho': 'Trong kho đại lý'
-      },
-      expanded: false,
-      secret: null,
-      isPwd: true
-    }
+    return {}
   },
   methods: {
     onSetColor() {
