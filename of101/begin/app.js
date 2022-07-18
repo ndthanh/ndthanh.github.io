@@ -1,8 +1,8 @@
 // import router from './router.js'
 // Vue.$router = router
 
-const Home = { template: '<div>Home</div>' }
-const About = { template: '<div>About</div>' }
+const Home = { template: '<h1>Home</h1>' }
+const About = { template: '<h1>About</h1>' }
 
 const routes = [
   { path: '/', component: Home },
@@ -129,7 +129,7 @@ const app = Vue.createApp({
     </q-drawer>
 
     <q-page-container>
-      <router-view></router-view>
+      <router-view />
     </q-page-container>
   </q-layout>
   `
