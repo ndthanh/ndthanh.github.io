@@ -1,5 +1,5 @@
-import home from './pages/home.js'
-import page1 from './pages/page1.js'
+import home from './pages/home.js';
+import page1 from './pages/page1.js';
 
 export default VueRouter.createRouter({
   history: VueRouter.createWebHashHistory(),
