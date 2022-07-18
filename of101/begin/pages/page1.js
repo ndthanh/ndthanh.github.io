@@ -1,4 +1,4 @@
-import component1 from '../components/component1'
+import component1 from '../components/component1.js'
 
 export default {
   name: 'Page1',
