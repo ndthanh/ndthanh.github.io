@@ -1,3 +1,6 @@
+import router from 'router.js'
+Vue.$router = router
+
 const app = Vue.createApp({
   components: {},
 
@@ -112,7 +115,7 @@ const app = Vue.createApp({
     </q-drawer>
 
     <q-page-container>
-      This is where router view will come.
+      <router-view></router-view>
     </q-page-container>
   </q-layout>
   `
@@ -138,6 +141,7 @@ const app = Vue.createApp({
 })
 
 window.Office.onReady(() => {
+  app.use(router)
   app.use(Quasar)
   Quasar.iconSet.set(Quasar.iconSet.fontawesomeV6)
   app.mount('#q-app')
