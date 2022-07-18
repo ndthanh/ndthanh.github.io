@@ -1,4 +1,4 @@
-import component1 from '../components/component1.js'
+import One from '../components/component1.js'
 
 export default {
   name: 'Page1',
@@ -15,7 +15,7 @@ export default {
                 <q-breadcrumbs-el icon="home" to="/" />
                 <q-breadcrumbs-el :label="title" />
             </q-breadcrumbs>
-            <component1></component1>
+            <One></One>
         </q-page>
     `,
 };
