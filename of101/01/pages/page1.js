@@ -18,4 +18,4 @@ export default {
             <One></One>
         </q-page>
     `,
-};
+}

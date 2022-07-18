@@ -1,9 +1,13 @@
+import pinia from '../stores/store.js'
+import { useCounterStore } from '../stores/counterStore.js'
+
 export default {
   name: 'Home',
 
   setup() {
+    const counterStore = useCounterStore(pinia)
     const title = 'Home page'
-    return { title }
+    return { title, counterStore }
   },
 
   template: `
@@ -11,7 +15,8 @@ export default {
         <q-breadcrumbs>
             <q-breadcrumbs-el icon="home" :label="title" />
         </q-breadcrumbs>
-        <h1>This is {{ title }}  </h1>
+        <h2>This is {{ title }}  </h2>
+        <p>Counter value is {{ counterStore.value }}</p>
       </q-page>
   `,
 }
