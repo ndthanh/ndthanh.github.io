@@ -2,7 +2,7 @@ import One from '../components/component1.js'
 
 export default {
   name: 'Page1',
-  components: { component1 },
+  components: { One },
 
   setup() {
     const title = 'Page One'
