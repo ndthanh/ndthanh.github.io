@@ -1,19 +1,5 @@
-// import router from './router.js'
+import router from './router.js'
 // Vue.$router = router
-
-const Home = { template: '<h1>Home</h1>' }
-const About = { template: '<h1>About</h1>' }
-
-const routes = [
-  { path: '/', component: Home },
-  { path: '/about', component: About },
-]
-
-const router = VueRouter.createRouter({
-  // 4. Provide the history implementation to use. We are using the hash history for simplicity here.
-  history: VueRouter.createWebHashHistory(),
-  routes, // short for `routes: routes`
-})
 
 const app = Vue.createApp({
   components: {},
@@ -134,25 +120,6 @@ const app = Vue.createApp({
     </q-page-container>
   </q-layout>
   `
-  // methods: {
-  //   onSetColor() {
-  //     window.Excel.run(async context => {
-  //       const range = context.workbook.getSelectedRange();
-  //       range.format.fill.color = 'green';
-  //       await context.sync();
-  //     });
-  //   },
-  //   NOTIFY(msg, type = 1) {
-  //     this.$q.notify({
-  //       message: msg,
-  //       progress: true,
-  //       type: type == 1 ? 'positive' : 'negative',
-  //       color: type == 1 ? 'green' : 'red',
-  //       position: 'top',
-  //       timeout: 2000
-  //     })
-  //   }
-  // }
 })
 
 window.Office.onReady(() => {

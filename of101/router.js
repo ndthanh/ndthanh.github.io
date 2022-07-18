@@ -1,5 +1,8 @@
-import home from './pages/home.js';
-import page1 from './pages/page1.js';
+import home from './pages/home.js'
+import page1 from './pages/page1.js'
+
+delete window.history.pushState
+delete window.history.replaceState
 
 export default VueRouter.createRouter({
   history: VueRouter.createWebHashHistory(),
