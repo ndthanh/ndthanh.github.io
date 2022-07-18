@@ -32,192 +32,12 @@
 <body>
   <!-- example of injection point where you write your app template -->
   <div id="q-app">
-    <div class="q-ma-md">
-      <div class="row">
-        <div class="col-12 col-md q-gutter-md">
-
-          <div class="text-h4">
-            ADP <q-badge color="primary">v0.0.1</q-badge>
-          </div>
-
-          <q-separator></q-separator>
-
-        </div>
-      </div>
-
-      <q-btn
-        push
-        color="primary"
-        label="Test OfficeJS Button"
-        @click="onSetColor"
-      ></q-btn>
-
-      <div class="row">
-        <div class="col-12 col-md q-gutter-xs">
-
-          <div class="text-overline">
-            Thông tin sản phẩm
-          </div>
-
-          <q-card
-            class="full-width"
-            flat
-            bordered
-          >
-
-            <q-card-section>
-              <div class="text-overline text-green-14">Kích hoạt bảo hành</div>
-              <div class="text-h5 q-mt-sm q-mb-xs">
-                {{ product.ten_san_pham }}
-                <q-skeleton
-                  v-show="isLoadingProductData"
-                  type="text"
-                ></q-skeleton>
-              </div>
-
-              <q-chip
-                square
-                outline
-                icon="event"
-              >
-                {{ isLoadingProductData ? '' : 'Bảo hành ' + product.thoi_han_bao_hanh + ' tháng' }}
-                <q-spinner
-                  v-if="isLoadingProductData"
-                  color="primary"
-                  size="1em"
-                ></q-spinner>
-              </q-chip>
-              <q-chip
-                square
-                outline
-                icon="memory"
-              >
-                {{ isLoadingProductData ? '' : product.dung_luong }}
-                <q-spinner
-                  v-if="isLoadingProductData"
-                  color="primary"
-                  size="1em"
-                ></q-spinner>
-              </q-chip>
-              <q-chip
-                square
-                outline
-                icon="palette"
-              >
-                {{ isLoadingProductData ? '' : product.mau_sac }}
-                <q-spinner
-                  v-if="isLoadingProductData"
-                  color="primary"
-                  size="1em"
-                ></q-spinner>
-              </q-chip>
-
-              <div class="text-subtitle1">
-                Mã sản phẩm:
-                <q-space></q-space>
-                <q-chip square>{{ productSN }}</q-chip>
-              </div>
-
-              <div class="text-subtitle1">
-                Trạng thái:
-                <q-space></q-space>
-                <q-chip
-                  square
-                  icon="warehouse"
-                >
-                  {{ isLoadingProductData || isActivatingInProgress ? '' : this.status[product.trang_thai] }}
-                  <q-spinner
-                    v-if="isLoadingProductData"
-                    color="primary"
-                    size="1em"
-                  ></q-spinner>
-                </q-chip>
-                <span>{{ isLoadingProductData || isActivatingInProgress ? '' : '(' + this.formatDate(product.thoi_diem)
-                  + ')' }}</span>
-              </div>
-
-              <div
-                class="text-subtitle1"
-                v-if="product.trang_thai === 'kich_hoat_bao_hanh'"
-              >
-                Bảo hành đến:
-                <q-space></q-space>
-                <q-chip
-                  square
-                  icon="schedule"
-                >{{ this.formatDate(product.bao_hanh_den) }}</q-chip>
-                {{ new Date(product.bao_hanh_den) > new Date() ? '(Còn bảo hành)' : '(Hết bảo hành)' }}
-              </div>
-
-            </q-card-section>
-
-            <q-card-actions>
-              <q-btn
-                class="full-width q-mb-md"
-                outline
-                @click="activateWarranty()"
-                size="md"
-                color="primary"
-                :label="product.trang_thai === 'kich_hoat_bao_hanh' ? 'Đã kích hoạt bảo hành' : 'Kích hoạt bảo hành'"
-                :disable="product.trang_thai === 'kich_hoat_bao_hanh' || isActivatingInProgress || isLoadingProductData || product.trang_thai === 'xu_ly_bao_hanh'"
-                :loading="isLoadingProductData || isActivatingInProgress"
-              ></q-btn>
-
-              <q-space></q-space>
-
-              <q-btn
-                class="full-width"
-                color="grey"
-                flat
-                :icon="expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
-                @click="expanded = !expanded"
-              ></q-btn>
-            </q-card-actions>
-
-            <q-slide-transition>
-              <div v-show="expanded">
-                <q-separator></q-separator>
-                <q-card-section>
-                  <div class="text-overline text-green-14">Chuyển bảo hành</div>
-
-                  <q-input
-                    v-model="secret"
-                    :type="isPwd ? 'password' : 'text'"
-                    outlined
-                    label="Mã bí mật của đại lý"
-                    class="full-width q-mb-md"
-                    :disable="product.trang_thai === 'xu_ly_bao_hanh'"
-                  >
-                    <template v-slot:append>
-                      <q-icon
-                        :name="isPwd ? 'visibility_off' : 'visibility'"
-                        class="cursor-pointer"
-                        @click="isPwd = !isPwd"
-                      ></q-icon>
-                    </template>
-                  </q-input>
-                </q-card-section>
-
-                <q-card-actions>
-                  <q-btn
-                    class="full-width q-mb-md"
-                    outline
-                    @click="submitWarranty()"
-                    size="lg"
-                    color="primary"
-                    :label="product.trang_thai === 'xu_ly_bao_hanh' ? 'Sản phẩm đang xử lý bảo hành' : 'Chuyển bảo hành'"
-                    :loading="isProcessingWarranty"
-                    :disable="product.trang_thai === 'xu_ly_bao_hanh'"
-                  >
-                  </q-btn>
-                </q-card-actions>
-              </div>
-            </q-slide-transition>
-          </q-card>
-
-        </div>
-      </div>
-    </div>
+    <q-btn
+      push
+      color="primary"
+      label="Test OfficeJS Button"
+      @click="onSetColor"
+    ></q-btn>
   </div>
 
   <!-- Add the following at the end of your body tag -->
@@ -232,135 +52,62 @@
       Assumes you have a <div id="q-app"></div> in your <body> above
      */
 
-    const API = 'https://script.google.com/macros/s/AKfycbzHpTmpLGCKN1DuAGRd89MHQl53ETjeqYwVBBjSbeC_sKD_koRb0cxxTRJXCJ2tpjuwPg/exec'
+    // const app = Vue.createApp({
+    //   data() {
+    //     return {
+    //       dealerId: null,
+    //       productSN: null,
+    //       product: {
+    //         ten_san_pham: '',
+    //         thoi_han_bao_hanh: 0,
+    //         dung_luong: '',
+    //         mau_sac: '',
+    //         trang_thai: '',
+    //         thoi_diem: '',
+    //         dai_ly: '',
+    //         bao_hanh_den: ''
+    //       },
+    //       isLoadingProductData: false,
+    //       isActivatingInProgress: false,
+    //       isProcessingWarranty: false,
+    //       status: {
+    //         'kich_hoat_bao_hanh': 'Đã kích hoạt bảo hành',
+    //         'xu_ly_bao_hanh': 'Xử lý bảo hành',
+    //         'dai_ly_nhap_kho': 'Trong kho đại lý'
+    //       },
+    //       expanded: false,
+    //       secret: null,
+    //       isPwd: true
+    //     }
+    //   },
+    //   methods: {
+    //     onSetColor() {
+    //       window.Excel.run(async context => {
+    //         const range = context.workbook.getSelectedRange();
+    //         range.format.fill.color = 'green';
+    //         await context.sync();
+    //       });
+    //     },
+    //     NOTIFY(msg, type = 1) {
+    //       this.$q.notify({
+    //         message: msg,
+    //         progress: true,
+    //         type: type == 1 ? 'positive' : 'negative',
+    //         color: type == 1 ? 'green' : 'red',
+    //         position: 'top',
+    //         timeout: 2000
+    //       })
+    //     }
+    //   },
+    //   created() { },
+    //   mounted() { }
+    // })
 
-    const app = Vue.createApp({
-      data() {
-        return {
-          dealerId: null,
-          productSN: null,
-          product: {
-            ten_san_pham: '',
-            thoi_han_bao_hanh: 0,
-            dung_luong: '',
-            mau_sac: '',
-            trang_thai: '',
-            thoi_diem: '',
-            dai_ly: '',
-            bao_hanh_den: ''
-          },
-          isLoadingProductData: false,
-          isActivatingInProgress: false,
-          isProcessingWarranty: false,
-          status: {
-            'kich_hoat_bao_hanh': 'Đã kích hoạt bảo hành',
-            'xu_ly_bao_hanh': 'Xử lý bảo hành',
-            'dai_ly_nhap_kho': 'Trong kho đại lý'
-          },
-          expanded: false,
-          secret: null,
-          isPwd: true
-        }
-      },
-      methods: {
-        onSetColor() {
-          window.Excel.run(async context => {
-            const range = context.workbook.getSelectedRange();
-            range.format.fill.color = 'green';
-            await context.sync();
-          });
-        },
-        NOTIFY(msg, type = 1) {
-          this.$q.notify({
-            message: msg,
-            progress: true,
-            type: type == 1 ? 'positive' : 'negative',
-            color: type == 1 ? 'green' : 'red',
-            position: 'top',
-            timeout: 2000
-          })
-        },
-        getProductData() {
-          this.isLoadingProductData = true
-          fetch(`${API}${window.location.search}&action=GET_PRODUCT_DATA`)
-            .then(response => response.json())
-            .then(data => {
-              this.isLoadingProductData = false
-              if (data.success) {
-                this.product = data.product
-              } else {
-                this.NOTIFY('Có lỗi xảy ra khi tải dữ liệu', false)
-                this.NOTIFY(data.msg, false)
-              }
-
-            })
-        },
-        activateWarranty() {
-          this.isActivatingInProgress = true
-          fetch(`${API}${window.location.search}&action=ACTIVATE_WARRANTY`)
-            .then(response => response.json())
-            .then(data => {
-              this.isActivatingInProgress = false
-              if (data.success) {
-                this.NOTIFY('Kích hoạt bảo hành thành công', 1)
-                this.product = data.product
-              } else {
-                this.NOTIFY('Có lỗi xảy ra khi kích hoạt bảo hành.', false)
-                this.NOTIFY(data.msg, false)
-              }
-            })
-        },
-        submitWarranty() {
-
-          if (!this.secret) {
-            this.NOTIFY('Chưa nhập mã bảo mật.', false)
-            return
-          }
-
-
-          this.isProcessingWarranty = true
-          fetch(`${API}${window.location.search}&action=SUBMIT_WARRANTY&sc=${this.secret}`)
-            .then(response => response.json())
-            .then(data => {
-              this.secret = null
-              this.isProcessingWarranty = false
-              if (data.success) {
-                this.NOTIFY('Chuyển thông tin bảo hành thành công', 1)
-                this.product = data.product
-              } else {
-                this.NOTIFY('Có lỗi xảy ra khi chuyển thông tin bảo hành', false)
-                this.NOTIFY(data.msg, false)
-              }
-            })
-        },
-        formatDate(d) {
-          return new Date(d).toLocaleString('vi-VN', {
-            // weekday: 'short', // long, short, narrow
-            day: 'numeric', // numeric, 2-digit
-            year: 'numeric', // numeric, 2-digit
-            month: 'long', // numeric, 2-digit, long, short, narrow
-            // hour: 'numeric', // numeric, 2-digit
-            // minute: 'numeric', // numeric, 2-digit
-            // second: 'numeric', // numeric, 2-digit
-          })
-        }
-      },
-      created() {
-        const urlSearchParams = new URLSearchParams(window.location.search);
-        const params = Object.fromEntries(urlSearchParams.entries());
-        this.productSN = params.sn
-        this.dealerId = params.dl
-      },
-      mounted() {
-        this.getProductData()
-      }
-    })
-
-    window.Office.onReady(() => {
-      app.use(Quasar)
-      Quasar.iconSet.set(Quasar.iconSet.fontawesomeV6)
-      app.mount('#q-app')
-    });
+    // window.Office.onReady(() => {
+    //   app.use(Quasar)
+    //   Quasar.iconSet.set(Quasar.iconSet.fontawesomeV6)
+    //   app.mount('#q-app')
+    // });
   </script>
 </body>
 
