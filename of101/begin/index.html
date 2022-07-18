@@ -49,44 +49,37 @@
     type="module"
   ></script> -->
   <script>
-    //// 1
-    //
-    //  ルートコンポーネントを定義
-
     const Home = {
-      template: '<div>'
-        + '    <p>Home画面</p>'
-        + '</div>'
+      template: `<div>Home</div>`
     }
 
     const Foo = {
-      template: '<div>'
-        + '    <p>Foo画面</p>'
-        + '    <button class="btn btn-primary" @click="$store.commit(\'increment\')">'
-        + '        クリックするとカウンターが増える回目'
-        + '    </button>'
-        + '</div>'
+      template: `<div>
+                  <p>Foo</p>
+                  <button class="btn btn-primary">
+                    Button Foo
+                  </button>
+                </div>`
     }
 
     const Bar = {
-      template: '<div>'
-        + '    <p>Bar画面</p>'
-        + '    <button class="btn btn-success" @click="$store.commit(\'increment\')">'
-        + '        クリックするとカウンターが増える回目'
-        + '    </button>'
-        + '</div>'
+      template: `<div>
+                  <p>Bar</p>
+                  <button class="btn btn-success">
+                    Button Bar
+                  </button>
+                </div>`
+
     }
 
-
-
-
-
     const Navigation = {
-      template: '<nav class="nav bg-light mb-3">'
-        + '<router-link to="/" class="nav-link">Home</router-link>'
-        + '<router-link to="/foo" class="nav-link">Foo</router-link>'
-        + '<router-link to="/bar" class="nav-link">Bar</router-link>'
-        + '</nav>'
+      template: `
+      <nav class="nav bg-light mb-3">
+        <router-link to="/" class="nav-link">Home</router-link>
+        <router-link to="/foo" class="nav-link">Foo</router-link>
+        <router-link to="/bar" class="nav-link">Bar</router-link>
+      </nav>
+      `
     }
 
     const Footer = {
@@ -94,23 +87,20 @@
     }
 
     const App = {
-      template: '<div><Navigation/>'
-        + '    <div class="container-fluid">'
-        + '        <router-view/>'
-        + '    </div>'
-        + '    <Footer/>'
-        + '</div>',
+      template: `
+      <div>
+        <Navigation/>
+        <div class="container-fluid">
+          <router-view/>
+        </div>
+        <Footer/>
+      </div>
+      `,
       components: {
         Navigation,
         Footer
       }
     }
-
-
-
-    //// 2
-    //
-    // ルートを定義
 
     const routes = [
       { path: '/', component: Home },
@@ -118,28 +108,14 @@
       { path: '/bar', component: Bar }
     ]
 
-
-
-    //// 3
-    //
-    // ルーターインスタンスを作成し、
-    // ルートオプションを渡す
-
     const router = VueRouter.createRouter({
-      history: VueRouter.createWebHistory(),
+      history: VueRouter.createWebHashHistory(),
       routes: routes
     })
-
-
-
-    //// 4
-    //
-    // root となるインスタンスを作成してマウント
 
     const app = Vue.createApp(App)
     app.use(router)
     app.mount('#app')
-
 
   </script>
 </body>
