@@ -1,5 +1,5 @@
 import router from './router.js'
-Vue.$router = router
+// Vue.$router = router
 
 const app = Vue.createApp({
   components: {},
