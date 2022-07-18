@@ -8,9 +8,10 @@ export default {
 
   template: `
       <q-page padding>
-          <q-breadcrumbs>
-              <q-breadcrumbs-el icon="home" :label="title" />
-          </q-breadcrumbs>
+        <h1>This is {{ title }}  </h1>
+        <q-breadcrumbs>
+            <q-breadcrumbs-el icon="home" :label="title" />
+        </q-breadcrumbs>
       </q-page>
   `,
 }
