@@ -24,6 +24,7 @@ const app = Vue.createApp({
     const leftDrawerOpen = ref(false)
 
     onMounted(async () => { })
+
     return { leftDrawerOpen }
   },
   template: `
