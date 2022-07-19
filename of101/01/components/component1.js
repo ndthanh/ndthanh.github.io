@@ -10,6 +10,9 @@ export default {
     const onSetColor = () => {
       counterStore.increment()
       console.log('counterStore value: ', counterStore.value)
+
+      Quasar.Notify.create('Hi and welcome!')
+
       window.Excel.run(async context => {
         const range = context.workbook.getSelectedRange();
         range.format.fill.color = 'green';

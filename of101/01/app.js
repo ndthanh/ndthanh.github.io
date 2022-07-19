@@ -4,18 +4,25 @@ const app = Vue.createApp({
   components: {},
 
   setup() {
-    const { onMounted, ref } = Vue
-    const $q = Quasar.useQuasar()
+    const { ref } = Vue
     const leftDrawerOpen = ref(false)
-
-    onMounted(async () => { })
 
     return { leftDrawerOpen }
   },
+  /**
+   * Biến template chứa phần khung của trang Web
+   * Một phần logic nhỏ chứa trạng thái đóng / mở được thiết lập
+   * ở file này thông qua biến leftDrawerOpen.
+   * Các "thành phần động" của trang Web sẽ được render 
+   * vào trong thẻ <router-view />
+   */
   template: `
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
+
+        <!-- Phần nút hamburger menu dùng để đóng mở menu trái -->
+
         <q-btn
           flat
           dense
@@ -25,11 +32,12 @@ const app = Vue.createApp({
           icon="menu"
         />
 
+        <!-- Phần tiêu đề cạnh nút đóng mở menu bên tay trái -->
+
         <q-toolbar-title>
           Học Excel Online
         </q-toolbar-title>
 
-        <!-- <div>Quasar v{{ $q.version }}</div> -->
       </q-toolbar>
     </q-header>
 
@@ -40,7 +48,11 @@ const app = Vue.createApp({
       class="bg-grey-2"
     >
       <q-list>
+
         <q-item-label header>Cây menu của Add-in</q-item-label>
+
+        <!-- menu item "Home" -->
+
         <q-item
           clickable
           to="/"
@@ -53,6 +65,9 @@ const app = Vue.createApp({
             <q-item-label caption>Trang chủ</q-item-label>
           </q-item-section>
         </q-item>
+
+        <!-- menu item "Page1" -->
+
         <q-item
           clickable
           to="/page1"
@@ -69,6 +84,9 @@ const app = Vue.createApp({
     </q-drawer>
 
     <q-page-container>
+
+      <!-- <router-view /> tag để render các component khác -->
+
       <router-view />
     </q-page-container>
   </q-layout>
