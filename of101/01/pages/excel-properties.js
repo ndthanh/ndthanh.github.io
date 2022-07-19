@@ -25,7 +25,7 @@ export default {
         Quasar.Notify.create('This is information')
         Quasar.Notify.create(`Local decimal separator: ${localDecimalSeparator}`)
 
-        log = `
+        log.value = `
         Local character settings: 
           Local decimal separator: ${localDecimalSeparator}
           Local thousands separator: ${localThousandsSeparator}
