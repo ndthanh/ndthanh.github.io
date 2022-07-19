@@ -17,7 +17,6 @@ const app = Vue.createApp({
    * vào trong thẻ <router-view />
    */
   template: `
-  <!-- <q-layout view="lHh Lpr lFf"> -->
   <q-layout view="hHh lpR fFf">
     <q-header elevated>
       <q-toolbar>
@@ -67,21 +66,6 @@ const app = Vue.createApp({
           </q-item-section>
         </q-item>
 
-        <!-- menu item "Page1" -->
-
-        <q-item
-          clickable
-          to="/page1"
-        >
-          <q-item-section avatar>
-            <q-icon name="code" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Page1</q-item-label>
-            <q-item-label caption>Go to Page1</q-item-label>
-          </q-item-section>
-        </q-item>
-
         <!-- menu item "Thuộc tính Excel" -->
 
         <q-item
@@ -94,6 +78,21 @@ const app = Vue.createApp({
           <q-item-section>
             <q-item-label>Excel Properties</q-item-label>
             <q-item-label caption>Các thuộc tính của Excel</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <!-- menu item "Buttons" -->
+
+        <q-item
+          clickable
+          to="/buttons"
+        >
+          <q-item-section avatar>
+            <q-icon name="code" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Buttons</q-item-label>
+            <q-item-label caption>Các loại Command Buttons</q-item-label>
           </q-item-section>
         </q-item>
 

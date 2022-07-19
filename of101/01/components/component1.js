@@ -23,7 +23,7 @@ export default {
   },
 
   template: `
-      <h2>Component One</h2>
+      <h6>Component One</h6>
       <p>Counter: {{ counterStore.value }}</p>
       <q-btn
         push

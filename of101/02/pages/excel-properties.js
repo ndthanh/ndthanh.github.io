@@ -5,7 +5,7 @@ export default {
   setup() {
     const { ref } = Vue
     const title = 'Excel Properties'
-    const log = ref('test')
+    const log = ref('Hãy bấm nút để đọc thuộc tính')
 
     const readExcelProperties = () => {
       console.log('reading excel properties')

@@ -18,8 +18,7 @@ export default {
         <q-breadcrumbs>
             <q-breadcrumbs-el icon="home" :label="title" />
         </q-breadcrumbs>
-        <h2>This is {{ title }}  </h2>
-        <p>Counter value is {{ counterStore.value }}</p>
+        <h6>Đây là trang chủ {{ title }}  </h6>
         <One />
       </q-page>
   `,
