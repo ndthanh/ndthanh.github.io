@@ -80,6 +80,22 @@ const app = Vue.createApp({
             <q-item-label caption>Go to Page1</q-item-label>
           </q-item-section>
         </q-item>
+
+        <!-- menu item "Thuộc tính Excel" -->
+
+        <q-item
+          clickable
+          to="/excel-properties"
+        >
+          <q-item-section avatar>
+            <q-icon name="code" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Excel Properties</q-item-label>
+            <q-item-label caption>Các thuộc tính của Excel</q-item-label>
+          </q-item-section>
+        </q-item>
+
       </q-list>
     </q-drawer>
 
