@@ -35,7 +35,7 @@ export default {
       });
     }
 
-    return { title, readExcelProperties }
+    return { title, log, readExcelProperties }
   },
 
   template: `
