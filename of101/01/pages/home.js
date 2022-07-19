@@ -1,8 +1,11 @@
 import pinia from '../stores/store.js'
 import { useCounterStore } from '../stores/counterStore.js'
+import One from '../components/component1.js'
 
 export default {
   name: 'Home',
+
+  components: { One },
 
   setup() {
     const counterStore = useCounterStore(pinia)
@@ -17,6 +20,7 @@ export default {
         </q-breadcrumbs>
         <h2>This is {{ title }}  </h2>
         <p>Counter value is {{ counterStore.value }}</p>
+        <One />
       </q-page>
   `,
 }
