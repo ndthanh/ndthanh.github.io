@@ -9,7 +9,7 @@ export default {
 
     const readExcelProperties = () => {
       console.log('reading excel properties')
-      Quasar.Notify.create('This is information')
+
       window.Excel.run(async context => {
         context.application.load("decimalSeparator,thousandsSeparator");
         context.application.cultureInfo.numberFormat.load("numberDecimalSeparator,numberGroupSeparator");
@@ -21,9 +21,6 @@ export default {
 
         const systemDecimalSeparator = context.application.cultureInfo.numberFormat.numberDecimalSeparator;
         const systemThousandsSeparator = context.application.cultureInfo.numberFormat.numberGroupSeparator;
-
-        Quasar.Notify.create('This is information')
-        Quasar.Notify.create(`Local decimal separator: ${localDecimalSeparator}`)
 
         log.value = `
         Local character settings: 
