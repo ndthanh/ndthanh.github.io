@@ -17,7 +17,8 @@ const app = Vue.createApp({
    * vào trong thẻ <router-view />
    */
   template: `
-  <q-layout view="lHh Lpr lFf">
+  <!-- <q-layout view="lHh Lpr lFf"> -->
+  <q-layout view="hHh lpR fFf">
     <q-header elevated>
       <q-toolbar>
 
