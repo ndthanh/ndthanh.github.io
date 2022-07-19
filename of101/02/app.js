@@ -85,14 +85,14 @@ const app = Vue.createApp({
 
         <q-item
           clickable
-          to="/buttons"
+          to="/ui-elements"
         >
           <q-item-section avatar>
             <q-icon name="code" />
           </q-item-section>
           <q-item-section>
-            <q-item-label>Buttons</q-item-label>
-            <q-item-label caption>Các loại Command Buttons</q-item-label>
+            <q-item-label>UI Elements</q-item-label>
+            <q-item-label caption>Thành phần giao diện</q-item-label>
           </q-item-section>
         </q-item>
 
