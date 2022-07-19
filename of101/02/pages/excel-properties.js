@@ -11,7 +11,7 @@ export default {
       console.log('reading excel properties')
 
       window.Excel.run(async context => {
-        context.application.load("decimalSeparator,thousandsSeparator");
+        context.application.load("decimalSeparator,thousandsSeparator,calculationMode,calculationState");
         context.application.cultureInfo.numberFormat.load("numberDecimalSeparator,numberGroupSeparator");
         await context.sync();
 
@@ -22,6 +22,9 @@ export default {
         const systemDecimalSeparator = context.application.cultureInfo.numberFormat.numberDecimalSeparator;
         const systemThousandsSeparator = context.application.cultureInfo.numberFormat.numberGroupSeparator;
 
+        const excelCalculationMode = context.application.calculationMode
+        const excelCalculationState = context.application.calculationState
+
         log.value = `
         Local character settings: 
           Local decimal separator: ${localDecimalSeparator}
@@ -30,6 +33,10 @@ export default {
         System culture settings: 
           System decimal separator: ${systemDecimalSeparator}
           System thousands separator: ${systemThousandsSeparator}
+
+        Excel calculation mode:
+          Excel calculation mode: ${excelCalculationMode}
+          Excel calculation state: ${excelCalculationState}
         `
 
         await context.sync();
