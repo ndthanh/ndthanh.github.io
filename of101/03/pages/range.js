@@ -21,6 +21,7 @@ export default {
         let sheet = context.workbook.worksheets.getItem(sheetName)
 
         let data = JSON.parse(text.value)
+        console.log(data)
 
         let range = sheet.getRange(targetRangeAddress).getResizedRange(data.length, data[0].length)
         range.values = data
