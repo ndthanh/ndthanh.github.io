@@ -17,14 +17,14 @@ export default {
 
     const ndt_SetValues = () => {
       window.Excel.run(async (context) => {
-        let sheet = context.workbook.worksheets.getItem(sheetName)
+        let sheet = context.workbook.worksheets.getItem(sheetName.value)
 
         let data = JSON.parse(text.value)
-        console.log('sheetname: ', sheetName)
-        console.log('target: ', targetRangeAddress)
+        console.log('sheetname: ', sheetName.value)
+        console.log('target: ', targetRangeAddress.value)
         console.log(data)
 
-        let range = sheet.getRange(targetRangeAddress).getResizedRange(data.length, data[0].length)
+        let range = sheet.getRange(targetRangeAddress.value).getResizedRange(data.length, data[0].length)
         range.values = data
         range.format.autofitColumns()
 
