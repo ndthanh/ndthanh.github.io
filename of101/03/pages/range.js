@@ -12,6 +12,7 @@ export default {
     const title = 'Range'
     const log = ref('Log sẽ hiện ra ở đây')
     const text = ref('[\n    ["Potato Chips", 10, 1.80]\n]')
+    const rangeValue = ref('')
     const sheetName = ref('Sheet1')
     const targetRangeAddress = ref('A1')
 
@@ -59,10 +60,50 @@ export default {
 
     }
 
+    const ndt_GetValues = () => {
+      window.Excel.run(async (context) => {
+        let sheet = context.workbook.worksheets.getItem(sheetName.value)
+
+        let range = sheet.getRange(targetRangeAddress.value)
+        range.load("values")
+        await context.sync()
+
+        rangeValue.value = JSON.stringify(range.values, null, 2)
+
+      })
+    }
+
+    const ndt_GetRangeText = () => {
+      window.Excel.run(async (context) => {
+        let sheet = context.workbook.worksheets.getItem(sheetName.value)
+
+        let range = sheet.getRange(targetRangeAddress.value)
+        range.load("text")
+        await context.sync()
+
+        rangeValue.value = JSON.stringify(range.text, null, 2)
+
+      })
+    }
+
+    const ndt_GetRangeFormulas = () => {
+      window.Excel.run(async (context) => {
+        let sheet = context.workbook.worksheets.getItem(sheetName.value)
+
+        let range = sheet.getRange(targetRangeAddress.value)
+        range.load("formulas")
+        await context.sync()
+
+        rangeValue.value = JSON.stringify(range.formulas, null, 2)
+
+      })
+    }
+
 
     return {
-      title, counterStore, log, text, sheetName, targetRangeAddress,
-      ndt_SetValues, ndt_ReadRangeAddress, ndt_ReadNamedRangeAddress
+      title, counterStore, log, text, sheetName, targetRangeAddress, rangeValue,
+      ndt_SetValues, ndt_ReadRangeAddress, ndt_ReadNamedRangeAddress,
+      ndt_GetRangeText, ndt_GetRangeFormulas
     }
   },
 
@@ -85,6 +126,34 @@ export default {
         <div class="q-gutter-sm">
 
           <p class="text-subtitle1">Ghi dữ liệu ra sheets</p>
+          <p caption>Ghi các kiểu dữ liệu, công thức vào Range</p>
+          <p caption>Dùng dữ liệu test sau đây để có thể thử</p>
+          
+          <br />
+          
+          <p caption>Ghi dữ liệu vào 1 ô duy nhất</p>
+          <pre>
+          [[234]]
+          </pre>
+          
+          <p caption>Ghi dữ liệu vào 1 vùng</p>
+          <pre>
+          [
+              ["Potato Chips", 10, 1.80]
+          ]
+          </pre>
+
+          <p caption>Ghi dữ liệu và công thức vào 1 vùng. Chú ý công thức trong ví dụ này sử dụng tham chiếu R1C1</p>
+          <pre>
+          [
+              [ "Product", "Qty", "Unit Price", "Total Price" ],
+              [ "Almonds", 2, 7.5, "=RC[-2]*RC[-1]" ],
+              [ "Coffee", 1, 34.5, "=RC[-2]*RC[-1]" ],
+              [ "Chocolate", 5, 9.56, "=RC[-2]*RC[-1]" ],
+              [ "", "", "", "=SUM(R[-3]C:R[-1]C)" ]
+          ]
+          </pre>
+
           <q-input
             v-model="text"
             filled
@@ -128,6 +197,49 @@ export default {
             push
             label="Đọc địa chỉ"
             @click="ndt_ReadNamedRangeAddress"
+          />
+
+          <br />
+          <q-separator />
+          <p class="text-subtitle1">Đọc giá trị, công thức từ 1 Range</p>
+
+          <q-input
+            v-model="sheetName"
+            label="Sheetname"
+            outlined
+          />
+
+          <q-input
+            v-model="targetRangeAddress"
+            label="Target Range Address"
+            outlined
+          />
+
+          <q-btn
+            push
+            label="Get Range Values"
+            @click="ndt_GetValues"
+          />
+          
+          <q-btn
+            push
+            label="Get Text from Range"
+            @click="ndt_GetRangeText"
+          />
+
+          <q-btn
+            push
+            label="Get Formulas from Range"
+            @click="ndt_GetRangeFormulas"
+          />
+
+          <br />
+          <p>Kết quả:</p>
+
+          <q-input
+            v-model="rangeValue"
+            filled
+            type="textarea"
           />
 
         </div>
