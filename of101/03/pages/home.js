@@ -68,8 +68,6 @@ export default {
       let reader = new FileReader()
 
       reader.onload = (event) => {
-        let test = reader.result.toString().indexOf("base64,")
-        console.log('Workbook data: ', test)
 
         window.Excel.run((context) => {
           // Remove the metadata before the base64-encoded string.
@@ -93,7 +91,6 @@ export default {
       }
 
       // Read the file as a data URL so we can parse the base64-encoded string.
-      console.log('files: ', files)
       reader.readAsDataURL(files.value[0]);
 
     }
