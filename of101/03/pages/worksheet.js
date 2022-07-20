@@ -14,7 +14,7 @@ export default {
 
     const ndt_GetSheetInfo = () => {
 
-      await window.Excel.run(async (context) => {
+      window.Excel.run(async (context) => {
         let sheets = context.workbook.worksheets
         sheets.load("items/name")
 
