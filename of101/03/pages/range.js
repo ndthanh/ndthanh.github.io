@@ -15,6 +15,7 @@ export default {
     const rangeValue = ref('')
     const sheetName = ref('Sheet1')
     const targetRangeAddress = ref('A1')
+    const hex = ref('#686868')
 
     const ndt_SetValues = () => {
       window.Excel.run(async (context) => {
@@ -99,11 +100,23 @@ export default {
       })
     }
 
+    const ndt_SetFillColor = () => {
+      window.Excel.run(async (context) => {
+        let sheet = context.workbook.worksheets.getItem(sheetName.value)
+
+        let range = sheet.getRange(targetRangeAddress.value)
+        range.format.fill.color = hex.value
+
+        await context.sync()
+      })
+    }
+
 
     return {
-      title, counterStore, log, text, sheetName, targetRangeAddress, rangeValue,
+      title, counterStore, log, text, sheetName, targetRangeAddress, rangeValue, hex,
       ndt_SetValues, ndt_ReadRangeAddress, ndt_ReadNamedRangeAddress,
-      ndt_GetRangeText, ndt_GetRangeFormulas, ndt_GetValues
+      ndt_GetRangeText, ndt_GetRangeFormulas, ndt_GetValues,
+      ndt_SetFillColor
     }
   },
 
@@ -240,6 +253,30 @@ export default {
             v-model="rangeValue"
             filled
             type="textarea"
+          />
+
+          <br />
+          <q-separator />
+          <p class="text-subtitle1">Định dạng Range</p>
+
+          <q-input
+            v-model="sheetName"
+            label="Sheetname"
+            outlined
+          />
+
+          <q-input
+            v-model="targetRangeAddress"
+            label="Target Range Address"
+            outlined
+          />
+
+          <q-color v-model="hex" class="my-picker" />
+
+          <q-btn
+            push
+            label="Tô màu cho vùng"
+            @click="ndt_SetFillColor"
           />
 
         </div>
