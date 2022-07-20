@@ -111,6 +111,21 @@ const app = Vue.createApp({
           </q-item-section>
         </q-item>
 
+        <!-- menu item "Worksheet" -->
+
+        <q-item
+          clickable
+          to="/worksheet"
+        >
+          <q-item-section avatar>
+            <q-icon name="code" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Worksheet</q-item-label>
+            <q-item-label caption>Tương tác với Worksheet</q-item-label>
+          </q-item-section>
+        </q-item>
+
       </q-list>
     </q-drawer>
 
