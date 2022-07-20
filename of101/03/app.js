@@ -66,6 +66,21 @@ const app = Vue.createApp({
           </q-item-section>
         </q-item>
 
+        <!-- menu item "UI Elements" -->
+
+        <q-item
+          clickable
+          to="/ui-elements"
+        >
+          <q-item-section avatar>
+            <q-icon name="code" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>UI Elements</q-item-label>
+            <q-item-label caption>Thành phần giao diện</q-item-label>
+          </q-item-section>
+        </q-item>
+
         <!-- menu item "Thuộc tính Excel" -->
 
         <q-item
@@ -81,18 +96,18 @@ const app = Vue.createApp({
           </q-item-section>
         </q-item>
 
-        <!-- menu item "Buttons" -->
+        <!-- menu item "Workbook" -->
 
         <q-item
           clickable
-          to="/ui-elements"
+          to="/workbook"
         >
           <q-item-section avatar>
             <q-icon name="code" />
           </q-item-section>
           <q-item-section>
-            <q-item-label>UI Elements</q-item-label>
-            <q-item-label caption>Thành phần giao diện</q-item-label>
+            <q-item-label>Workbook</q-item-label>
+            <q-item-label caption>Tương tác với Workbook</q-item-label>
           </q-item-section>
         </q-item>
 

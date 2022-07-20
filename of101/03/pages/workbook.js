@@ -2,14 +2,14 @@ import pinia from '../stores/store.js'
 import { useCounterStore } from '../stores/counterStore.js'
 
 export default {
-  name: 'Home',
+  name: 'Workbook',
 
   components: {},
 
   setup() {
     const { ref } = Vue
     const counterStore = useCounterStore(pinia)
-    const title = 'Home page'
+    const title = 'Workbook'
     const log = ref('Dữ liệu sẽ hiện ra ở đây')
     const files = ref(null)
 
@@ -109,10 +109,65 @@ export default {
   template: `
       <q-page padding>
         <q-breadcrumbs>
-            <q-breadcrumbs-el icon="home" :label="title" />
+            <q-breadcrumbs-el icon="home" to="/" />
+            <q-breadcrumbs-el :label="title" />
         </q-breadcrumbs>
-        <h6>Trang chủ, Homepage</h6>
+        <h6>Tương tác với Excel bằng Add-in</h6>
         <q-separator />
+        <pre>{{ log }}</pre>
+        <q-separator />
+        
+        <br />
+        <h6 class="text-bold">Workbooks</h6>
+        <p caption>Một số phương thức ví dụ để làm việc với Workbooks</p>
+        <q-separator /><br />
+
+        <q-btn
+          push
+          label="Get Active Cell"
+          @click="ndt_getActiveCell"
+        />
+
+        <q-btn
+          push
+          label="Get Selected Range"
+          @click="ndt_getSelectedRange"
+        />
+
+        <q-btn
+          push
+          label="Save Workbook"
+          @click="ndt_SaveWorkbook"
+        />
+
+        <div class="q-pa-md">
+          <p caption>Chèn sheets của 1 workbook khác vào workbook này. Lưu ý, vì là demo, nên Sheet hiện tại cần có 1 sheet tên là "Sheet1" để tham chiếu.</p>
+          <div class="q-gutter-md row items-start">
+            <q-file
+              v-model="files"
+              label="Chọn file Excel"
+              filled
+              counter
+              :counter-label="counterLabelFn"
+              max-files="1"
+              multiple
+              style="max-width: 600px;min-width: 300px;"
+              accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+            >
+              <template v-slot:prepend>
+                <q-icon name="attach_file" />
+              </template>
+            </q-file>
+
+            <q-btn
+              push
+              label="Insert"
+              @click="ndt_InsertSheetsFromOtherWorkbook"
+            />
+
+          </div>
+        </div>
+
       </q-page>
   `,
 }
