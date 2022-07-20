@@ -68,7 +68,7 @@ export default {
         range.load("values")
         await context.sync()
 
-        rangeValue.value = JSON.stringify(range.values, null, 2)
+        rangeValue.value = JSON.stringify(range.values, null, 4)
 
       })
     }
@@ -81,7 +81,7 @@ export default {
         range.load("text")
         await context.sync()
 
-        rangeValue.value = JSON.stringify(range.text, null, 2)
+        rangeValue.value = JSON.stringify(range.text, null, 4)
 
       })
     }
@@ -94,7 +94,7 @@ export default {
         range.load("formulas")
         await context.sync()
 
-        rangeValue.value = JSON.stringify(range.formulas, null, 2)
+        rangeValue.value = JSON.stringify(range.formulas, null, 4)
 
       })
     }
@@ -103,7 +103,7 @@ export default {
     return {
       title, counterStore, log, text, sheetName, targetRangeAddress, rangeValue,
       ndt_SetValues, ndt_ReadRangeAddress, ndt_ReadNamedRangeAddress,
-      ndt_GetRangeText, ndt_GetRangeFormulas
+      ndt_GetRangeText, ndt_GetRangeFormulas, ndt_GetValues
     }
   },
 
