@@ -16,6 +16,9 @@ export default {
     const sheetName = ref('Sheet1')
     const targetRangeAddress = ref('A1')
     const hex = ref('#686868')
+    const hexa = ref('#FF00FFCC')
+    const rgb = ref('rgb(0,0,0)')
+    const rgba = ref('rgba(255,0,255,0.8)')
 
     const ndt_SetValues = () => {
       window.Excel.run(async (context) => {
@@ -113,7 +116,8 @@ export default {
 
 
     return {
-      title, counterStore, log, text, sheetName, targetRangeAddress, rangeValue, hex,
+      title, counterStore, log, text, sheetName, targetRangeAddress, rangeValue,
+      hex, hexa, rgb, rgba,
       ndt_SetValues, ndt_ReadRangeAddress, ndt_ReadNamedRangeAddress,
       ndt_GetRangeText, ndt_GetRangeFormulas, ndt_GetValues,
       ndt_SetFillColor
