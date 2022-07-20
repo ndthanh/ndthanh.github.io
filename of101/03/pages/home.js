@@ -24,9 +24,22 @@ export default {
 
     }
 
+    const ndt_getSelectedRange = () => {
+
+      window.Excel.run(async (context) => {
+        let selectedRange = context.workbook.getSelectedRange()
+        selectedRange.load("address")
+        await context.sync()
+
+        console.log("The selected range is " + selectedRange.address)
+        log.value = "The selected range is " + selectedRange.address
+      });
+
+    }
+
     return {
       title, counterStore, log,
-      ndt_getActiveCell
+      ndt_getActiveCell, ndt_getSelectedRange
     }
   },
 
@@ -43,11 +56,17 @@ export default {
         <br />
         <p class="text-bold">Workbooks</p>
         <q-separator /><br />
-        
+
         <q-btn
           push
           label="Get Active Cell"
           @click="ndt_getActiveCell"
+        />
+
+        <q-btn
+          push
+          label="Get Selected Range"
+          @click="ndt_getSelectedRange"
         />
 
       </q-page>
