@@ -44,10 +44,25 @@ export default {
 
     }
 
+    const ndt_ReadNamedRangeAddress = () => {
+
+      window.Excel.run(async (context) => {
+        let sheet = context.workbook.worksheets.getItem("Sheet1")
+
+        let range = sheet.getRange("MyRange")
+        range.load("address")
+        await context.sync()
+
+        log.value = `The address of the range "MyRange" is "${range.address}"`
+        Quasar.Notify.create({ message: log.value, position: 'top' })
+      })
+
+    }
+
 
     return {
       title, counterStore, log, text, sheetName, targetRangeAddress,
-      ndt_SetValues, ndt_ReadRangeAddress
+      ndt_SetValues, ndt_ReadRangeAddress, ndt_ReadNamedRangeAddress
     }
   },
 
@@ -102,6 +117,17 @@ export default {
             push
             label="Đọc địa chỉ của vùng B2:C5"
             @click="ndt_ReadRangeAddress"
+          />
+
+          <br />
+          <q-separator />
+          <p class="text-subtitle1">Đọc địa chỉ của Range được đặt tên (Named Range)</p>
+          <p caption>Để chạy ví dụ này, hãy tạo 1 Named Range là "MyRange" ở trong "Sheet1"</p>
+          
+          <q-btn
+            push
+            label="Đọc địa chỉ"
+            @click="ndt_ReadNamedRangeAddress"
           />
 
         </div>
