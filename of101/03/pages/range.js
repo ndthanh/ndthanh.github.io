@@ -32,7 +32,7 @@ export default {
 
 
     return {
-      title, counterStore, log, text,
+      title, counterStore, log, text, sheetName, targetRangeAddress,
       ndt_SetValues
     }
   },
