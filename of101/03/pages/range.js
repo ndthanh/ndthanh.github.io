@@ -24,7 +24,7 @@ export default {
         console.log('target: ', targetRangeAddress.value)
         console.log(data)
 
-        let range = sheet.getRange(targetRangeAddress.value).getResizedRange(data.length, data[0].length)
+        let range = sheet.getRange(targetRangeAddress.value).getResizedRange(data.length - 1, data[0].length - 1)
         range.values = data
         range.format.autofitColumns()
 
