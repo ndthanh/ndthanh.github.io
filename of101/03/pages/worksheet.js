@@ -29,7 +29,7 @@ export default {
         log.value += `Tên các sheets:`
         log.value += sheets.items.map(sheet => sheet.name).join(', ')
 
-        Quasar.Notify.create('Success')
+        Quasar.Notify.create({ message: log.value, position: 'top' })
       })
 
     }
@@ -46,13 +46,13 @@ export default {
 
     const ndt_SetActiveSheet = () => {
       window.Excel.run(async (context) => {
-        let sheet = context.workbook.worksheets.getItem("Sample")
+        let sheet = context.workbook.worksheets.getItem("Sheet1")
         sheet.activate()
         sheet.load("name")
 
         await context.sync()
         log.value = `The active worksheet is "${sheet.name}"`
-        Quasar.Notify.create(log.value)
+        Quasar.Notify.create({ message: log.value, position: 'top' })
       });
     }
 
@@ -64,7 +64,7 @@ export default {
 
         await context.sync()
         log.value = `The name of the first worksheet is "${firstSheet.name}"`
-        Quasar.Notify.create(log.value)
+        Quasar.Notify.create({ message: log.value, position: 'top' })
       });
 
     }
@@ -77,7 +77,7 @@ export default {
 
         await context.sync()
         log.value = `The name of the last worksheet is "${lastSheet.name}"`
-        Quasar.Notify.create(log.value)
+        Quasar.Notify.create({ message: log.value, position: 'top' })
       });
 
     }
@@ -91,7 +91,7 @@ export default {
 
         await context.sync()
         log.value = `The name of the sheet that follows the active worksheet is "${nextSheet.name}"`
-        Quasar.Notify.create(log.value)
+        Quasar.Notify.create({ message: log.value, position: 'top' })
       });
 
     }
@@ -105,7 +105,7 @@ export default {
 
         await context.sync()
         log.value = `The name of the sheet that precedes the active worksheet is "${nextSheet.name}"`
-        Quasar.Notify.create(log.value)
+        Quasar.Notify.create({ message: log.value, position: 'top' })
       });
 
     }
@@ -120,7 +120,7 @@ export default {
 
         await context.sync()
         log.value = `Added worksheet named "${sheet.name}" in position ${sheet.position}`
-        Quasar.Notify.create(log.value)
+        Quasar.Notify.create({ message: log.value, position: 'top' })
       });
 
     }
@@ -143,12 +143,12 @@ export default {
         await context.sync()
         if (sheets.items.length === 1) {
           log.value = "Unable to delete the only worksheet in the workbook"
-          Quasar.Notify.create(log.value)
+          Quasar.Notify.create({ message: log.value, position: 'top' })
         } else {
           let lastSheet = sheets.items[sheets.items.length - 1];
 
           log.value = `Deleting worksheet named "${lastSheet.name}"`
-          Quasar.Notify.create(log.value)
+          Quasar.Notify.create({ message: log.value, position: 'top' })
           lastSheet.delete()
 
           await context.sync()
@@ -173,11 +173,12 @@ export default {
         await context.sync()
 
         log.value = "Added a worksheet-level data-changed event handler."
-        Quasar.Notify.create(log.value)
+        Quasar.Notify.create({ message: log.value, position: 'top' })
       })
     }
 
     function onWorksheetChanged(eventArgs) {
+      Quasar.Notify.create({ message: 'changed!', position: 'top' })
       window.Excel.run(function (context) {
         let details = eventArgs.details;
         let address = eventArgs.address;
