@@ -11,7 +11,6 @@ export default {
     const counterStore = useCounterStore(pinia)
     const title = 'Range'
     const log = ref('Log sẽ hiện ra ở đây')
-    const files = ref(null)
     const text = ref('[\n    ["Potato Chips", 10, 1.80]\n]')
     const sheetName = ref('Sheet1')
     const targetRangeAddress = ref('A1')
@@ -21,6 +20,8 @@ export default {
         let sheet = context.workbook.worksheets.getItem(sheetName)
 
         let data = JSON.parse(text.value)
+        console.log('sheetname: ', sheetName)
+        console.log('target: ', targetRangeAddress)
         console.log(data)
 
         let range = sheet.getRange(targetRangeAddress).getResizedRange(data.length, data[0].length)
