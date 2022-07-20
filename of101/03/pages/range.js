@@ -39,6 +39,7 @@ export default {
         await context.sync()
 
         log.value = `The address of the range B2:C5 is "${range.address}"`
+        Quasar.Notify.create({ message: log.value, position: 'top' })
       })
 
     }
@@ -102,7 +103,6 @@ export default {
             label="Đọc địa chỉ của vùng B2:C5"
             @click="ndt_ReadRangeAddress"
           />
-
 
         </div>
       </q-page>
