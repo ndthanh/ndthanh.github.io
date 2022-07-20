@@ -20,9 +20,6 @@ export default {
         let sheet = context.workbook.worksheets.getItem(sheetName.value)
 
         let data = JSON.parse(text.value)
-        // console.log('sheetname: ', sheetName.value)
-        // console.log('target: ', targetRangeAddress.value)
-        // console.log(data)
 
         let range = sheet.getRange(targetRangeAddress.value).getResizedRange(data.length - 1, data[0].length - 1)
         range.values = data
@@ -32,10 +29,24 @@ export default {
       });
     }
 
+    const ndt_ReadRangeAddress = () => {
+
+      window.Excel.run(async (context) => {
+        let sheet = context.workbook.worksheets.getItem("Sheet1")
+
+        let range = sheet.getRange("B2:C5")
+        range.load("address")
+        await context.sync()
+
+        log.value = `The address of the range B2:C5 is "${range.address}"`
+      })
+
+    }
+
 
     return {
       title, counterStore, log, text, sheetName, targetRangeAddress,
-      ndt_SetValues
+      ndt_SetValues, ndt_ReadRangeAddress
     }
   },
 
@@ -81,6 +92,17 @@ export default {
             label="Set values"
             @click="ndt_SetValues"
           />
+
+          <br />
+          <q-separator />
+          <p class="text-subtitle1">Đọc địa chỉ của Range B2:C5 của "Sheet1"</p>
+          
+          <q-btn
+            push
+            label="Đọc địa chỉ của vùng B2:C5"
+            @click="ndt_ReadRangeAddress"
+          />
+
 
         </div>
       </q-page>
