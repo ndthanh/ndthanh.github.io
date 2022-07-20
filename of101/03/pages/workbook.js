@@ -10,7 +10,7 @@ export default {
     const { ref } = Vue
     const counterStore = useCounterStore(pinia)
     const title = 'Workbook'
-    const log = ref('Dữ liệu sẽ hiện ra ở đây')
+    const log = ref('Log sẽ hiện ra ở đây')
     const files = ref(null)
 
     /**
@@ -168,7 +168,6 @@ export default {
 
           </div>
         </div>
-
       </q-page>
   `,
 }

@@ -10,9 +10,9 @@ export default {
     const { ref } = Vue
     const counterStore = useCounterStore(pinia)
     const title = 'Range'
-    const log = ref('Dữ liệu sẽ hiện ra ở đây')
+    const log = ref('Log sẽ hiện ra ở đây')
     const files = ref(null)
-    const text = ref('[\n        ["Potato Chips", 10, 1.80]\n    ]')
+    const text = ref('[\n    ["Potato Chips", 10, 1.80]\n]')
     const sheetName = ref('Sheet1')
     const targetRangeAddress = ref('A1')
 

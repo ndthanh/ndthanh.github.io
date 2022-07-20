@@ -10,7 +10,7 @@ export default {
     const { ref } = Vue
     const counterStore = useCounterStore(pinia)
     const title = 'Worksheet'
-    const log = ref('Dữ liệu sẽ hiện ra ở đây')
+    const log = ref('Log sẽ hiện ra ở đây')
 
     const ndt_GetSheetInfo = () => {
 
