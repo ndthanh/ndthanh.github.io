@@ -28,6 +28,8 @@ export default {
 
         log.value += `Tên các sheets:`
         log.value += sheets.items.map(sheet => sheet.name).join(', ')
+
+        Quasar.Notify.create('Success')
       })
 
     }
