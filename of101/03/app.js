@@ -126,6 +126,21 @@ const app = Vue.createApp({
           </q-item-section>
         </q-item>
 
+        <!-- menu item "Range" -->
+
+        <q-item
+          clickable
+          to="/range"
+        >
+          <q-item-section avatar>
+            <q-icon name="code" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Range</q-item-label>
+            <q-item-label caption>Tương tác với Range</q-item-label>
+          </q-item-section>
+        </q-item>
+
       </q-list>
     </q-drawer>
 

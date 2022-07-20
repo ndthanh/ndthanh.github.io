@@ -176,7 +176,8 @@ export default {
         Quasar.Notify.create({ message: log.value, position: 'top' })
       })
     }
-
+    // more events:
+    // https://docs.microsoft.com/en-us/javascript/api/excel/excel.worksheetaddedeventargs?view=excel-js-preview
     function onWorksheetChanged(eventArgs) {
       Quasar.Notify.create({ message: 'changed!', position: 'top' })
       window.Excel.run(function (context) {

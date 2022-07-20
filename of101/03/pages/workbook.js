@@ -112,15 +112,16 @@ export default {
             <q-breadcrumbs-el icon="home" to="/" />
             <q-breadcrumbs-el :label="title" />
         </q-breadcrumbs>
-        <h6>Tương tác với Excel bằng Add-in</h6>
+
+        <h6 class="text-bold">Workbooks</h6>
+        <p caption>Một số phương thức ví dụ để làm việc với Workbooks</p>
+        
         <q-separator />
         <pre>{{ log }}</pre>
         <q-separator />
         
         <br />
-        <h6 class="text-bold">Workbooks</h6>
-        <p caption>Một số phương thức ví dụ để làm việc với Workbooks</p>
-        <q-separator /><br />
+
 
         <q-btn
           push

@@ -3,6 +3,7 @@ import UIElement from './pages/ui-elements.js'
 import excelProperties from './pages/excel-properties.js'
 import workbook from './pages/workbook.js'
 import worksheet from './pages/worksheet.js'
+import range from './pages/range.js'
 
 delete window.history.pushState
 delete window.history.replaceState
@@ -14,6 +15,7 @@ export default VueRouter.createRouter({
     { path: '/ui-elements', component: UIElement, name: 'UIElement' },
     { path: '/excel-properties', component: excelProperties, name: 'ExcelProperties' },
     { path: '/workbook', component: workbook, name: 'Workbook' },
-    { path: '/worksheet', component: worksheet, name: 'Worksheet' }
+    { path: '/worksheet', component: worksheet, name: 'Worksheet' },
+    { path: '/range', component: range, name: 'Range' }
   ]
 });
