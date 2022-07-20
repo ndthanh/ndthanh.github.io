@@ -144,7 +144,7 @@ export default {
         <br />
 
         <div class="q-pa-md">
-          <p caption>Chèn sheets của 1 workbook khác vào workbook này</p>
+          <p caption>Chèn sheets của 1 workbook khác vào workbook này. Lưu ý, vì là demo, nên Sheet hiện tại cần có 1 sheet tên là "Sheet1" để tham chiếu.</p>
           <div class="q-gutter-md row items-start">
             <q-file
               v-model="files"
