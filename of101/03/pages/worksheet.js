@@ -21,12 +21,12 @@ export default {
         await context.sync()
 
         if (sheets.items.length > 1) {
-          log.value = `Có ${sheets.items.length} worksheets trong workbook này.`
+          log.value += `Có ${sheets.items.length} worksheets trong workbook này.`
         } else {
-          log.value = `Có 1 Worksheet trong workbook này.`
+          log.value += `Có 1 Worksheet trong workbook này.`
         }
 
-        log.value = `Tên các sheets:`
+        log.value += `Tên các sheets:`
         log.value += sheets.items.map(sheet => sheet.name).join(', ')
       })
 
