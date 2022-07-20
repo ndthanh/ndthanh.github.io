@@ -52,6 +52,7 @@ export default {
 
         await context.sync()
         log.value = `The active worksheet is "${sheet.name}"`
+        Quasar.Notify.create(`Active sheet is: "${sheet.name}"`)
       });
     }
 
