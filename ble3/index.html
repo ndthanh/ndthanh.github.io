@@ -15,27 +15,27 @@
   <div id="log">
     <p>Click Start to begin ...</p>
   </div>
-  <hr />
+  <!-- <hr />
   <input
     type="text"
     id="desc-val"
   />
-  <button id="write-value">Write</button>
+  <button id="write-value">Write</button> -->
 
   <script>
     const myTestService = '0E236A23-53D3-43E2-AC17-330A43AE7908'.toLocaleLowerCase()
     const myTestCharacteristic = 'A6613518-8F6D-43EF-AABB-C15B21A1CBCC'.toLocaleLowerCase()
-    let descriptor;
+    // let descriptor;
 
-    const writeBtn = document.querySelector('#write-value')
+    // const writeBtn = document.querySelector('#write-value')
 
-    writeBtn.addEventListener('click', function () {
-      const val = document.querySelector('#desc-val').value
-      const encoder = new TextEncoder('utf-8')
-      const userDescription = encoder.encode(val)
+    // writeBtn.addEventListener('click', function () {
+    //   const val = document.querySelector('#desc-val').value
+    //   const encoder = new TextEncoder('utf-8')
+    //   const userDescription = encoder.encode(val)
 
-      descriptor.writeValue(userDescription)
-    })
+    //   descriptor.writeValue(userDescription)
+    // })
 
     const button = document.querySelector('#request-bt')
     button.addEventListener('click', onButtonClick)
@@ -64,8 +64,8 @@
 
         await characteristic.startNotifications()
 
-        descriptor = await characteristic.getDescriptor(myTestCharacteristic)
-        console.log('descriptor: ', descriptor)
+        // descriptor = await characteristic.getDescriptor(myTestCharacteristic)
+        // console.log('descriptor: ', descriptor)
 
         characteristic.addEventListener('characteristicvaluechanged', handleCharacteristicValueChanged)
 
