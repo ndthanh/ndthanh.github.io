@@ -37,9 +37,11 @@
 
         log('Getting Service...' + myTestService);
         const service = await server.getPrimaryService(myTestService);
+        console.log('service: ', service)
 
         log('Getting Characteristic...');
         const characteristic = await service.getCharacteristic(myTestCharacteristic);
+        console.log('characteristic: ', characteristic)
         
         await characteristic.startNotifications()
         
@@ -47,6 +49,7 @@
 
         log('Reading value...');
         const value = await characteristic.readValue();
+        console.log('read value: ', value)
 
         log(`> value is ${value.getUint8(0)} (${value})`);
       } catch (error) {
@@ -57,7 +60,7 @@
     function log(s) {
       const logPad = document.querySelector('#log')
       logPad.innerHTML += `<p>${s}</p>`
-      console.log(s)
+      // console.log(s)
     }
     
     function handleCharacteristicValueChanged(event) {
