@@ -39,7 +39,7 @@
         const service = await server.getPrimaryService(myTestService);
 
         log('Getting Characteristic...');
-        const characteristic = await service.getCharacteristic('thanh_characteristic');
+        const characteristic = await service.getCharacteristic(myTestCharacteristic);
         
         await characteristic.startNotifications()
         
