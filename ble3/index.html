@@ -63,6 +63,7 @@
     function handleCharacteristicValueChanged(event) {
       const value = event.target.value
       log('> Received ' + value.getUint8(0))
+      console.log('From notification: ', value)
       // TODO: Parse Heart Rate Measurement value.
       // See https://github.com/WebBluetoothCG/demos/blob/gh-pages/heart-rate-sensor/heartRateSensor.js
     }
