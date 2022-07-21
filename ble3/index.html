@@ -17,7 +17,9 @@
   </div>
 
   <script>
-    const myTestService = 'A6613518-8F6D-43EF-AABB-C15B21A1CBCC'
+    const myTestService = '0E236A23-53D3-43E2-AC17-330A43AE7908'
+    const myTestCharacteristic = 'A6613518-8F6D-43EF-AABB-C15B21A1CBCC'
+    
     const button = document.querySelector('#request-bt')
     button.addEventListener('click', onButtonClick)
     async function onButtonClick() {
@@ -38,6 +40,10 @@
 
         log('Getting Characteristic...');
         const characteristic = await service.getCharacteristic('thanh_characteristic');
+        
+        await characteristic.startNotifications()
+        
+        characteristic.addEventListener('characteristicvaluechanged', handleCharacteristicValueChanged)
 
         log('Reading value...');
         const value = await characteristic.readValue();
@@ -52,6 +58,13 @@
       const logPad = document.querySelector('#log')
       logPad.innerHTML += `<p>${s}</p>`
       console.log(s)
+    }
+    
+    function handleCharacteristicValueChanged(event) {
+      const value = event.target.value
+      log('> Received ' + value)
+      // TODO: Parse Heart Rate Measurement value.
+      // See https://github.com/WebBluetoothCG/demos/blob/gh-pages/heart-rate-sensor/heartRateSensor.js
     }
 
   </script>
