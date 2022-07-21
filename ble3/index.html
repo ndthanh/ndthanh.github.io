@@ -64,7 +64,7 @@
 
         await characteristic.startNotifications()
 
-        descriptor = await characteristic.getDescriptor('thanh_characteristic')
+        descriptor = await characteristic.getDescriptor(myTestCharacteristic)
         console.log('descriptor: ', descriptor)
 
         characteristic.addEventListener('characteristicvaluechanged', handleCharacteristicValueChanged)
