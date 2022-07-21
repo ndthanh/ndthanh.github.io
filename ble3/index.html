@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Bluetooth WebAPI</title>
+</head>
+
+<body>
+
+  <button
+    id="request-bt"
+    value="start"
+  >Start</button>
+  <div id="log">
+    <p>Click Start to begin ...</p>
+  </div>
+
+  <script>
+    const myTestService = 'A6613518-8F6D-43EF-AABB-C15B21A1CBCC'
+    const button = document.querySelector('#request-bt')
+    button.addEventListener('click', onButtonClick)
+    async function onButtonClick() {
+      try {
+        log('Requesting Bluetooth Device...');
+        
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [{
+            services: [myTestService]
+          }]
+        })
+        
+        log('Connecting to GATT Server...');
+        const server = await device.gatt.connect();
+
+        log('Getting Service...' + myTestService);
+        const service = await server.getPrimaryService(myTestService);
+
+        log('Getting Characteristic...');
+        const characteristic = await service.getCharacteristic('thanh_characteristic');
+
+        log('Reading value...');
+        const value = await characteristic.readValue();
+
+        log('> value is ' + value.getUint8(0));
+      } catch (error) {
+        log('Argh! ' + error);
+      }
+    }
+
+    function log(s) {
+      const logPad = document.querySelector('#log')
+      logPad.innerHTML += `<p>${s}</p>`
+      console.log(s)
+    }
+
+  </script>
+
+</body>
+
+</html>
