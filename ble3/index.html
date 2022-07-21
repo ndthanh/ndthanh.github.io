@@ -15,45 +15,67 @@
   <div id="log">
     <p>Click Start to begin ...</p>
   </div>
+  <hr />
+  <input
+    type="text"
+    id="desc-val"
+  />
+  <button id="write-value">Write</button>
 
   <script>
     const myTestService = '0E236A23-53D3-43E2-AC17-330A43AE7908'.toLocaleLowerCase()
     const myTestCharacteristic = 'A6613518-8F6D-43EF-AABB-C15B21A1CBCC'.toLocaleLowerCase()
-    
+    let descriptor;
+
+    const writeBtn = document.querySelector('#write-value')
+
+    writeBtn.addEventListener('click', function () {
+      const val = document.querySelector('#desc-val').value
+      const encoder = new TextEncoder('utf-8')
+      const userDescription = encoder.encode(val)
+
+      descriptor.writeValue(userDescription)
+    })
+
     const button = document.querySelector('#request-bt')
     button.addEventListener('click', onButtonClick)
+
     async function onButtonClick() {
+
       try {
-        log('Requesting Bluetooth Device...');
-        
+        log('Requesting Bluetooth Device...')
+
         const device = await navigator.bluetooth.requestDevice({
           filters: [{
             services: [myTestService]
           }]
         })
-        
-        log('Connecting to GATT Server...');
-        const server = await device.gatt.connect();
 
-        log('Getting Service...' + myTestService);
-        const service = await server.getPrimaryService(myTestService);
+        log('Connecting to GATT Server...')
+        const server = await device.gatt.connect()
+
+        log('Getting Service...' + myTestService)
+        const service = await server.getPrimaryService(myTestService)
         console.log('service: ', service)
 
-        log('Getting Characteristic...');
-        const characteristic = await service.getCharacteristic(myTestCharacteristic);
+        log('Getting Characteristic...' + myTestCharacteristic)
+        const characteristic = await service.getCharacteristic(myTestCharacteristic)
         console.log('characteristic: ', characteristic)
-        
+
         await characteristic.startNotifications()
-        
+
+        descriptor = await characteristic.getDescriptor('thanh_characteristic')
+        console.log('descriptor: ', descriptor)
+
         characteristic.addEventListener('characteristicvaluechanged', handleCharacteristicValueChanged)
 
-        log('Reading value...');
-        const value = await characteristic.readValue();
+        log('Reading value...')
+        const value = await characteristic.readValue()
         console.log('read value: ', value)
 
-        log(`> value is ${value.getUint8(0)} (${value})`);
+        log(`> value is ${value.getUint8(0)} (${value})`)
       } catch (error) {
-        log('Argh! ' + error);
+        log('Argh! ' + error)
       }
     }
 
@@ -62,14 +84,13 @@
       logPad.innerHTML += `<p>${s}</p>`
       // console.log(s)
     }
-    
+
     function handleCharacteristicValueChanged(event) {
       const value = event.target.value
       const enc = new TextDecoder("utf-8")
-      
+
       log('> Received ' + enc.decode(value.buffer))
       console.log('From notification: ', value)
-      // TODO: Parse Heart Rate Measurement value.
       // See https://github.com/WebBluetoothCG/demos/blob/gh-pages/heart-rate-sensor/heartRateSensor.js
     }
 
