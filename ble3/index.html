@@ -67,7 +67,7 @@
       const value = event.target.value
       const enc = new TextDecoder("utf-8")
       
-      log('> Received ' + enc.decode(value.getUint8(0).buffer))
+      log('> Received ' + enc.decode(value.buffer))
       console.log('From notification: ', value)
       // TODO: Parse Heart Rate Measurement value.
       // See https://github.com/WebBluetoothCG/demos/blob/gh-pages/heart-rate-sensor/heartRateSensor.js
