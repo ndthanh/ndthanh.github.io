@@ -31,7 +31,7 @@ export default {
         range.format.autofitColumns()
 
         await context.sync()
-      });
+      })
     }
 
     const ndt_ReadRangeAddress = () => {

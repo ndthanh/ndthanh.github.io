@@ -141,6 +141,21 @@ const app = Vue.createApp({
           </q-item-section>
         </q-item>
 
+        <!-- menu item "API Interactions" -->
+
+        <q-item
+          clickable
+          to="/api-interactions"
+        >
+          <q-item-section avatar>
+            <q-icon name="code" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>API Interactions</q-item-label>
+            <q-item-label caption>Tương tác với API, Server</q-item-label>
+          </q-item-section>
+        </q-item>
+
       </q-list>
     </q-drawer>
 
