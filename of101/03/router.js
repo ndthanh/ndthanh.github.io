@@ -9,6 +9,7 @@ import linecharts from './pages/line-charts.js'
 import areacharts from './pages/area-charts.js'
 import columncharts from './pages/column-charts.js'
 import mixedcharts from './pages/mixed-charts.js'
+import timelinecharts from './pages/timeline-charts.js'
 
 delete window.history.pushState
 delete window.history.replaceState
@@ -27,5 +28,6 @@ export default VueRouter.createRouter({
     { path: '/area-charts', component: areacharts, name: 'AreaCharts' },
     { path: '/column-charts', component: columncharts, name: 'ColumnCharts' },
     { path: '/mixed-charts', component: mixedcharts, name: 'MixedCharts' },
+    { path: '/timeline-charts', component: timelinecharts, name: 'TimelineCharts' },
   ]
 })

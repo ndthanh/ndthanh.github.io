@@ -216,6 +216,21 @@ const app = Vue.createApp({
           </q-item-section>
         </q-item>
 
+        <!-- menu item "Timeline Charts" -->
+
+        <q-item
+          clickable
+          to="/timeline-charts"
+        >
+          <q-item-section avatar>
+            <q-icon name="code" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Timeline Charts</q-item-label>
+            <q-item-label caption>Các loại Timeline charts</q-item-label>
+          </q-item-section>
+        </q-item>
+
       </q-list>
     </q-drawer>
 
