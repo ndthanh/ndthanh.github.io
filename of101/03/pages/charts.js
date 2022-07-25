@@ -3,6 +3,9 @@ import LineChartWithDataLabel from '../components/line-chart-with-data-label.js'
 import ZoomableTimeseries from '../components/zoomable-timeseries.js'
 import LineWithAnnotations from '../components/line-with-annotations.js'
 import BrushChart from '../components/brush-charts.js'
+import StepLine from '../components/stepline.js'
+import GradientLine from '../components/gradient-line.js'
+import RealtimeLineChart from '../components/realtime-line-chart.js'
 
 export default {
   name: 'Charts',
@@ -12,7 +15,10 @@ export default {
     LineChartWithDataLabel,
     ZoomableTimeseries,
     LineWithAnnotations,
-    BrushChart
+    BrushChart,
+    StepLine,
+    GradientLine,
+    RealtimeLineChart
   },
 
   setup() {
@@ -44,6 +50,9 @@ export default {
           <ZoomableTimeseries />
           <LineWithAnnotations />
           <BrushChart />
+          <StepLine />
+          <GradientLine />
+          <RealtimeLineChart />
 
         </div>
       </q-page>
