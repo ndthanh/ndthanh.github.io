@@ -10,6 +10,8 @@ import areacharts from './pages/area-charts.js'
 import columncharts from './pages/column-charts.js'
 import mixedcharts from './pages/mixed-charts.js'
 import timelinecharts from './pages/timeline-charts.js'
+import candlestickcharts from './pages/candlestick-charts.js'
+import boxplotcharts from './pages/boxplot-charts.js'
 
 delete window.history.pushState
 delete window.history.replaceState
@@ -29,5 +31,7 @@ export default VueRouter.createRouter({
     { path: '/column-charts', component: columncharts, name: 'ColumnCharts' },
     { path: '/mixed-charts', component: mixedcharts, name: 'MixedCharts' },
     { path: '/timeline-charts', component: timelinecharts, name: 'TimelineCharts' },
+    { path: '/candlestick-charts', component: candlestickcharts, name: 'CandlestickCharts' },
+    { path: '/boxplot-charts', component: boxplotcharts, name: 'BoxplotCharts' },
   ]
 })

@@ -231,6 +231,36 @@ const app = Vue.createApp({
           </q-item-section>
         </q-item>
 
+        <!-- menu item "Candlestick Charts" -->
+
+        <q-item
+          clickable
+          to="/candlestick-charts"
+        >
+          <q-item-section avatar>
+            <q-icon name="code" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Candlestick Charts</q-item-label>
+            <q-item-label caption>Các loại Candlestick charts</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <!-- menu item "Boxplot Charts" -->
+
+        <q-item
+          clickable
+          to="/boxplot-charts"
+        >
+          <q-item-section avatar>
+            <q-icon name="code" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Boxplot Charts</q-item-label>
+            <q-item-label caption>Các loại Boxplot charts</q-item-label>
+          </q-item-section>
+        </q-item>
+
       </q-list>
     </q-drawer>
 
