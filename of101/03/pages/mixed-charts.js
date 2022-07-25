@@ -1,12 +1,14 @@
 import LineColumn from '../components/mixed/line-column.js'
 import MultipleYAxis from '../components/mixed/multiple-y-axis.js'
+import LineColumnArea from '../components/mixed/line-column-area.js'
 
 export default {
   name: 'MixedCharts',
 
   components: {
     LineColumn,
-    MultipleYAxis
+    MultipleYAxis,
+    LineColumnArea
   },
 
   setup() {
@@ -34,6 +36,8 @@ export default {
         <div class="q-gutter-sm">
           <LineColumn />
           <MultipleYAxis />         
+          <LineColumnArea />
+          
         </div>
       </q-page>
   `,
