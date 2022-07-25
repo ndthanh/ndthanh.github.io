@@ -1,14 +1,15 @@
-import LineChart from '../components/line-chart.js'
-import LineChartWithDataLabel from '../components/line-chart-with-data-label.js'
-import ZoomableTimeseries from '../components/zoomable-timeseries.js'
-import LineWithAnnotations from '../components/line-with-annotations.js'
-import BrushChart from '../components/brush-charts.js'
-import StepLine from '../components/stepline.js'
-import GradientLine from '../components/gradient-line.js'
-import RealtimeLineChart from '../components/realtime-line-chart.js'
+import LineChart from '../components/line/line-chart.js'
+import LineChartWithDataLabel from '../components/line/line-chart-with-data-label.js'
+import ZoomableTimeseries from '../components/line/zoomable-timeseries.js'
+import LineWithAnnotations from '../components/line/line-with-annotations.js'
+import BrushChart from '../components/line/brush-charts.js'
+import StepLine from '../components/line/stepline.js'
+import GradientLine from '../components/line/gradient-line.js'
+import RealtimeLineChart from '../components/line/realtime-line-chart.js'
+import DashedLine from '../components/line/dashedline.js'
 
 export default {
-  name: 'Charts',
+  name: 'LineCharts',
 
   components: {
     LineChart,
@@ -18,7 +19,8 @@ export default {
     BrushChart,
     StepLine,
     GradientLine,
-    RealtimeLineChart
+    RealtimeLineChart,
+    DashedLine
   },
 
   setup() {
@@ -36,8 +38,8 @@ export default {
             <q-breadcrumbs-el :label="title" />
         </q-breadcrumbs>
 
-        <h6 class="text-bold">Charts</h6>
-        <p caption>Một số ví dụ làm việc với charts</p>
+        <h6 class="text-bold">Line charts</h6>
+        <p caption>Một số ví dụ làm việc với line charts</p>
         
         <q-separator />
         
@@ -53,6 +55,7 @@ export default {
           <StepLine />
           <GradientLine />
           <RealtimeLineChart />
+          <DashedLine />
 
         </div>
       </q-page>

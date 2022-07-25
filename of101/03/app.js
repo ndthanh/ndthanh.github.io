@@ -156,18 +156,63 @@ const app = Vue.createApp({
           </q-item-section>
         </q-item>
 
-        <!-- menu item "Charts" -->
+        <!-- menu item "Line Charts" -->
 
         <q-item
           clickable
-          to="/charts"
+          to="/line-charts"
         >
           <q-item-section avatar>
             <q-icon name="code" />
           </q-item-section>
           <q-item-section>
-            <q-item-label>Charts</q-item-label>
-            <q-item-label caption>Các loại charts</q-item-label>
+            <q-item-label>Line Charts</q-item-label>
+            <q-item-label caption>Các loại line charts</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <!-- menu item "Area Charts" -->
+
+        <q-item
+          clickable
+          to="/area-charts"
+        >
+          <q-item-section avatar>
+            <q-icon name="code" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Area Charts</q-item-label>
+            <q-item-label caption>Các loại area charts</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <!-- menu item "Column Charts" -->
+
+        <q-item
+          clickable
+          to="/column-charts"
+        >
+          <q-item-section avatar>
+            <q-icon name="code" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Column Charts</q-item-label>
+            <q-item-label caption>Các loại Column charts</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <!-- menu item "Mixed Charts" -->
+
+        <q-item
+          clickable
+          to="/mixed-charts"
+        >
+          <q-item-section avatar>
+            <q-icon name="code" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Mixed Charts</q-item-label>
+            <q-item-label caption>Các loại mixed charts</q-item-label>
           </q-item-section>
         </q-item>
 

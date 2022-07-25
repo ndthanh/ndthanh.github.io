@@ -1,4 +1,4 @@
-import series from '../assets/stock-prices.js'
+import series from '../../assets/stock-prices.js'
 
 export default {
   name: 'LineWithAnnotations',

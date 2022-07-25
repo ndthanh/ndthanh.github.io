@@ -1,4 +1,4 @@
-import dataSeries from '../assets/irregular-data-series.js'
+import dataSeries from '../../assets/irregular-data-series.js'
 
 export default {
   name: 'ZoomableTimeseries',
