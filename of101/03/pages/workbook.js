@@ -26,7 +26,7 @@ export default {
 
         console.log("The active cell is " + activeCell.address)
         log.value = "Địa chỉ ô đang được chọn là: " + activeCell.address
-      });
+      })
 
     }
 

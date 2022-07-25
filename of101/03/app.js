@@ -156,6 +156,21 @@ const app = Vue.createApp({
           </q-item-section>
         </q-item>
 
+        <!-- menu item "Charts" -->
+
+        <q-item
+          clickable
+          to="/charts"
+        >
+          <q-item-section avatar>
+            <q-icon name="code" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Charts</q-item-label>
+            <q-item-label caption>Các loại charts</q-item-label>
+          </q-item-section>
+        </q-item>
+
       </q-list>
     </q-drawer>
 
@@ -174,4 +189,4 @@ window.Office.onReady(() => {
   app.use(Quasar)
   Quasar.iconSet.set(Quasar.iconSet.fontawesomeV6)
   app.mount('#q-app')
-});
+})
