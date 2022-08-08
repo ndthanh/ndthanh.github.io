@@ -25,10 +25,10 @@
             var speechRecognitionList = new SpeechGrammarList();
             speechRecognitionList.addFromString(grammar, 1);
             recognition.grammars = speechRecognitionList;
-            recognition.lang = 'en-US';
+            recognition.lang = 'vi-VN';
             recognition.interimResults = false;
 
-            recognition.onresult = async function(event) {
+            recognition.onresult = function(event) {
                 var lastResult = event.results.length - 1;
                 var content = event.results[lastResult][0].transcript;
                 message.textContent = 'Voice Input: ' + content + '.';
