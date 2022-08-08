@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+    <script src=https://appsforoffice.microsoft.com/lib/1/hosted/office.js>
 </head>
 <body>
     <button id='btnTalk'>Voice chat!</button>
@@ -12,6 +13,7 @@
     <span id='message'></span>
     <br><br>
     <script>
+        window.Office.onReady(() => {})
         var message = document.querySelector('#message');
 
         var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
@@ -26,10 +28,15 @@
         recognition.lang = 'vi-VN';
         recognition.interimResults = false;
 
-        recognition.onresult = function(event) {
+        recognition.onresult = async function(event) {
             var lastResult = event.results.length - 1;
             var content = event.results[lastResult][0].transcript;
             message.textContent = 'Voice Input: ' + content + '.';
+            window.Excel.run(async context => {
+              const range = context.workbook.getSelectedRange();
+              range.values = message.textContent
+              await context.sync();
+            });
         };
 
         recognition.onspeechend = function() {
