@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tự động hoá Web với Excel VBA và Selenium</title>
+    <!-- Compiled and minified CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    />
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <style>
+      .nav-grey {
+        background-color: cornflowerblue;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="nav-grey">
+      <div class="nav-wrapper">
+        <a href="/seleniumvba" class="brand-logo"
+          >&nbsp;&nbsp;dtnguyen.business</a
+        >
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+          <li>
+            <a
+              target="_blank"
+              href="https://www.linkedin.com/in/ducthanhnguyen/"
+              >LinkedIn</a
+            >
+          </li>
+          <li>
+            <a target="_blank" href="https://youtube.com/user/ductnguy"
+              >YouTube</a
+            >
+          </li>
+          <li><a target="_blank" href="https://hocexcel.online">Blog</a></li>
+        </ul>
+      </div>
+    </nav>
+    <div class="container">
+      <div class="row">
+        <h3>18. Wait 3 seconds for iframe with id 'iframe-delay' to appear</h3>
+      </div>
+      <div class="row" id="iframe-container">
+        <span>loading ...</span>
+      </div>
+    </div>
+    <script>
+      
+      setTimeout(function() {
+        document.querySelector('#iframe-container').innerHTML += 
+          `<iframe
+            id="target-iframe-id"
+            class="target-iframe-class"
+            src="https://ndthanh.github.io/seleniumvba/1-get-element-by-id/" 
+            title="This is an iframe">
+           </iframe>` 
+      }, 3000);
+      
+    </script>
+  </body>
+</html>
