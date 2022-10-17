@@ -10,9 +10,8 @@
     <div id="app">
       <div>
         <p class="error">{{ error }}</p>
-
-        <p class="decode-result">Last result: <b>{{ result }}</b></p>
-
+        <input v-model="workstation" placeholder="Điền Workstation">
+        <p class="decode-result">Dữ liệu QR: <b>{{ result }}</b></p>
         <qrcode-stream @decode="onDecode" @init="onInit" />
       </div>
     </div>
@@ -21,18 +20,27 @@
     <script src="https://unpkg.com/vue-qrcode-reader/dist/VueQrcodeReader.umd.min.js"></script>
     
     <script>
+      const API_URL = "https://script.google.com/macros/s/AKfycby1GU-P_DGzFNSOerY4VH15rk_q-F_gQ3_fOpZlFfN9bF2sJcOmAIGeg9jVe9pav9vq1w/exec"
       var vue =  new Vue({
         el: '#app',
         data: function () {
           return {
             result: '',
-            error: ''
+            error: '',
+            workstation: ''
           }
         },
         methods: {
           onDecode (result) {
             this.result = result
-            alert(result)
+            const options = {
+              method: 'POST',
+              contentType: 'application/json',
+              body: JSON.stringify({ ws: this.workstation, class: result })
+            }
+            const response = fetch(API_URL, options)
+              .then(response => response.json())
+              .then(data => alert("OK"))
           },
 
           async onInit (promise) {
