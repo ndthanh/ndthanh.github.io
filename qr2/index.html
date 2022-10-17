@@ -25,9 +25,9 @@
 
           <!-- Vùng hiện ảnh QR -->
           <!-- <qrcode-stream @decode="onDecode" @init="onInit" /> -->
-          <qrcode-stream @decode="onDecode" @init="onInit" v-if="!destroyed">
+          <qrcode-stream @decode="onDecode" @init="onInit" v-if="!destroyed" track="bounding box">
             <div class="loading-indicator" v-if="loading">
-              Loading...
+              Đang khởi động Camera...
             </div>
           </qrcode-stream>
         </div>
@@ -86,6 +86,15 @@
             await this.$nextTick()
 
             this.destroyed = false
+          },
+          paintBoundingBox (detectedCodes, ctx) {
+            for (const detectedCode of detectedCodes) {
+              const { boundingBox: { x, y, width, height } } = detectedCode
+
+              ctx.lineWidth = 3
+              ctx.strokeStyle = '#007bff'
+              ctx.strokeRect(x, y, width, height)
+            }
           }
         }
       })
