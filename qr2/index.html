@@ -9,21 +9,23 @@
   <body>
     
     <div id="app">
-      <div>
-        <!-- Thông báo lỗi -->
-        <div class="notification is-danger is-light">
-          <button class="delete"></button>
-          {{ error }}
+      <div class="columns">
+        <div class="column">
+          <!-- Thông báo lỗi -->
+          <div v-if="error.length > 0" class="notification is-danger is-light">
+            <button class="delete"></button>
+            {{ error }}
+          </div>
+
+          <!-- Chỗ để điền thông tin Workstation -->
+          <input class="input is-medium" v-model="workstation" placeholder="Điền Workstation">
+
+          <!-- Dữ liệu QR sau khi đọc và giải mã sẽ được lưu trong biến result -->
+          <p class="decode-result">Dữ liệu QR: <b>{{ result }}</b></p>
+
+          <!-- Vùng hiện ảnh QR -->
+          <qrcode-stream @decode="onDecode" @init="onInit" />
         </div>
-        
-        <!-- Chỗ để điền thông tin Workstation -->
-        <input class="input is-medium" v-model="workstation" placeholder="Điền Workstation">
-        
-        <!-- Dữ liệu QR sau khi đọc và giải mã sẽ được lưu trong biến result -->
-        <p class="decode-result">Dữ liệu QR: <b>{{ result }}</b></p>
-        
-        <!-- Vùng hiện ảnh QR -->
-        <qrcode-stream @decode="onDecode" @init="onInit" />
       </div>
     </div>
     
