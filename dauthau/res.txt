@@ -1,0 +1,179 @@
+{"rs":[["rm",["kF8P000"]],["rm",["kF8P200"]],["addAft",["kF8P0",[
+['zul.wnd.Window','kF8Ptm',{id:'wdTtbCdCreateAndEditManager',$$0onMinimize:true,$$0onSwipe:true,$$0onZIndex:true,$$0onMove:true,$onClose:true,$$0onAfterSize:true,$$0onMaximize:true,$$0onSize:true,width:'90%',sclass:'wdTtbCdCreateAndEditManager',prolog:'\n    ',title:'Thông tin chi tiết:',closable:true,position:'center,center',border:'normal',mode:'modal'},[
+['zul.utl.Style','kF8Pum',{visible:false,src:'/Share/css/style.css'},[]],
+['zul.utl.Style','kF8Pvm',{visible:false},[]],
+['zul.box.Vlayout','kF8Pwm',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'modal-body'},[
+['zul.wnd.Panel','kF8P1m',{$$0onMinimize:true,$$0onSwipe:true,$$0onZIndex:true,$$0onMove:true,$onClose:true,$$0onAfterSize:true,$$0onMaximize:true,$$0onSize:true,border:'normal'},[
+['zul.wgt.Caption','kF8P2m',{$$0onAfterSize:true,$$0onSwipe:true,label:'Kế hoạch lựa chọn nhà thầu',iconSclass:'fa fa-cog'},[]],
+['zul.wnd.Panelchildren','kF8P3m',{$$0onAfterSize:true,$$0onSwipe:true},[
+['zul.wgt.Div','kF8P4m',{$$0onAfterSize:true,$$0onSwipe:true,style:'width:100%',prolog:'\n                    '},[
+['zul.wgt.Div','kF8P0n',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'row row-space',prolog:'\n                        '},[
+['zul.wgt.Div','kF8P1n',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-2 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8P2n',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Tên trang thiết bị y tế:'},[]],
+['zul.wgt.Label','kF8P3n',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8P4n',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8P5n',{id:'b',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',sclass:'control-label',style:'border: none; background: white;',prolog:'\n                                ',_value:'Hóa chất xét nghiệm Glucose',readonly:true},[]]]],
+['zul.wgt.Div','kF8P6n',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8P7n',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Phân nhóm:'},[]],
+['zul.wgt.Label','kF8P8n',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8P9n',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pan',{id:'c',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',style:'border: none; background: white;',prolog:'\n                                ',_value:'Nhóm 1',readonly:true},[]]]]]],
+['zul.wgt.Div','kF8Pbn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'row row-space',prolog:'\n                        '},[
+['zul.wgt.Div','kF8Phm',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-2 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Pim',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Số lượng:'},[]],
+['zul.wgt.Label','kF8Pjm',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pkm',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pgn',{id:'d',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',sclass:'control-label',style:'border: none; background: white;',prolog:'\n                                ',_value:'Hộp',readonly:true},[]]]],
+['zul.wgt.Div','kF8Phn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Pin',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Đơn vị tính:'},[]],
+['zul.wgt.Label','kF8Pjn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pkn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pln',{id:'e',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',style:'border: none; background: white;',prolog:'\n                                ',_value:'32',readonly:true},[]]]]]],
+['zul.wgt.Div','kF8Pmn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'row row-space',prolog:'\n                        '},[
+['zul.wgt.Div','kF8Pnn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-2 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Pon',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Đơn giá(VNĐ):'},[]],
+['zul.wgt.Label','kF8Ppn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pqn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Prn',{id:'f',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',sclass:'control-label',style:'border: none; background: white;',prolog:'\n                                ',_value:'1440600',readonly:true},[]]]],
+['zul.wgt.Div','kF8Pxm',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Pym',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Thành tiền(VNĐ):'},[]],
+['zul.wgt.Label','kF8Pzm',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8P_n',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pwn',{id:'g',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',style:'border: none; background: white;',prolog:'\n                                ',_value:'46099200',readonly:true},[]]]]]],
+['zul.wgt.Div','kF8Pxn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'row row-space',prolog:'\n                        '},[
+['zul.wgt.Div','kF8Pyn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-2 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Pzn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Số quyết định:'},[]],
+['zul.wgt.Label','kF8P_o',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8P0o',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8P1o',{id:'sqdKh',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',sclass:'control-label',style:'border: none; background: white;',prolog:'\n                                ',_value:'Số: 2254 /QĐ-SYT ngày 22 tháng 12 năm 2022\nTên gói thầu: Mua sắm vật tư y tế, sinh phẩm, hóa chất xét nghiệm phục vụ hoạt động chuyên môn năm 2022 \u2013 2023 cho Trung tâm y tế thành phố Uông Bí. Hi\u0300nh thư\u0301c lư\u0323a cho\u0323n nha\u0300 thâ\u0300u: Đấu thầu rộng rãi.',readonly:true,multiline:true},[]]]]]]]]]]]],
+['zul.wnd.Panel','kF8P2o',{$$0onMinimize:true,$$0onSwipe:true,$$0onZIndex:true,$$0onMove:true,$onClose:true,$$0onAfterSize:true,$$0onMaximize:true,$$0onSize:true,border:'normal'},[
+['zul.wgt.Caption','kF8P3o',{$$0onAfterSize:true,$$0onSwipe:true,label:'Thông tin chung',iconSclass:'fa fa-cog'},[]],
+['zul.wnd.Panelchildren','kF8P4o',{$$0onAfterSize:true,$$0onSwipe:true},[
+['zul.wgt.Div','kF8P5o',{$$0onAfterSize:true,$$0onSwipe:true,style:'width:100%',prolog:'\n                    '},[
+['zul.wgt.Div','kF8P6o',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'row row-space',prolog:'\n                        '},[
+['zul.wgt.Div','kF8Pcn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-2 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Pdn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Nguồn vốn đầu tư:'},[]],
+['zul.wgt.Label','kF8Pen',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pfn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pbo',{id:'h',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',sclass:'control-label',style:'border: none; background: white;',prolog:'\n                                ',_value:'Nguồn thu khám chữa bệnh và nguồn thu hợp pháp khác năm 2022-2023.',readonly:true},[]]]],
+['zul.wgt.Div','kF8Pco',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Pdo',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Số lượng định mức:'},[]],
+['zul.wgt.Label','kF8Peo',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pfo',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pgo',{id:'i',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',style:'border: none; background: white;',prolog:'\n                                ',_value:'0',readonly:true},[]]]]]]]]]]]],
+['zul.wnd.Panel','kF8Pho',{$$0onMinimize:true,$$0onSwipe:true,$$0onZIndex:true,$$0onMove:true,$onClose:true,$$0onAfterSize:true,$$0onMaximize:true,$$0onSize:true,border:'normal'},[
+['zul.wgt.Caption','kF8Pio',{$$0onAfterSize:true,$$0onSwipe:true,label:'Kết quả thực hiện',iconSclass:'fa fa-cog'},[]],
+['zul.wnd.Panelchildren','kF8Pjo',{$$0onAfterSize:true,$$0onSwipe:true},[
+['zul.wgt.Div','kF8Pko',{$$0onAfterSize:true,$$0onSwipe:true,style:'width:100%',prolog:'\n                    '},[
+['zul.wgt.Div','kF8Plo',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'row row-space',prolog:'\n                        '},[
+['zul.wgt.Div','kF8Pmo',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-2 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Psn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Tên trang thiết bị y tế:'},[]],
+['zul.wgt.Label','kF8Ptn',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pun',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pvn',{id:'j',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',sclass:'control-label',style:'border: none; background: white;',prolog:'\n                                ',_value:'Hóa chất xét nghiệm Glucose',readonly:true},[]]]],
+['zul.wgt.Div','kF8Pp20',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Po20',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Phân nhóm:'},[]],
+['zul.wgt.Label','kF8Pr20',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pq20',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Py10',{id:'k',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',style:'border: none; background: white;',prolog:'\n                                ',_value:'0',readonly:true},[]]]]]],
+['zul.wgt.Div','kF8Px10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'row row-space',prolog:'\n                        '},[
+['zul.wgt.Div','kF8P_20',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-2 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Pz10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Chủng loại(Model):'},[]],
+['zul.wgt.Label','kF8P120',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8P020',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8P320',{id:'l',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',style:'border: none; background: white;',prolog:'\n                                ',_value:'GLUC3/ 04404483190',readonly:true},[]]]],
+['zul.wgt.Div','kF8P220',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8P520',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Số lưu hành hoặc số giấy phép nhập khẩu:'},[]]]],
+['zul.wgt.Div','kF8P420',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8P720',{id:'m',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',sclass:'control-label',style:'border: none; background: white;',prolog:'\n                                ',_value:'0',readonly:true},[]]]]]],
+['zul.wgt.Div','kF8P620',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'row row-space',prolog:'\n                        '},[
+['zul.wgt.Div','kF8P920',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-2 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8P820',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Năm sản xuất:'},[]],
+['zul.wgt.Label','kF8Pb20',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pa20',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pi10',{id:'n',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',style:'border: none; background: white;',prolog:'\n                                ',_value:'2021-2022.',readonly:true},[]]]],
+['zul.wgt.Div','kF8Ph10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Pk10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Nước sản xuất:'},[]],
+['zul.wgt.Label','kF8Pj10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pm10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pl10',{id:'o',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',sclass:'control-label',style:'border: none; background: white;',prolog:'\n                                ',_value:'Roche Diagnostics GmbH/ Đức',readonly:true},[]]]]]],
+['zul.wgt.Div','kF8Po10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'row row-space',prolog:'\n                        '},[
+['zul.wgt.Div','kF8Pn10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-2 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Pq10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Hãng sản xuất:'},[]],
+['zul.wgt.Label','kF8Pp10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Ps10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pr10',{id:'p',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',style:'border: none; background: white;',prolog:'\n                                ',_value:'Roche Diagnostics GmbH/ Đức',readonly:true},[]]]],
+['zul.wgt.Div','kF8Pu10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Pt10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Hãng/nước chủ sở hữu:'},[]],
+['zul.wgt.Label','kF8Pw10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pv10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8P210',{id:'q',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',sclass:'control-label',style:'border: none; background: white;',prolog:'\n                                ',_value:'Roche Diagnostics GmbH/ Đức',readonly:true},[]]]]]],
+['zul.wgt.Div','kF8P110',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'row row-space',prolog:'\n                        '},[
+['zul.wgt.Div','kF8P410',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-2 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8P310',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Đơn vị tính:'},[]],
+['zul.wgt.Label','kF8P610',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8P510',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8P810',{id:'r',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',style:'border: none; background: white;',prolog:'\n                                ',_value:'Hộp',readonly:true},[]]]],
+['zul.wgt.Div','kF8P710',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Pa10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Số lượng:'},[]],
+['zul.wgt.Label','kF8P910',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pc10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pb10',{id:'s',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',sclass:'control-label',style:'border: none; background: white;',prolog:'\n                                ',_value:'32',readonly:true},[]]]]]],
+['zul.wgt.Div','kF8Pe10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'row row-space',prolog:'\n                        '},[
+['zul.wgt.Div','kF8Pd10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-2 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Pg10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Đơn giá trúng thầu(VNĐ):'},[]],
+['zul.wgt.Label','kF8Pf10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pn00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pm00',{id:'t',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',style:'border: none; background: white;',prolog:'\n                                ',_value:'1440600',readonly:true},[]]]],
+['zul.wgt.Div','kF8Pp00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Po00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Cấu hình, tính năng kỹ thuật cơ bản:'},[]],
+['zul.wgt.Label','kF8Pr00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pq00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pt00',{id:'u',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',height:'100px',sclass:'control-label',style:'border: none; background: white;',prolog:'\n                                ',_value:'GLUC3/ 04404483190',readonly:true,multiline:true},[]]]]]],
+['zul.wgt.Div','kF8Ps00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'row row-space',prolog:'\n                        '},[
+['zul.wgt.Div','kF8Pv00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-2 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8Pu00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Đơn vị trúng thầu:'},[]],
+['zul.wgt.Label','kF8Px00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pw00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pz00',{id:'v',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',style:'border: none; background: white;',prolog:'\n                                ',_value:'Liên danh nhà thầu Thành An - Minh Tâm - Tâm Việt',readonly:true},[]]]],
+['zul.wgt.Div','kF8Py00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8P010',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Mã số thuế của đơn vị trúng thầu:'},[]]]],
+['zul.wgt.Div','kF8P_10',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8P700',{id:'w',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',sclass:'control-label',style:'border: none; background: white;',prolog:'\n                                ',_value:'106622681;0101268476;0104873231.',readonly:true},[]]]]]],
+['zul.wgt.Div','kF8P600',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'row row-space',prolog:'\n                        '},[
+['zul.wgt.Div','kF8P900',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-2 text-right',prolog:'\n                            '},[
+['zul.wgt.Label','kF8P800',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                                ',value:'Số quyết định:'},[]],
+['zul.wgt.Label','kF8Pb00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'label-required',prolog:'\n                                ',value:' *'},[]]]],
+['zul.wgt.Div','kF8Pa00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                            '},[
+['zul.inp.Textbox','kF8Pd00',{id:'sqdKq',$$0onError:true,$$1onChange:true,$$0onSwipe:true,$$0onFocus:true,$$1onSelection:true,$$0onBlur:true,$$0onAfterSize:true,$$0onChanging:true,$onChanging:true,width:'100%',sclass:'control-label',style:'border: none; background: white;',prolog:'\n                                ',_value:'Số 479 /QĐ-TTYT ngày 10 tháng 3 năm 2023\nTên gói thầu: Mua sắm vật tư y tế, sinh phẩm, hóa chất xét nghiệm phục vụ hoạt động chuyên môn năm 2022 \u2013 2023 cho Trung tâm y tế thành phố Uông Bí. Hi\u0300nh thư\u0301c lư\u0323a cho\u0323n nha\u0300 thâ\u0300u: Đấu thầu rộng rãi.',readonly:true,multiline:true},[]]]]]]]]]]]],
+['zul.wgt.Div','kF8Pc00',{id:'view',visible:false,$$0onAfterSize:true,$$0onSwipe:true,sclass:'row row-space'},[
+['zul.wgt.Div','kF8Pf00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-2 text-right',prolog:'\n                '},[
+['zul.wgt.Label','kF8Pe00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'control-label',prolog:'\n                    ',value:'Chọn tệp'},[]]]],
+['zul.wgt.Div','kF8Ph00',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-md-3 col-form-control',prolog:'\n                '},[
+['zul.wgt.Div','kF8Pg00',{$$0onAfterSize:true,$$0onSwipe:true,prolog:'\n                    '},[
+['zul.wgt.Button','kF8Pj00',{id:'btnImportExcel',$$0onSwipe:true,$$0onFocus:true,$$0onBlur:true,$$0onAfterSize:true,sclass:'btn-success',prolog:'\n                        ',label:'Tệp đính kèm',iconSclass:'z-icon-upload',upload:'true,maxsize=-1'},[],'trendy']]]]]]],
+['zul.wgt.Div','kF8Pi00',{id:'divFile',$$0onAfterSize:true,$$0onSwipe:true,sclass:'col-form-control'},[
+['zul.sel.Listbox','kF8Pl00',{id:'listData',$$0onDataLoading:true,$$0onSwipe:true,$$0onTopPad:true,$$0onAnchorPos:true,$$0onCheckSelectAll:true,$$0onFocus:true,$$0onInnerWidth:true,$$0onBlur:true,$$0onAfterSize:true,$$0onAcrossPage:true,$$0onRender:true,$$0onScrollPos:true,$$0onPageSize:true,prolog:'\n                ',_nativebar:true,emptyMessage:'Không có bản ghi',multiple:true,model:true,_topPad:0,_totalSize:2,_offset:0},[
+['zul.sel.Listhead','kF8Pk00',{$$0onAfterSize:true,$$0onSwipe:true,sizable:true},[
+['zul.sel.Listheader','kF8Ps_0',{$$0onSort:true,$onSort:true,$$0onGroup:true,$$0onSwipe:true,$$0onUngroup:true,$$0onAfterSize:true,width:'32px',sclass:'colRemove',label:' ',align:'center'},[
+['zul.wgt.Label','kF8Pr_0',{$$0onAfterSize:true,$$0onSwipe:true,value:'STT'},[]]]],
+['zul.sel.Listheader','kF8Pu_0',{$$0onSort:true,$onSort:true,$$0onGroup:true,$$0onSwipe:true,$$0onUngroup:true,$$0onAfterSize:true,sclass:'colRemove',label:' ',align:'center'},[
+['zul.wgt.Label','kF8Pt_0',{$$0onAfterSize:true,$$0onSwipe:true,value:'Tên File'},[]]]],
+['zul.sel.Listheader','kF8Pw_0',{$$0onSort:true,$onSort:true,$$0onGroup:true,$$0onSwipe:true,$$0onUngroup:true,$$0onAfterSize:true,sclass:'colRemove',label:' ',align:'center'},[
+['zul.wgt.Label','kF8Pv_0',{$$0onAfterSize:true,$$0onSwipe:true,value:'Xóa'},[]]]]]],
+['zul.sel.Listitem','kF8P500',{$$0onAfterSize:true,$$0onSwipe:true,_loaded:true,_index:0},[
+['zul.sel.Listcell','kF8P400',{$$0onAfterSize:true,$$0onSwipe:true},[
+['zul.wgt.A','kF8P2g0',{$$0onSwipe:true,$$0onFocus:true,$$0onBlur:true,$$0onAfterSize:true,style:'color: blue',prolog:'\n                                ',label:'1'},[]]]],
+['zul.sel.Listcell','kF8P3g0',{$$0onAfterSize:true,$$0onSwipe:true},[
+['zul.wgt.A','kF8P4g0',{$onClick:true,$$0onSwipe:true,$$0onFocus:true,$$0onBlur:true,$$0onAfterSize:true,style:'color: blue',prolog:'\n                                ',label:'Quyết đinh ( 479) về việc Phê duyệt kết quả lựa chọn nhà thầu gói thầu mua sắm vật tư y tế sinh phẩm, hoá chất năm 2022-2023.pdf'},[]]]],
+['zul.sel.Listcell','kF8P5g0',{$$0onAfterSize:true,$$0onSwipe:true},[]]]],
+['zul.sel.Listitem','kF8P6g0',{$$0onAfterSize:true,$$0onSwipe:true,_loaded:true,_index:1},[
+['zul.sel.Listcell','kF8P7g0',{$$0onAfterSize:true,$$0onSwipe:true},[
+['zul.wgt.A','kF8P8g0',{$$0onSwipe:true,$$0onFocus:true,$$0onBlur:true,$$0onAfterSize:true,style:'color: blue',prolog:'\n                                ',label:'2'},[]]]],
+['zul.sel.Listcell','kF8P9g0',{$$0onAfterSize:true,$$0onSwipe:true},[
+['zul.wgt.A','kF8Pag0',{$onClick:true,$$0onSwipe:true,$$0onFocus:true,$$0onBlur:true,$$0onAfterSize:true,style:'color: blue',prolog:'\n                                ',label:'Quyết đinh ( 479) về việc Phê duyệt kết quả lựa chọn nhà thầu gói thầu mua sắm vật tư y tế sinh phẩm, hoá chất năm 2022-2023.pdf'},[]]]],
+['zul.sel.Listcell','kF8Pbg0',{$$0onAfterSize:true,$$0onSwipe:true},[]]]]]]]]]],
+['zul.box.Hlayout','kF8Py_0',{$$0onAfterSize:true,$$0onSwipe:true,sclass:'modal-footer'},[
+['zul.wgt.Button','kF8Px_0',{id:'btnSave',visible:false,$onClick:true,$$0onSwipe:true,$$0onFocus:true,$$0onBlur:true,$$0onAfterSize:true,sclass:'btn-primary',label:'Lưu và nhập mới',iconSclass:'fa fa-save'},[]],
+['zul.wgt.Button','kF8P_00',{id:'btnSaveAndClose',visible:false,$onClick:true,$$0onSwipe:true,$$0onFocus:true,$$0onBlur:true,$$0onAfterSize:true,sclass:'btn-primary',label:'Lưu và đóng',iconSclass:'fa fa-save'},[]],
+['zul.wgt.Button','kF8Pz_0',{id:'btnClose',$onClick:true,$$0onSwipe:true,$$0onFocus:true,$$0onBlur:true,$$0onAfterSize:true,sclass:'btn-warning',label:'Hủy',iconSclass:'fa fa-excel'},[]]]]]]]]]],"rid":10}
