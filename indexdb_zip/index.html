@@ -12,6 +12,7 @@
     <button onclick="downloadZipFile()">Download ZIP File</button>
     <div id="loadingIndicator" style="display: none;">Loading...</div>
     <div id="log"></div>
+    <div id="files"></div>
 
     <script>
         function startFetchingAndSaving() {
@@ -51,11 +52,22 @@
                 const store = transaction.objectStore('files');
                 store.put(data, key);
                 logMessage(`Saved ${key} to IndexedDB.`);
+                createDownloadLink(key, data);
                 if (key === 'excelFile5') {
                     document.getElementById('loadingIndicator').style.display = 'none';
                     logMessage('All files have been saved. You can now download the ZIP file.');
                 }
             };
+        }
+
+        function createDownloadLink(key, data) {
+            const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${key}.xlsx`;
+            link.textContent = `Download ${key}`;
+            document.getElementById('files').appendChild(link);
+            document.getElementById('files').appendChild(document.createElement('br'));
         }
 
         function logMessage(message) {
@@ -88,14 +100,13 @@
 
                         cursor.continue();
                     } else {
-                        // All files added to ZIP, create download link
                         zip.generateAsync({ type: 'blob' })
                             .then(blob => {
                                 const link = document.createElement('a');
                                 link.href = URL.createObjectURL(blob);
                                 link.download = 'excelFiles.zip';
                                 document.body.appendChild(link);
-                                link.click(); // Auto start download
+                                link.click();
                                 logMessage('ZIP file downloaded successfully.');
                             });
                     }
