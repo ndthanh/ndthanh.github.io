@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Typicode to Excel/Zip</title>
+    <title>Typicode to Excel</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
 </head>
@@ -14,7 +14,6 @@
     <div id="log"></div>
 
     <script>
-        // Function to start fetching and saving to Excel
         function startFetchingAndSaving() {
             document.getElementById('loadingIndicator').style.display = 'block';
             logMessage('Starting the fetching process...');
@@ -23,7 +22,6 @@
             }
         }
 
-        // Function to fetch data, convert to Excel, and save to IndexedDB
         function fetchDataAndSaveToExcel(index) {
             logMessage(`Fetching data for file ${index}...`);
             fetch('https://jsonplaceholder.typicode.com/posts')
@@ -45,53 +43,6 @@
                 });
         }
 
-        // Open IndexedDB and define object store
-        const request = indexedDB.open('ExcelFiles', 1);
-        request.onupgradeneeded = event => {
-            const db = event.target.result;
-            db.createObjectStore('files');
-        };
-
-        // Function to download Excel files from IndexedDB
-        function downloadExcelFiles() {
-            logMessage('Starting download process...');
-            const request = indexedDB.open('ExcelFiles', 1);
-            request.onsuccess = event => {
-                const db = event.target.result;
-                const transaction = db.transaction('files', 'readonly');
-                const store = transaction.objectStore('files');
-
-                store.openCursor().onsuccess = event => {
-                    const cursor = event.target.result;
-                    if (cursor) {
-                        const key = cursor.key;
-                        const data = cursor.value;
-
-                        // Create a Blob from the data
-                        const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-
-                        // Create a download link
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        link.download = `${key}.xlsx`;
-                        link.textContent = `Download ${key}`;
-                        document.body.appendChild(link);
-                        link.click(); // Auto start download
-
-                        cursor.continue();
-                    }
-                };
-            };
-        }
-
-
-        // Function to log messages
-        function logMessage(message) {
-            const logDiv = document.getElementById('log');
-            logDiv.innerHTML += `<p>${message}</p>`;
-        }
-
-        // Update the saveToIndexedDB function to log success and hide loading indicator
         function saveToIndexedDB(key, data) {
             const request = indexedDB.open('ExcelFiles', 1);
             request.onsuccess = event => {
@@ -102,12 +53,22 @@
                 logMessage(`Saved ${key} to IndexedDB.`);
                 if (key === 'excelFile5') {
                     document.getElementById('loadingIndicator').style.display = 'none';
-                    logMessage('All files have been saved. You can now download the Excel files.');
+                    logMessage('All files have been saved. You can now download the ZIP file.');
                 }
             };
         }
 
-        // Function to download Excel files as ZIP file from IndexedDB
+        function logMessage(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += `<p>${message}</p>`;
+        }
+
+        const request = indexedDB.open('ExcelFiles', 1);
+        request.onupgradeneeded = event => {
+            const db = event.target.result;
+            db.createObjectStore('files');
+        };
+
         function downloadZipFile() {
             logMessage('Starting download process...');
             const request = indexedDB.open('ExcelFiles', 1);
@@ -141,7 +102,6 @@
                 };
             };
         }
-
     </script>
 </body>
 </html>
