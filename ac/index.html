@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control AC Settings</title>
+</head>
+<body>
+
+<button onclick="startSequence()">Start Sequence</button>
+
+<script>
+function startSequence() {
+    sendTemperatureRequest();
+}
+
+function sendTemperatureRequest() {
+    var myHeaders = new Headers();
+    myHeaders.append("Accept", "*/*");
+    myHeaders.append("Accept-Language", "en-US,en;q=0.9");
+    myHeaders.append("Cache-Control", "no-cache");
+    myHeaders.append("Connection", "keep-alive");
+    myHeaders.append("Pragma", "no-cache");
+    myHeaders.append("Referer", "http://esp-d07715.local/");
+    myHeaders.append("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
+
+    var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow'
+    };
+
+    fetch("http://esp-d07715.local/index?temperature=28", requestOptions)
+    .then(response => response.text())
+    .then(result => {
+        console.log(result);
+        sendFanSpeedRequest();
+    })
+    .catch(error => console.log('error', error));
+}
+
+function sendFanSpeedRequest() {
+    var myHeaders = new Headers();
+    myHeaders.append("Accept", "*/*");
+    myHeaders.append("Accept-Language", "en-US,en;q=0.9");
+    myHeaders.append("Cache-Control", "no-cache");
+    myHeaders.append("Connection", "keep-alive");
+    myHeaders.append("Pragma", "no-cache");
+    myHeaders.append("Referer", "http://esp-d07715.local/");
+    myHeaders.append("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
+
+    var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow'
+    };
+
+    fetch("http://esp-d07715.local/index?fanspeed=1", requestOptions)
+    .then(response => response.text())
+    .then(result => {
+        console.log(result);
+        sendInfraredRequest();
+    })
+    .catch(error => console.log('error', error));
+}
+
+function sendInfraredRequest() {
+    var myHeaders = new Headers();
+    myHeaders.append("Accept", "*/*");
+    myHeaders.append("Accept-Language", "en-US,en;q=0.9");
+    myHeaders.append("Cache-Control", "no-cache");
+    myHeaders.append("Connection", "keep-alive");
+    myHeaders.append("Pragma", "no-cache");
+    myHeaders.append("Referer", "http://esp-d07715.local/");
+    myHeaders.append("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
+
+    var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow'
+    };
+
+    fetch("http://esp-d07715.local/index?send_ir=1", requestOptions)
+    .then(response => response.text())
+    .then(result => console.log(result))
+    .catch(error => console.log('error', error));
+}
+</script>
+
+</body>
+</html>
