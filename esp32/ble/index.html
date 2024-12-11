@@ -29,6 +29,7 @@
 </head>
 <body>
   <button id="connectButton">Connect via Serial Port</button>
+  <button id="clearButton">Clear All Messages</button>
 
   <div id="target"></div>
 
@@ -39,6 +40,11 @@
       } else {
         alert('Web Serial API not supported.');
       }
+    });
+
+    document.getElementById('clearButton').addEventListener('click', () => {
+      const log = document.getElementById('target');
+      log.innerHTML = '';  // Clear all the message boxes
     });
 
     async function connectSerial() {
