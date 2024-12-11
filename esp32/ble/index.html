@@ -89,7 +89,7 @@
             while (endIndex !== -1) {
               const message = buffer.slice(0, endIndex).trim();
               if (message) {
-                displayMessage(message);
+                displayMessage(message); // Display and send message
               }
               buffer = buffer.slice(endIndex + endMarker.length);  // Remove the processed message
               endIndex = buffer.indexOf(endMarker);  // Check for next message
@@ -112,7 +112,10 @@
       const log = document.getElementById('target');
       const newBox = document.createElement('div');
       newBox.className = 'input-box';
-      
+
+      // Remove the end-of-message marker if it's included
+      message = message.replace('__EOM__', '').trim();
+
       // Try to parse and display the JSON
       try {
         const jsonMessage = JSON.parse(message);
@@ -137,6 +140,7 @@
         headers: {
           'Content-Type': 'application/json',
         },
+        mode: 'no-cors',
         body: JSON.stringify(messageData),  // Send the parsed message
       })
       .then(response => response.json())
