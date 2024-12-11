@@ -25,15 +25,30 @@
       white-space: pre-wrap;
       word-wrap: break-word;
     }
+    .input-container {
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
+  <div class="input-container">
+    <label for="endpoint">Enter Webhook Endpoint:</label>
+    <input type="text" id="endpoint" placeholder="Enter your webhook URL" style="width: 100%; padding: 10px;">
+  </div>
+
   <button id="connectButton">Connect via Serial Port</button>
   <button id="clearButton">Clear All Messages</button>
 
   <div id="target"></div>
 
   <script>
+    let webhookUrl = '';  // Store the webhook URL globally
+
+    // Set webhook URL based on user input
+    document.getElementById('endpoint').addEventListener('input', (event) => {
+      webhookUrl = event.target.value.trim();
+    });
+
     document.getElementById('connectButton').addEventListener('click', () => {
       if (navigator.serial) {
         connectSerial();
@@ -102,11 +117,35 @@
       try {
         const jsonMessage = JSON.parse(message);
         newBox.textContent = JSON.stringify(jsonMessage, null, 2);  // Format JSON for readability
+        sendToWebhook(jsonMessage);  // Send to webhook
       } catch (e) {
         newBox.textContent = message;  // If parsing fails, display the raw message
       }
 
       log.appendChild(newBox);
+    }
+
+    // Send the message data to the webhook endpoint
+    function sendToWebhook(messageData) {
+      if (!webhookUrl) {
+        console.error('Webhook URL not specified!');
+        return;
+      }
+
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(messageData),  // Send the parsed message
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Webhook response:', data);
+      })
+      .catch(error => {
+        console.error('Error sending data to webhook:', error);
+      });
     }
   </script>
 </body>
