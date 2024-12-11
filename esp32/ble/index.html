@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Serial Web Interface</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    #target {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <button id="connectButton">Connect via Serial Port</button>
+
+  <div id="target"></div>
+  <script>
+    document.getElementById('connectButton').addEventListener('click', () => {
+      if (navigator.serial) {
+        connectSerial();
+      } else {
+        alert('Web Serial API not supported.');
+      }
+    });
+
+    async function connectSerial() {
+      const log = document.getElementById('target');
+
+      try {
+        const port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 9600 });
+
+        const decoder = new TextDecoderStream();
+        port.readable.pipeTo(decoder.writable);
+
+        const inputStream = decoder.readable;
+        const reader = inputStream.getReader();
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (value) {
+            log.textContent += value + '\n';
+          }
+          if (done) {
+            console.log('[readLoop] DONE', done);
+            reader.releaseLock();
+            break;
+          }
+        }
+
+      } catch (error) {
+        log.innerHTML = error;
+      }
+    }
+  </script>
+</body>
+</html>
