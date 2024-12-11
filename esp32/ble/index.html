@@ -145,7 +145,7 @@
         mode: 'no-cors',
         body: JSON.stringify(messageData),  // Send the parsed message
       })
-      .then(response => response.json())
+      .then(response => console.log(response))
       .then(data => {
         console.log('Webhook response:', data);
       })
