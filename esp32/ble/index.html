@@ -21,7 +21,9 @@
       padding: 10px;
       border: 1px solid #ccc;
       font-family: monospace;
-/*       white-space: pre-wrap; */
+      background-color: #f9f9f9;
+      white-space: pre-wrap;
+      word-wrap: break-word;
     }
   </style>
 </head>
@@ -57,24 +59,48 @@
           const { value, done } = await reader.read();
           if (value) {
             buffer += value;
-            if (buffer.includes('\n')) {
-              const newBox = document.createElement('div');
-              newBox.className = 'input-box';
-              newBox.textContent = buffer.trim();
-              log.appendChild(newBox);
-              buffer = '';
+
+            // Check if we have reached the end of a message
+            const endMarker = '__EOM__';
+            let endIndex = buffer.indexOf(endMarker);
+            
+            // Process all complete messages
+            while (endIndex !== -1) {
+              const message = buffer.slice(0, endIndex).trim();
+              if (message) {
+                displayMessage(message);
+              }
+              buffer = buffer.slice(endIndex + endMarker.length);  // Remove the processed message
+              endIndex = buffer.indexOf(endMarker);  // Check for next message
             }
           }
+
           if (done) {
             console.log('[readLoop] DONE', done);
             reader.releaseLock();
             break;
           }
         }
-
       } catch (error) {
         log.innerHTML = error;
       }
+    }
+
+    // Display the message in a new box
+    function displayMessage(message) {
+      const log = document.getElementById('target');
+      const newBox = document.createElement('div');
+      newBox.className = 'input-box';
+      
+      // Try to parse and display the JSON
+      try {
+        const jsonMessage = JSON.parse(message);
+        newBox.textContent = JSON.stringify(jsonMessage, null, 2);  // Format JSON for readability
+      } catch (e) {
+        newBox.textContent = message;  // If parsing fails, display the raw message
+      }
+
+      log.appendChild(newBox);
     }
   </script>
 </body>
