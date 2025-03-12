@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multilingual Text-to-Speech</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        textarea {
+            height: 150px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .status {
+            margin-top: 10px;
+            font-style: italic;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .sample-container {
+            margin-top: 10px;
+        }
+        .sample-btn {
+            margin: 5px;
+            background-color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Multilingual Text-to-Speech</h1>
+        <div class="controls">
+            <label for="language-select">Language:</label>
+            <select id="language-select">
+                <option value="en">English</option>
+                <option value="vi">Vietnamese</option>
+                <option value="de">German</option>
+                <option value="fr">French</option>
+            </select>
+            <label for="voice-select">Voice:</label>
+            <select id="voice-select"></select>
+        </div>
+        
+        <div class="sample-container">
+            <button class="sample-btn" id="sample-btn">Dùng câu mẫu / sample</button>
+        </div>
+        
+        <textarea id="text-input" placeholder="Type your text here..."></textarea>
+        <button id="play-button">Play Speech</button>
+        <div id="status" class="status"></div>
+    </div>
+
+    <script type="module">
+        import { synthesize } from 'https://cdn.jsdelivr.net/npm/@echristian/edge-tts@latest/+esm';
+
+        const voiceMap = {
+            en: [
+                { id: 'en-US-AriaNeural', name: 'Aria (Female)' },
+                { id: 'en-US-GuyNeural', name: 'Guy (Male)' }
+            ],
+            vi: [
+                { id: 'vi-VN-HoaiMyNeural', name: 'Hoai My (Female)' },
+                { id: 'vi-VN-NamMinhNeural', name: 'Nam Minh (Male)' }
+            ],
+            de: [
+                { id: 'de-DE-KatjaNeural', name: 'Katja (Female)' },
+                { id: 'de-DE-ConradNeural', name: 'Conrad (Male)' }
+            ],
+            fr: [
+                { id: 'fr-FR-DeniseNeural', name: 'Denise (Female)' },
+                { id: 'fr-FR-HenriNeural', name: 'Henri (Male)' }
+            ]
+        };
+
+        const sampleSentences = {
+            en: "Hello, welcome to the multilingual text-to-speech application.",
+            vi: "Xin chào, chào mừng bạn đến với ứng dụng chuyển văn bản thành giọng nói đa ngôn ngữ.",
+            de: "Hallo, willkommen bei der mehrsprachigen Text-zu-Sprache-Anwendung.",
+            fr: "Bonjour, bienvenue dans l'application de synthèse vocale multilingue."
+        };
+
+        function updateVoiceOptions(language) {
+            const voiceSelect = document.getElementById('voice-select');
+            voiceSelect.innerHTML = '';
+            
+            voiceMap[language].forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.id;
+                option.textContent = voice.name;
+                voiceSelect.appendChild(option);
+            });
+        }
+
+        document.getElementById('language-select').addEventListener('change', (e) => {
+            const language = e.target.value;
+            updateVoiceOptions(language);
+        });
+
+        document.getElementById('sample-btn').addEventListener('click', () => {
+            const language = document.getElementById('language-select').value;
+            document.getElementById('text-input').value = sampleSentences[language];
+        });
+
+        document.getElementById('play-button').addEventListener('click', async () => {
+            const text = document.getElementById('text-input').value;
+            const voice = document.getElementById('voice-select').value;
+            const statusElement = document.getElementById('status');
+            
+            if (!text) {
+                statusElement.textContent = 'Please enter some text first.';
+                return;
+            }
+            
+            try {
+                statusElement.textContent = 'Generating speech...';
+                
+                const { audio } = await synthesize({
+                    text: text,
+                    voice: voice
+                });
+                
+                // Create audio element to play the speech
+                const audioBlob = new Blob([audio], { type: 'audio/mp3' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audioElement = new Audio(audioUrl);
+                
+                audioElement.onended = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    statusElement.textContent = 'Playback complete.';
+                };
+                
+                audioElement.onplay = () => {
+                    statusElement.textContent = 'Playing...';
+                };
+                
+                audioElement.play();
+            } catch (error) {
+                statusElement.textContent = `Error: ${error.message}`;
+                console.error('Speech synthesis error:', error);
+            }
+        });
+
+        // Initialize with English voices
+        updateVoiceOptions('en');
+    </script>
+</body>
+</html>
