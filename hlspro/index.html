@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HLS Player with Download</title>
+    <title>HLS Player with FFmpeg Download</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.8/hls.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mux.js/6.3.0/mux.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mp4box.js/0.5.2/mp4box.all.min.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js"></script>
     <style>
         body {
             margin: 0;
@@ -98,10 +98,22 @@
             margin-top: 5px;
             font-size: 14px;
         }
+        .log {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 15px;
+            background-color: #000;
+            color: #0f0;
+            padding: 10px;
+            font-family: monospace;
+            height: 100px;
+            overflow-y: auto;
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <h1>HLS Video Player with Download</h1>
+    <h1>HLS Player with FFmpeg Download</h1>
     
     <div class="url-input">
         <input type="text" id="streamUrl" placeholder="Enter M3U8 URL here" value="https://owakshina.store/hls/w+AKxyHP77OgfaOwDli8qhsPMcKC3zZ39OwWy039XIF5RoNreMppa8UkyNKe0MeHdyVx9AkXUwb4LG3Fzd9rWQ==/aW5kZXgtZjItdjEtYTEubTN1OA==.m3u8">
@@ -122,8 +134,10 @@
     
     <div class="progress-container" id="progressContainer">
         <progress id="downloadProgress" value="0" max="100"></progress>
-        <div class="progress-text" id="progressText">Downloading: 0%</div>
+        <div class="progress-text" id="progressText">Loading FFmpeg...</div>
     </div>
+    
+    <div class="log" id="logBox"></div>
     
     <div class="status" id="status">Enter an M3U8 URL and click "Load Stream"</div>
 
@@ -141,17 +155,52 @@
             const progressContainer = document.getElementById('progressContainer');
             const downloadProgress = document.getElementById('downloadProgress');
             const progressText = document.getElementById('progressText');
+            const logBox = document.getElementById('logBox');
             
             let hls = null;
             let segments = [];
-            let segmentsLoaded = 0;
-            let totalSegments = 0;
+            let ffmpegLoaded = false;
+            let ffmpeg = null;
+            
+            // Initialize FFmpeg
+            async function initFFmpeg() {
+                try {
+                    ffmpeg = new FFmpeg();
+                    logBox.style.display = 'block';
+                    
+                    ffmpeg.setLogger(({ message }) => {
+                        logBox.textContent += message + '\n';
+                        logBox.scrollTop = logBox.scrollHeight;
+                    });
+                    
+                    ffmpeg.setProgress(({ ratio }) => {
+                        const percent = Math.floor(ratio * 100);
+                        downloadProgress.value = percent;
+                        progressText.textContent = `FFmpeg processing: ${percent}%`;
+                    });
+                    
+                    status.textContent = 'Loading FFmpeg...';
+                    progressContainer.style.display = 'block';
+                    
+                    await ffmpeg.load();
+                    
+                    ffmpegLoaded = true;
+                    status.textContent = 'FFmpeg loaded successfully. Ready to use.';
+                    progressContainer.style.display = 'none';
+                } catch (error) {
+                    console.error('Error loading FFmpeg:', error);
+                    status.textContent = 'Error loading FFmpeg: ' + error.message;
+                    logBox.textContent += 'Error: ' + error.message + '\n';
+                    progressContainer.style.display = 'none';
+                }
+            }
+            
+            // Initialize FFmpeg right away
+            initFFmpeg();
             
             function loadStream(url) {
                 // Reset segments array
                 segments = [];
-                segmentsLoaded = 0;
-                totalSegments = 0;
                 
                 // Destroy previous instance if exists
                 if (hls) {
@@ -164,26 +213,39 @@
                 // Check if HLS.js is supported
                 if (Hls.isSupported()) {
                     hls = new Hls();
+                    
+                    // Setup XHR interceptor to capture TS segments
+                    hls.config.xhrSetup = function(xhr, xhrUrl) {
+                        xhr.addEventListener('load', function() {
+                            if (xhrUrl.endsWith('.ts')) {
+                                // Store the segment URL and response
+                                if (xhr.response instanceof ArrayBuffer) {
+                                    const segmentData = new Uint8Array(xhr.response.slice(0));
+                                    
+                                    // Extract segment number from URL (if possible)
+                                    let segmentName = 'segment_' + segments.length.toString().padStart(5, '0') + '.ts';
+                                    const urlMatch = xhrUrl.match(/(\d+)\.ts$/);
+                                    if (urlMatch) {
+                                        segmentName = 'segment_' + urlMatch[1].padStart(5, '0') + '.ts';
+                                    }
+                                    
+                                    segments.push({
+                                        name: segmentName,
+                                        data: segmentData
+                                    });
+                                }
+                            }
+                        });
+                    };
+                    
                     hls.loadSource(url);
                     hls.attachMedia(video);
                     
-                    hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
                         status.textContent = 'Stream loaded. Ready to play.';
-                        totalSegments = data.levels[0].details.fragments.length;
                         video.play().catch(e => {
                             console.log('Autoplay prevented, click play to start');
                         });
-                    });
-                    
-                    hls.on(Hls.Events.FRAG_LOADED, function(event, data) {
-                        // Store loaded fragments/segments
-                        segments.push({
-                            data: data.payload,
-                            duration: data.frag.duration,
-                            start: data.frag.start
-                        });
-                        
-                        segmentsLoaded++;
                     });
                     
                     hls.on(Hls.Events.ERROR, function(event, data) {
@@ -214,38 +276,62 @@
                 }
             }
             
-            // Function to create MP4 from TS segments
-            async function createMP4FromSegments() {
+            // Function to process and download using FFmpeg
+            async function processWithFFmpeg() {
+                if (!ffmpegLoaded) {
+                    status.textContent = 'FFmpeg is not loaded yet. Please wait.';
+                    return;
+                }
+                
                 if (segments.length === 0) {
                     status.textContent = 'No segments available for download. Play the video first to load segments.';
                     return;
                 }
                 
-                status.textContent = 'Preparing MP4 file for download...';
+                status.textContent = 'Starting FFmpeg processing...';
                 progressContainer.style.display = 'block';
+                logBox.style.display = 'block';
+                logBox.textContent = ''; // Clear log
                 
                 try {
-                    // Sort segments by start time
-                    segments.sort((a, b) => a.start - b.start);
+                    // Create a file list for FFmpeg concat
+                    let fileList = '';
                     
-                    // Create a single buffer with all segments
-                    let totalSize = segments.reduce((size, segment) => size + segment.data.byteLength, 0);
-                    let buffer = new Uint8Array(totalSize);
-                    let offset = 0;
-                    
+                    // Write all segments to FFmpeg's virtual file system
                     for (let i = 0; i < segments.length; i++) {
-                        let segmentData = new Uint8Array(segments[i].data);
-                        buffer.set(segmentData, offset);
-                        offset += segmentData.byteLength;
+                        const segment = segments[i];
                         
                         // Update progress
-                        let percent = Math.floor((i + 1) / segments.length * 100);
-                        downloadProgress.value = percent;
-                        progressText.textContent = `Processing: ${percent}%`;
+                        downloadProgress.value = Math.floor((i / segments.length) * 50); // Use first 50% for file writing
+                        progressText.textContent = `Processing: Writing segment ${i+1}/${segments.length}`;
+                        
+                        // Write segment to FFmpeg's virtual filesystem
+                        await ffmpeg.writeFile(segment.name, segment.data);
+                        
+                        // Add to file list
+                        fileList += `file '${segment.name}'\n`;
                     }
                     
-                    // Create Blob and download
-                    const blob = new Blob([buffer], { type: 'video/mp4' });
+                    // Write the file list
+                    await ffmpeg.writeFile('filelist.txt', fileList);
+                    
+                    // Run FFmpeg to concatenate files
+                    status.textContent = 'Concatenating segments with FFmpeg...';
+                    progressText.textContent = 'Running FFmpeg...';
+                    
+                    await ffmpeg.exec([
+                        '-f', 'concat',
+                        '-safe', '0',
+                        '-i', 'filelist.txt',
+                        '-c', 'copy',
+                        'output.mp4'
+                    ]);
+                    
+                    // Read the output file
+                    const outputData = await ffmpeg.readFile('output.mp4');
+                    
+                    // Create a download link
+                    const blob = new Blob([outputData.buffer], { type: 'video/mp4' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
@@ -258,8 +344,10 @@
                     status.textContent = 'Download complete!';
                     progressContainer.style.display = 'none';
                 } catch (error) {
-                    console.error('Error creating MP4:', error);
-                    status.textContent = 'Error creating MP4 file: ' + error.message;
+                    console.error('Error processing with FFmpeg:', error);
+                    status.textContent = 'Error processing video: ' + error.message;
+                    logBox.textContent += 'Error: ' + error.message + '\n';
+                } finally {
                     progressContainer.style.display = 'none';
                 }
             }
@@ -276,7 +364,7 @@
             
             // Download button click handler
             downloadBtn.addEventListener('click', function() {
-                createMP4FromSegments();
+                processWithFFmpeg();
             });
             
             // Controls
