@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HLS Player & MP4 Downloader</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.1"></script>
+</head>
+<body>
+
+    <h2>HLS Player & MP4 Downloader</h2>
+    <input type="text" id="m3u8-url" placeholder="Enter HLS .m3u8 URL" size="50">
+    <button onclick="loadHLS()">Load & Play</button>
+    <button onclick="downloadMP4()">Download MP4</button>
+    
+    <br><br>
+    
+    <video id="video" controls width="640" height="360"></video>
+
+    <script>
+        let video = document.getElementById("video");
+        let m3u8UrlInput = document.getElementById("m3u8-url");
+        let hls = null;
+
+        async function loadHLS() {
+            const m3u8Url = m3u8UrlInput.value.trim();
+            if (!m3u8Url) {
+                alert("Please enter an HLS .m3u8 URL");
+                return;
+            }
+
+            if (Hls.isSupported()) {
+                if (hls) hls.destroy();
+                hls = new Hls();
+                hls.loadSource(m3u8Url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+            } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+                video.src = m3u8Url;
+                video.play();
+            } else {
+                alert("HLS not supported in this browser.");
+            }
+        }
+
+        async function downloadMP4() {
+            const m3u8Url = m3u8UrlInput.value.trim();
+            if (!m3u8Url) {
+                alert("Please enter an HLS .m3u8 URL");
+                return;
+            }
+
+            const { createFFmpeg, fetchFile } = FFmpeg;
+            const ffmpeg = createFFmpeg({ log: true });
+
+            try {
+                await ffmpeg.load();
+                
+                // Fetch the .m3u8 playlist
+                const response = await fetch(m3u8Url);
+                const m3u8Text = await response.text();
+                
+                // Extract TS URLs
+                const baseUrl = new URL(m3u8Url).origin;
+                const tsUrls = m3u8Text.split("\n").filter(line => line.endsWith(".ts")).map(line => new URL(line, baseUrl).href);
+                
+                if (tsUrls.length === 0) {
+                    alert("No .ts segments found in playlist!");
+                    return;
+                }
+
+                console.log("Downloading TS files...");
+                
+                // Download and add .ts files to ffmpeg
+                for (let i = 0; i < tsUrls.length; i++) {
+                    const tsFile = await fetchFile(tsUrls[i]);
+                    ffmpeg.FS("writeFile", `file${i}.ts`, tsFile);
+                }
+
+                // Concatenate TS files and convert to MP4
+                const inputFiles = tsUrls.map((_, i) => `file${i}.ts`).join("|");
+                await ffmpeg.run("-i", `concat:${inputFiles}`, "-c", "copy", "output.mp4");
+
+                // Get the resulting MP4 file
+                const data = ffmpeg.FS("readFile", "output.mp4");
+                const blob = new Blob([data.buffer], { type: "video/mp4" });
+
+                // Create download link
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = "video.mp4";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                alert("Download complete!");
+            } catch (error) {
+                console.error("Error processing HLS stream:", error);
+                alert("Failed to download the video.");
+            }
+        }
+    </script>
+
+</body>
+</html>
