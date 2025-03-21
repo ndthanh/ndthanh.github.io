@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HLS Player with Download</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.8/hls.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mux.js/6.3.0/mux.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mp4box.js/0.5.2/mp4box.all.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .player-container {
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+        }
+        video {
+            width: 100%;
+            display: block;
+        }
+        .controls {
+            margin-top: 15px;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #4a90e2;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #3a7bc8;
+        }
+        .download-btn {
+            background-color: #27ae60;
+        }
+        .download-btn:hover {
+            background-color: #219653;
+        }
+        .url-input {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .url-input input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .url-input button {
+            padding: 10px;
+            font-size: 16px;
+        }
+        .status {
+            margin-top: 15px;
+            color: #666;
+        }
+        .progress-container {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 15px;
+            display: none;
+        }
+        progress {
+            width: 100%;
+            height: 20px;
+        }
+        .progress-text {
+            text-align: center;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>HLS Video Player with Download</h1>
+    
+    <div class="url-input">
+        <input type="text" id="streamUrl" placeholder="Enter M3U8 URL here" value="https://owakshina.store/hls/w+AKxyHP77OgfaOwDli8qhsPMcKC3zZ39OwWy039XIF5RoNreMppa8UkyNKe0MeHdyVx9AkXUwb4LG3Fzd9rWQ==/aW5kZXgtZjItdjEtYTEubTN1OA==.m3u8">
+        <button id="loadBtn">Load Stream</button>
+    </div>
+    
+    <div class="player-container">
+        <video id="video" controls></video>
+    </div>
+    
+    <div class="controls">
+        <button id="playBtn">Play</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="muteBtn">Mute</button>
+        <button id="fullscreenBtn">Fullscreen</button>
+        <button id="downloadBtn" class="download-btn">Download as MP4</button>
+    </div>
+    
+    <div class="progress-container" id="progressContainer">
+        <progress id="downloadProgress" value="0" max="100"></progress>
+        <div class="progress-text" id="progressText">Downloading: 0%</div>
+    </div>
+    
+    <div class="status" id="status">Enter an M3U8 URL and click "Load Stream"</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('video');
+            const playBtn = document.getElementById('playBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const muteBtn = document.getElementById('muteBtn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const status = document.getElementById('status');
+            const streamUrlInput = document.getElementById('streamUrl');
+            const loadBtn = document.getElementById('loadBtn');
+            const progressContainer = document.getElementById('progressContainer');
+            const downloadProgress = document.getElementById('downloadProgress');
+            const progressText = document.getElementById('progressText');
+            
+            let hls = null;
+            let segments = [];
+            let segmentsLoaded = 0;
+            let totalSegments = 0;
+            
+            function loadStream(url) {
+                // Reset segments array
+                segments = [];
+                segmentsLoaded = 0;
+                totalSegments = 0;
+                
+                // Destroy previous instance if exists
+                if (hls) {
+                    hls.destroy();
+                }
+                
+                // Update status
+                status.textContent = 'Loading stream...';
+                
+                // Check if HLS.js is supported
+                if (Hls.isSupported()) {
+                    hls = new Hls();
+                    hls.loadSource(url);
+                    hls.attachMedia(video);
+                    
+                    hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
+                        status.textContent = 'Stream loaded. Ready to play.';
+                        totalSegments = data.levels[0].details.fragments.length;
+                        video.play().catch(e => {
+                            console.log('Autoplay prevented, click play to start');
+                        });
+                    });
+                    
+                    hls.on(Hls.Events.FRAG_LOADED, function(event, data) {
+                        // Store loaded fragments/segments
+                        segments.push({
+                            data: data.payload,
+                            duration: data.frag.duration,
+                            start: data.frag.start
+                        });
+                        
+                        segmentsLoaded++;
+                    });
+                    
+                    hls.on(Hls.Events.ERROR, function(event, data) {
+                        if (data.fatal) {
+                            status.textContent = 'Error: ' + data.type + ' - ' + data.details;
+                        }
+                    });
+                } 
+                // For browsers with native HLS support (Safari, iOS)
+                else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = url;
+                    video.addEventListener('loadedmetadata', function() {
+                        status.textContent = 'Stream loaded. Ready to play. Note: Download feature requires HLS.js support.';
+                        video.play().catch(e => {
+                            console.log('Autoplay prevented, click play to start');
+                        });
+                    });
+                    video.addEventListener('error', function() {
+                        status.textContent = 'Error loading the stream.';
+                    });
+                    
+                    // Disable download button as we can't capture segments in native mode
+                    downloadBtn.disabled = true;
+                } 
+                else {
+                    status.textContent = 'HLS is not supported in your browser.';
+                    downloadBtn.disabled = true;
+                }
+            }
+            
+            // Function to create MP4 from TS segments
+            async function createMP4FromSegments() {
+                if (segments.length === 0) {
+                    status.textContent = 'No segments available for download. Play the video first to load segments.';
+                    return;
+                }
+                
+                status.textContent = 'Preparing MP4 file for download...';
+                progressContainer.style.display = 'block';
+                
+                try {
+                    // Sort segments by start time
+                    segments.sort((a, b) => a.start - b.start);
+                    
+                    // Create a single buffer with all segments
+                    let totalSize = segments.reduce((size, segment) => size + segment.data.byteLength, 0);
+                    let buffer = new Uint8Array(totalSize);
+                    let offset = 0;
+                    
+                    for (let i = 0; i < segments.length; i++) {
+                        let segmentData = new Uint8Array(segments[i].data);
+                        buffer.set(segmentData, offset);
+                        offset += segmentData.byteLength;
+                        
+                        // Update progress
+                        let percent = Math.floor((i + 1) / segments.length * 100);
+                        downloadProgress.value = percent;
+                        progressText.textContent = `Processing: ${percent}%`;
+                    }
+                    
+                    // Create Blob and download
+                    const blob = new Blob([buffer], { type: 'video/mp4' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'video.mp4';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    status.textContent = 'Download complete!';
+                    progressContainer.style.display = 'none';
+                } catch (error) {
+                    console.error('Error creating MP4:', error);
+                    status.textContent = 'Error creating MP4 file: ' + error.message;
+                    progressContainer.style.display = 'none';
+                }
+            }
+            
+            // Load button click handler
+            loadBtn.addEventListener('click', function() {
+                const url = streamUrlInput.value.trim();
+                if (url) {
+                    loadStream(url);
+                } else {
+                    status.textContent = 'Please enter a valid M3U8 URL';
+                }
+            });
+            
+            // Download button click handler
+            downloadBtn.addEventListener('click', function() {
+                createMP4FromSegments();
+            });
+            
+            // Controls
+            playBtn.addEventListener('click', function() {
+                video.play();
+            });
+            
+            pauseBtn.addEventListener('click', function() {
+                video.pause();
+            });
+            
+            muteBtn.addEventListener('click', function() {
+                video.muted = !video.muted;
+                muteBtn.textContent = video.muted ? 'Unmute' : 'Mute';
+            });
+            
+            fullscreenBtn.addEventListener('click', function() {
+                if (video.requestFullscreen) {
+                    video.requestFullscreen();
+                } else if (video.webkitRequestFullscreen) { /* Safari */
+                    video.webkitRequestFullscreen();
+                } else if (video.msRequestFullscreen) { /* IE11 */
+                    video.msRequestFullscreen();
+                }
+            });
+            
+            // Update status on play/pause
+            video.addEventListener('play', function() {
+                status.textContent = 'Playing...';
+            });
+            
+            video.addEventListener('pause', function() {
+                if (!video.ended) {
+                    status.textContent = 'Paused.';
+                }
+            });
+            
+            video.addEventListener('ended', function() {
+                status.textContent = 'Playback ended.';
+            });
+            
+            // Load default stream
+            const defaultUrl = streamUrlInput.value.trim();
+            if (defaultUrl) {
+                loadStream(defaultUrl);
+            }
+        });
+    </script>
+</body>
+</html>
