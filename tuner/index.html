@@ -950,36 +950,48 @@
         }
 
         let lastPitch = null, lastOffset = null;
+        let statusResolve = null; // Promise resolver for waiting on status notification
+
+        function updateSlidersFromData(data) {
+            if (data.P !== undefined) { sliders.kpPitch.el.value = data.P; sliders.kpPitch.val.textContent = data.P.toFixed(2); }
+            if (data.I !== undefined) { sliders.kiPitch.el.value = data.I; sliders.kiPitch.val.textContent = data.I.toFixed(3); }
+            if (data.D !== undefined) { sliders.kdPitch.el.value = data.D; sliders.kdPitch.val.textContent = data.D.toFixed(2); }
+            if (data.p !== undefined) { sliders.kpVel.el.value = data.p; sliders.kpVel.val.textContent = data.p.toFixed(2); }
+            if (data.i !== undefined) { sliders.kiVel.el.value = data.i; sliders.kiVel.val.textContent = data.i.toFixed(3); }
+            if (data.d !== undefined) { sliders.kdVel.el.value = data.d; sliders.kdVel.val.textContent = data.d.toFixed(2); }
+            if (data.T !== undefined) { sliders.maxTorque.el.value = data.T; sliders.maxTorque.val.textContent = data.T.toFixed(1); }
+            if (data.S !== undefined) { sliders.slew.el.value = data.S; sliders.slew.val.textContent = data.S.toFixed(0); }
+            if (data.h !== undefined) { sliders.posKp.el.value = data.h; sliders.posKp.val.textContent = data.h.toFixed(3); }
+            if (data.pitch !== undefined) lastPitch = data.pitch;
+            if (data.offset !== undefined) lastOffset = data.offset;
+        }
 
         function onStatusNotify(event) {
             try {
                 const data = JSON.parse(new TextDecoder().decode(event.target.value));
-                if (data.offset !== undefined) {
-                    lastOffset = data.offset;
-                    zeroInfo.textContent = `OFFSET: ${data.offset.toFixed(2)}\u00B0` +
-                        (data.pitch !== undefined ? ` | PITCH: ${data.pitch.toFixed(2)}\u00B0` : '');
-                    zeroInfo.style.display = 'block';
-                }
-                if (data.pitch !== undefined) lastPitch = data.pitch;
+                updateSlidersFromData(data);
+                if (statusResolve) { statusResolve(data); statusResolve = null; }
             } catch (e) { }
+        }
+
+        function waitForStatusNotify(timeoutMs = 1500) {
+            return new Promise(resolve => {
+                statusResolve = resolve;
+                setTimeout(() => { statusResolve = null; resolve(null); }, timeoutMs);
+            });
         }
 
         async function readStatus() {
             if (!charStatus) return;
             try {
-                const data = JSON.parse(new TextDecoder().decode(await charStatus.readValue()));
-                if (data.P !== undefined) { sliders.kpPitch.el.value = data.P; sliders.kpPitch.val.textContent = data.P.toFixed(2); }
-                if (data.I !== undefined) { sliders.kiPitch.el.value = data.I; sliders.kiPitch.val.textContent = data.I.toFixed(3); }
-                if (data.D !== undefined) { sliders.kdPitch.el.value = data.D; sliders.kdPitch.val.textContent = data.D.toFixed(2); }
-                if (data.p !== undefined) { sliders.kpVel.el.value = data.p; sliders.kpVel.val.textContent = data.p.toFixed(2); }
-                if (data.i !== undefined) { sliders.kiVel.el.value = data.i; sliders.kiVel.val.textContent = data.i.toFixed(3); }
-                if (data.d !== undefined) { sliders.kdVel.el.value = data.d; sliders.kdVel.val.textContent = data.d.toFixed(2); }
-                if (data.T !== undefined) { sliders.maxTorque.el.value = data.T; sliders.maxTorque.val.textContent = data.T.toFixed(1); }
-                if (data.S !== undefined) { sliders.slew.el.value = data.S; sliders.slew.val.textContent = data.S.toFixed(0); }
-                if (data.h !== undefined) { sliders.posKp.el.value = data.h; sliders.posKp.val.textContent = data.h.toFixed(3); }
-                if (data.pitch !== undefined) lastPitch = data.pitch;
-                if (data.offset !== undefined) lastOffset = data.offset;
-            } catch (e) { console.warn('readStatus failed:', e); }
+                const raw = await charStatus.readValue();
+                const text = new TextDecoder().decode(raw);
+                const data = JSON.parse(text);
+                updateSlidersFromData(data);
+            } catch (e) {
+                console.warn('readStatus failed:', e);
+                showError('readStatus: ' + e.message);
+            }
         }
 
         Object.entries(sliders).forEach(([k, s]) => {
@@ -989,16 +1001,22 @@
 
         const zeroInfo = document.getElementById('zeroInfo');
         zeroBtn.addEventListener('click', async () => {
-            await sendCmd('z0');
             zeroBtn.textContent = 'OK!';
-            // Wait for firmware to process and update characteristic
-            await new Promise(r => setTimeout(r, 500));
-            await readStatus();
-            if (lastOffset !== null) {
-                zeroInfo.textContent = `ZERO SET — OFFSET: ${lastOffset.toFixed(2)}\u00B0` +
-                    (lastPitch !== null ? ` | PITCH: ${lastPitch.toFixed(2)}\u00B0` : '');
+            const notifyPromise = waitForStatusNotify(1500);
+            await sendCmd('z0');
+            const data = await notifyPromise;
+            if (data && data.offset !== undefined) {
+                zeroInfo.textContent = `ZERO SET \u2014 OFFSET: ${data.offset.toFixed(2)}\u00B0` +
+                    (data.pitch !== undefined ? ` | PITCH: ${data.pitch.toFixed(2)}\u00B0` : '');
             } else {
-                zeroInfo.textContent = 'ZERO SET';
+                // Fallback: try direct read
+                await readStatus();
+                if (lastOffset !== null) {
+                    zeroInfo.textContent = `ZERO SET \u2014 OFFSET: ${lastOffset.toFixed(2)}\u00B0` +
+                        (lastPitch !== null ? ` | PITCH: ${lastPitch.toFixed(2)}\u00B0` : '');
+                } else {
+                    zeroInfo.textContent = 'ZERO SET';
+                }
             }
             zeroInfo.style.display = 'block';
             setTimeout(() => { zeroBtn.textContent = 'Zero'; }, 1500);
