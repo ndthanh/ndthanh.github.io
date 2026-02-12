@@ -367,83 +367,76 @@
             opacity: 0.3;
         }
 
-        /* ===== CHART ===== */
-        .chart-section {
+        /* ===== CHARTS (stacked) ===== */
+        .charts-stack {
             flex: 1;
             display: flex;
             flex-direction: column;
+            gap: 4px;
             min-height: 0;
         }
 
-        .chart-container {
+        .mini-chart {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 10px;
+            border-radius: 6px;
+            padding: 4px 8px;
             flex: 1;
             display: flex;
             flex-direction: column;
             position: relative;
-            transition: border-color 0.3s, box-shadow 0.3s;
             min-height: 0;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-        .chart-container.saturated {
+        .mini-chart.saturated {
             border-color: rgba(220, 53, 69, 0.7);
-            box-shadow: 0 0 15px rgba(220, 53, 69, 0.3);
+            box-shadow: 0 0 10px rgba(220, 53, 69, 0.3);
         }
 
-        .chart-canvas-wrap {
+        .mini-chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .mini-chart-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .mini-chart-val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .mini-chart-canvas {
             flex: 1;
             position: relative;
             min-height: 0;
-        }
-
-        .chart-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 6px;
-            font-size: 10px;
-            font-family: 'Orbitron', sans-serif;
-            flex-shrink: 0;
-            color: rgba(255, 255, 255, 0.85);
-        }
-
-        .chart-legend-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .chart-legend-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .chart-legend-val {
-            color: rgba(255, 255, 255, 0.95);
-            font-size: 10px;
-            font-weight: 500;
         }
 
         .chart-dt {
             position: absolute;
-            top: 6px;
-            right: 10px;
+            top: 4px;
+            right: 8px;
             font-family: 'Orbitron', sans-serif;
             font-size: 8px;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.5);
             letter-spacing: 1px;
+            z-index: 1;
         }
 
         .sat-badge {
             display: none;
             position: absolute;
-            top: 6px;
-            left: 10px;
+            top: 4px;
+            left: 8px;
             background: rgba(220, 53, 69, 0.8);
             color: white;
             font-family: 'Orbitron', sans-serif;
@@ -454,7 +447,7 @@
             letter-spacing: 1px;
         }
 
-        .chart-container.saturated .sat-badge {
+        .mini-chart.saturated .sat-badge {
             display: block;
         }
 
@@ -482,8 +475,8 @@
                 overflow-y: visible;
             }
 
-            .chart-canvas-wrap {
-                min-height: 250px;
+            .mini-chart-canvas {
+                min-height: 80px;
             }
         }
     </style>
@@ -725,64 +718,36 @@
             </div>
 
             <div class="col-right">
-                <div class="sec-title">Telemetry</div>
-                <div
-                    id="chartContainer"
-                    class="chart-container"
-                >
-                    <span class="sat-badge">SAT</span>
-                    <span
-                        id="chartDt"
-                        class="chart-dt"
-                    ></span>
-                    <div class="chart-canvas-wrap">
-                        <canvas id="telemetryChart"></canvas>
+                <div class="sec-title">Telemetry <span id="chartDt" class="chart-dt"></span></div>
+                <div class="charts-stack">
+                    <div class="mini-chart" id="chartPitch">
+                        <span class="sat-badge">SAT</span>
+                        <div class="mini-chart-header">
+                            <span class="mini-chart-label" style="color:#4dabf7">Pitch</span>
+                            <span id="livePitch" class="mini-chart-val">--</span>
+                        </div>
+                        <div class="mini-chart-canvas"><canvas id="canvasPitch"></canvas></div>
                     </div>
-                    <div class="chart-legend">
-                        <div class="chart-legend-item">
-                            <div
-                                class="chart-legend-dot"
-                                style="background:#4dabf7"
-                            ></div>
-                            <span>Pitch</span>
-                            <span
-                                id="livePitch"
-                                class="chart-legend-val"
-                            >--</span>
+                    <div class="mini-chart" id="chartTorque">
+                        <div class="mini-chart-header">
+                            <span class="mini-chart-label" style="color:#ff6b6b">Torque</span>
+                            <span id="liveTorque" class="mini-chart-val">--</span>
                         </div>
-                        <div class="chart-legend-item">
-                            <div
-                                class="chart-legend-dot"
-                                style="background:#ff6b6b"
-                            ></div>
-                            <span>Torque</span>
-                            <span
-                                id="liveTorque"
-                                class="chart-legend-val"
-                            >--</span>
+                        <div class="mini-chart-canvas"><canvas id="canvasTorque"></canvas></div>
+                    </div>
+                    <div class="mini-chart" id="chartVel">
+                        <div class="mini-chart-header">
+                            <span class="mini-chart-label" style="color:#51cf66">Velocity</span>
+                            <span id="liveVel" class="mini-chart-val">--</span>
                         </div>
-                        <div class="chart-legend-item">
-                            <div
-                                class="chart-legend-dot"
-                                style="background:#51cf66"
-                            ></div>
-                            <span>Vel</span>
-                            <span
-                                id="liveVel"
-                                class="chart-legend-val"
-                            >--</span>
+                        <div class="mini-chart-canvas"><canvas id="canvasVel"></canvas></div>
+                    </div>
+                    <div class="mini-chart" id="chartWpos">
+                        <div class="mini-chart-header">
+                            <span class="mini-chart-label" style="color:#fcc419">WheelPos</span>
+                            <span id="liveWpos" class="mini-chart-val">--</span>
                         </div>
-                        <div class="chart-legend-item">
-                            <div
-                                class="chart-legend-dot"
-                                style="background:#fcc419"
-                            ></div>
-                            <span>WPos</span>
-                            <span
-                                id="liveWpos"
-                                class="chart-legend-val"
-                            >--</span>
-                        </div>
+                        <div class="mini-chart-canvas"><canvas id="canvasWpos"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -849,51 +814,53 @@
             teleplotToggle.disabled = !enabled;
         }
 
-        // ==================== TELEMETRY CHART ====================
-        const chartContainer = document.getElementById('chartContainer');
+        // ==================== TELEMETRY CHARTS (4 stacked) ====================
         const chartDt = document.getElementById('chartDt');
+        const chartPitchEl = document.getElementById('chartPitch');
         const livePitch = document.getElementById('livePitch');
         const liveTorque = document.getElementById('liveTorque');
         const liveVel = document.getElementById('liveVel');
         const liveWpos = document.getElementById('liveWpos');
 
-        const MAX_POINTS = 3000; // 2 minutes at 10Hz
+        const MAX_POINTS = 3000;
         let mcuTimeMs = 0;
 
-        const chart = new Chart(document.getElementById('telemetryChart').getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    { label: 'Pitch', data: [], borderColor: '#4dabf7', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
-                    { label: 'Torque', data: [], borderColor: '#ff6b6b', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
-                    { label: 'Velocity', data: [], borderColor: '#51cf66', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
-                    { label: 'WheelPos', data: [], borderColor: '#fcc419', borderWidth: 1.5, pointRadius: 0, tension: 0.2 }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: {
-                        display: true,
-                        grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: {
-                            color: 'rgba(255,255,255,0.7)', font: { size: 9 }, maxTicksLimit: 6,
-                            callback: v => (v / 1000).toFixed(1) + 's'
+        function makeMiniChart(canvasId, color, showXAxis) {
+            return new Chart(document.getElementById(canvasId).getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{ data: [], borderColor: color, borderWidth: 1.2, pointRadius: 0, tension: 0.2, fill: false }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            display: showXAxis,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 8 }, maxTicksLimit: 6, callback: v => (v / 1000).toFixed(0) + 's' }
+                        },
+                        y: {
+                            display: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 8 }, maxTicksLimit: 4 }
                         }
                     },
-                    y: {
-                        display: true,
-                        grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: { color: 'rgba(255,255,255,0.7)', font: { size: 9 }, maxTicksLimit: 6 }
-                    }
-                },
-                interaction: { enabled: false }
-            }
-        });
+                    interaction: { enabled: false },
+                    layout: { padding: { left: 0, right: 0, top: 0, bottom: 0 } }
+                }
+            });
+        }
+
+        const charts = {
+            pitch:  makeMiniChart('canvasPitch',  '#4dabf7', false),
+            torque: makeMiniChart('canvasTorque', '#ff6b6b', false),
+            vel:    makeMiniChart('canvasVel',    '#51cf66', false),
+            wpos:   makeMiniChart('canvasWpos',   '#fcc419', true)
+        };
 
         function onTelemetry(event) {
             const dv = event.target.value;
@@ -912,31 +879,33 @@
             liveVel.textContent = wheelVel.toFixed(1);
             liveWpos.textContent = wheelPos.toFixed(1);
             chartDt.textContent = 'dt ' + dtUs + '\u00B5s';
-            chartContainer.classList.toggle('saturated', (flags & 0x01) !== 0);
+            chartPitchEl.classList.toggle('saturated', (flags & 0x01) !== 0);
 
-            chart.data.labels.push(mcuTimeMs);
-            chart.data.datasets[0].data.push(pitch);
-            chart.data.datasets[1].data.push(torque);
-            chart.data.datasets[2].data.push(wheelVel);
-            chart.data.datasets[3].data.push(wheelPos);
-            if (chart.data.labels.length > MAX_POINTS) {
-                chart.data.labels.shift();
-                chart.data.datasets.forEach(ds => ds.data.shift());
-            }
-            chart.update();
+            const values = { pitch, torque, vel: wheelVel, wpos: wheelPos };
+            Object.entries(charts).forEach(([key, c]) => {
+                c.data.labels.push(mcuTimeMs);
+                c.data.datasets[0].data.push(values[key]);
+                if (c.data.labels.length > MAX_POINTS) {
+                    c.data.labels.shift();
+                    c.data.datasets[0].data.shift();
+                }
+                c.update();
+            });
         }
 
         function clearChart() {
             mcuTimeMs = 0;
-            chart.data.labels = [];
-            chart.data.datasets.forEach(ds => ds.data = []);
-            chart.update();
+            Object.values(charts).forEach(c => {
+                c.data.labels = [];
+                c.data.datasets[0].data = [];
+                c.update();
+            });
             livePitch.textContent = '--';
             liveTorque.textContent = '--';
             liveVel.textContent = '--';
             liveWpos.textContent = '--';
             chartDt.textContent = '';
-            chartContainer.classList.remove('saturated');
+            chartPitchEl.classList.remove('saturated');
         }
 
         // ==================== BLE ====================
