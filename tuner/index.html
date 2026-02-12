@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <title>BalanceBot PID Tuner</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: #0a0e27;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 12px;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at top, rgba(13, 110, 253, 0.15), transparent 50%),
+                radial-gradient(ellipse at bottom, rgba(220, 53, 69, 0.15), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            background: rgba(15, 20, 40, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 16px 20px;
+            max-width: 1100px;
+            width: 100%;
+            height: calc(100vh - 24px);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== TOOLBAR ===== */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .toolbar-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #0d6efd, #6610f2, #d63384);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .status-badge {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            color: #dc3545;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .status-badge.connected {
+            background: rgba(25, 135, 84, 0.2);
+            border-color: rgba(25, 135, 84, 0.6);
+            color: #198754;
+            box-shadow: 0 0 10px rgba(25, 135, 84, 0.3);
+        }
+
+        .tbtn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tbtn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .tbtn-connect {
+            background: linear-gradient(135deg, #0d6efd, #6610f2);
+            color: white;
+        }
+
+        .tbtn-zero {
+            background: linear-gradient(135deg, #198754, #20c997);
+            color: white;
+        }
+
+        .toolbar-sep {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.15);
+            flex-shrink: 0;
+        }
+
+        /* Movement D-pad in toolbar */
+        .move-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 28px);
+            grid-template-rows: repeat(3, 28px);
+            gap: 3px;
+            flex-shrink: 0;
+        }
+
+        .move-pad .mbtn {
+            border: none;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            padding: 0;
+        }
+
+        .move-pad .mbtn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .move-pad .mbtn.dir {
+            background: rgba(13, 110, 253, 0.2);
+            border: 1px solid rgba(13, 110, 253, 0.4);
+            color: #0d6efd;
+        }
+
+        .move-pad .mbtn.dir:active:not(:disabled),
+        .move-pad .mbtn.dir.active {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .move-pad .mbtn.stp {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.4);
+            color: #dc3545;
+            font-size: 10px;
+        }
+
+        .move-pad .empty {
+            background: transparent;
+            border: none;
+        }
+
+        /* Teleplot toggle compact */
+        .tele-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .tele-toggle .tsw {
+            position: relative;
+            width: 32px;
+            height: 18px;
+        }
+
+        .tele-toggle .tsw input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .tele-toggle .tsl {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            transition: 0.3s;
+        }
+
+        .tele-toggle .tsl:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .tele-toggle .tsw input:checked+.tsl {
+            background: linear-gradient(135deg, #0d6efd, #6610f2);
+        }
+
+        .tele-toggle .tsw input:checked+.tsl:before {
+            transform: translateX(14px);
+        }
+
+        .toolbar-spacer {
+            flex: 1;
+        }
+
+        /* Error & zero info */
+        .error {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            color: #dc3545;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 11px;
+            display: none;
+            flex-shrink: 0;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .zero-info {
+            background: rgba(25, 135, 84, 0.15);
+            border: 1px solid rgba(25, 135, 84, 0.4);
+            color: #20c997;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        /* ===== MAIN LAYOUT ===== */
+        .main {
+            display: flex;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .col-left {
+            width: 280px;
+            flex-shrink: 0;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        /* Thin scrollbar */
+        .col-left::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .col-left::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+
+        .col-right {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== PID SECTIONS (compact) ===== */
+        .sec-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            color: #0d6efd;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(13, 110, 253, 0.25);
+        }
+
+        .sec {
+            margin-bottom: 12px;
+        }
+
+        .pg {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 6px 8px;
+            margin-bottom: 4px;
+        }
+
+        .pg-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .pg-val {
+            font-family: 'Orbitron', sans-serif;
+            color: #0d6efd;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .slider {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d6efd, #6610f2);
+            cursor: pointer;
+        }
+
+        .slider:disabled {
+            opacity: 0.3;
+        }
+
+        /* ===== CHART ===== */
+        .chart-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            min-height: 0;
+        }
+
+        .chart-container.saturated {
+            border-color: rgba(220, 53, 69, 0.7);
+            box-shadow: 0 0 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .chart-canvas-wrap {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 6px;
+            font-size: 10px;
+            font-family: 'Orbitron', sans-serif;
+            flex-shrink: 0;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .chart-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chart-legend-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .chart-legend-val {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .chart-dt {
+            position: absolute;
+            top: 6px;
+            right: 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 1px;
+        }
+
+        .sat-badge {
+            display: none;
+            position: absolute;
+            top: 6px;
+            left: 10px;
+            background: rgba(220, 53, 69, 0.8);
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 3px;
+            letter-spacing: 1px;
+        }
+
+        .chart-container.saturated .sat-badge {
+            display: block;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            body {
+                height: auto;
+                overflow: auto;
+            }
+
+            .container {
+                height: auto;
+            }
+
+            .toolbar {
+                flex-wrap: wrap;
+            }
+
+            .main {
+                flex-direction: column;
+            }
+
+            .col-left {
+                width: 100%;
+                overflow-y: visible;
+            }
+
+            .chart-canvas-wrap {
+                min-height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <span class="toolbar-title">BalanceBot</span>
+            <div
+                id="statusBadge"
+                class="status-badge"
+            ><span id="statusText">OFFLINE</span></div>
+            <button
+                id="connectBtn"
+                class="tbtn tbtn-connect"
+            >Connect</button>
+            <button
+                id="zeroBtn"
+                class="tbtn tbtn-zero"
+                disabled
+            >Zero</button>
+            <div class="toolbar-sep"></div>
+            <div class="move-pad">
+                <div class="empty"></div>
+                <button
+                    id="btnFwd"
+                    class="mbtn dir"
+                    disabled
+                >&#9650;</button>
+                <div class="empty"></div>
+                <button
+                    id="btnLeft"
+                    class="mbtn dir"
+                    disabled
+                >&#9664;</button>
+                <button
+                    id="btnStop"
+                    class="mbtn stp"
+                    disabled
+                >&#9632;</button>
+                <button
+                    id="btnRight"
+                    class="mbtn dir"
+                    disabled
+                >&#9654;</button>
+                <div class="empty"></div>
+                <button
+                    id="btnBack"
+                    class="mbtn dir"
+                    disabled
+                >&#9660;</button>
+                <div class="empty"></div>
+            </div>
+            <div class="toolbar-spacer"></div>
+            <div class="tele-toggle">
+                <span>Teleplot</span>
+                <label class="tsw">
+                    <input
+                        type="checkbox"
+                        id="teleplotToggle"
+                        checked
+                        disabled
+                    >
+                    <span class="tsl"></span>
+                </label>
+            </div>
+        </div>
+
+        <div
+            id="error"
+            class="error"
+        ></div>
+        <div
+            id="zeroInfo"
+            class="zero-info"
+            style="display:none"
+        ></div>
+
+        <!-- Main: PID (left) + Chart (right) -->
+        <div class="main">
+            <div class="col-left">
+                <div class="sec">
+                    <div class="sec-title">Pitch PID (Inner)</div>
+                    <div class="pg">
+                        <div class="pg-label"><span>Kp</span><span
+                                id="kpPitchVal"
+                                class="pg-val"
+                            >0.60</span></div>
+                        <input
+                            type="range"
+                            id="kpPitch"
+                            class="slider"
+                            min="0"
+                            max="2"
+                            step="0.01"
+                            value="0.60"
+                            disabled
+                        >
+                    </div>
+                    <div class="pg">
+                        <div class="pg-label"><span>Ki</span><span
+                                id="kiPitchVal"
+                                class="pg-val"
+                            >0.000</span></div>
+                        <input
+                            type="range"
+                            id="kiPitch"
+                            class="slider"
+                            min="0"
+                            max="0.5"
+                            step="0.001"
+                            value="0"
+                            disabled
+                        >
+                    </div>
+                    <div class="pg">
+                        <div class="pg-label"><span>Kd</span><span
+                                id="kdPitchVal"
+                                class="pg-val"
+                            >0.00</span></div>
+                        <input
+                            type="range"
+                            id="kdPitch"
+                            class="slider"
+                            min="0"
+                            max="0.5"
+                            step="0.005"
+                            value="0"
+                            disabled
+                        >
+                    </div>
+                </div>
+
+                <div class="sec">
+                    <div class="sec-title">Velocity PID (Outer)</div>
+                    <div class="pg">
+                        <div class="pg-label"><span>Kp</span><span
+                                id="kpVelVal"
+                                class="pg-val"
+                            >0.00</span></div>
+                        <input
+                            type="range"
+                            id="kpVel"
+                            class="slider"
+                            min="0"
+                            max="5"
+                            step="0.05"
+                            value="0"
+                            disabled
+                        >
+                    </div>
+                    <div class="pg">
+                        <div class="pg-label"><span>Ki</span><span
+                                id="kiVelVal"
+                                class="pg-val"
+                            >0.000</span></div>
+                        <input
+                            type="range"
+                            id="kiVel"
+                            class="slider"
+                            min="0"
+                            max="0.1"
+                            step="0.001"
+                            value="0"
+                            disabled
+                        >
+                    </div>
+                    <div class="pg">
+                        <div class="pg-label"><span>Kd</span><span
+                                id="kdVelVal"
+                                class="pg-val"
+                            >0.00</span></div>
+                        <input
+                            type="range"
+                            id="kdVel"
+                            class="slider"
+                            min="0"
+                            max="1"
+                            step="0.01"
+                            value="0"
+                            disabled
+                        >
+                    </div>
+                </div>
+
+                <div class="sec">
+                    <div class="sec-title">Advanced</div>
+                    <div class="pg">
+                        <div class="pg-label"><span>Max Torque (V)</span><span
+                                id="maxTorqueVal"
+                                class="pg-val"
+                            >4.5</span></div>
+                        <input
+                            type="range"
+                            id="maxTorque"
+                            class="slider"
+                            min="1"
+                            max="8"
+                            step="0.1"
+                            value="4.5"
+                            disabled
+                        >
+                    </div>
+                    <div class="pg">
+                        <div class="pg-label"><span>Slew (V/s)</span><span
+                                id="slewVal"
+                                class="pg-val"
+                            >30</span></div>
+                        <input
+                            type="range"
+                            id="slew"
+                            class="slider"
+                            min="10"
+                            max="100"
+                            step="5"
+                            value="30"
+                            disabled
+                        >
+                    </div>
+                    <div class="pg">
+                        <div class="pg-label"><span>Pos Kp</span><span
+                                id="posKpVal"
+                                class="pg-val"
+                            >0.095</span></div>
+                        <input
+                            type="range"
+                            id="posKp"
+                            class="slider"
+                            min="0"
+                            max="1"
+                            step="0.005"
+                            value="0.095"
+                            disabled
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-right">
+                <div class="sec-title">Telemetry</div>
+                <div
+                    id="chartContainer"
+                    class="chart-container"
+                >
+                    <span class="sat-badge">SAT</span>
+                    <span
+                        id="chartDt"
+                        class="chart-dt"
+                    ></span>
+                    <div class="chart-canvas-wrap">
+                        <canvas id="telemetryChart"></canvas>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="chart-legend-item">
+                            <div
+                                class="chart-legend-dot"
+                                style="background:#4dabf7"
+                            ></div>
+                            <span>Pitch</span>
+                            <span
+                                id="livePitch"
+                                class="chart-legend-val"
+                            >--</span>
+                        </div>
+                        <div class="chart-legend-item">
+                            <div
+                                class="chart-legend-dot"
+                                style="background:#ff6b6b"
+                            ></div>
+                            <span>Torque</span>
+                            <span
+                                id="liveTorque"
+                                class="chart-legend-val"
+                            >--</span>
+                        </div>
+                        <div class="chart-legend-item">
+                            <div
+                                class="chart-legend-dot"
+                                style="background:#51cf66"
+                            ></div>
+                            <span>Vel</span>
+                            <span
+                                id="liveVel"
+                                class="chart-legend-val"
+                            >--</span>
+                        </div>
+                        <div class="chart-legend-item">
+                            <div
+                                class="chart-legend-dot"
+                                style="background:#fcc419"
+                            ></div>
+                            <span>WPos</span>
+                            <span
+                                id="liveWpos"
+                                class="chart-legend-val"
+                            >--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+        const CHAR_CMD_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
+        const CHAR_STATUS_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a9';
+        const CHAR_DATA_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26aa';
+
+        let device = null, charCmd = null, charStatus = null, charData = null;
+
+        const statusBadge = document.getElementById('statusBadge');
+        const statusText = document.getElementById('statusText');
+        const errorDiv = document.getElementById('error');
+        const connectBtn = document.getElementById('connectBtn');
+        const zeroBtn = document.getElementById('zeroBtn');
+        const teleplotToggle = document.getElementById('teleplotToggle');
+
+        const btnFwd = document.getElementById('btnFwd');
+        const btnBack = document.getElementById('btnBack');
+        const btnLeft = document.getElementById('btnLeft');
+        const btnRight = document.getElementById('btnRight');
+        const btnStop = document.getElementById('btnStop');
+
+        const sliders = {
+            kpPitch: { el: document.getElementById('kpPitch'), val: document.getElementById('kpPitchVal'), cmd: 'P', fmt: 2 },
+            kiPitch: { el: document.getElementById('kiPitch'), val: document.getElementById('kiPitchVal'), cmd: 'I', fmt: 3 },
+            kdPitch: { el: document.getElementById('kdPitch'), val: document.getElementById('kdPitchVal'), cmd: 'D', fmt: 2 },
+            kpVel: { el: document.getElementById('kpVel'), val: document.getElementById('kpVelVal'), cmd: 'p', fmt: 2 },
+            kiVel: { el: document.getElementById('kiVel'), val: document.getElementById('kiVelVal'), cmd: 'i', fmt: 3 },
+            kdVel: { el: document.getElementById('kdVel'), val: document.getElementById('kdVelVal'), cmd: 'd', fmt: 2 },
+            maxTorque: { el: document.getElementById('maxTorque'), val: document.getElementById('maxTorqueVal'), cmd: 'T', fmt: 1 },
+            slew: { el: document.getElementById('slew'), val: document.getElementById('slewVal'), cmd: 'S', fmt: 0 },
+            posKp: { el: document.getElementById('posKp'), val: document.getElementById('posKpVal'), cmd: 'h', fmt: 3 }
+        };
+
+        if (!navigator.bluetooth) {
+            showError('Web Bluetooth not supported. Use Chrome on desktop/Android.');
+            connectBtn.disabled = true;
+        }
+
+        function showError(msg) {
+            errorDiv.textContent = msg;
+            errorDiv.classList.add('show');
+            setTimeout(() => errorDiv.classList.remove('show'), 4000);
+        }
+
+        function updateStatus(msg, connected) {
+            statusText.textContent = msg;
+            statusBadge.classList.toggle('connected', connected);
+        }
+
+        function enableControls(enabled) {
+            Object.values(sliders).forEach(s => s.el.disabled = !enabled);
+            zeroBtn.disabled = !enabled;
+            btnFwd.disabled = !enabled;
+            btnBack.disabled = !enabled;
+            btnLeft.disabled = !enabled;
+            btnRight.disabled = !enabled;
+            btnStop.disabled = !enabled;
+            teleplotToggle.disabled = !enabled;
+        }
+
+        // ==================== TELEMETRY CHART ====================
+        const chartContainer = document.getElementById('chartContainer');
+        const chartDt = document.getElementById('chartDt');
+        const livePitch = document.getElementById('livePitch');
+        const liveTorque = document.getElementById('liveTorque');
+        const liveVel = document.getElementById('liveVel');
+        const liveWpos = document.getElementById('liveWpos');
+
+        const MAX_POINTS = 3000; // 2 minutes at 10Hz
+        let mcuTimeMs = 0;
+
+        const chart = new Chart(document.getElementById('telemetryChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'Pitch', data: [], borderColor: '#4dabf7', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+                    { label: 'Torque', data: [], borderColor: '#ff6b6b', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+                    { label: 'Velocity', data: [], borderColor: '#51cf66', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+                    { label: 'WheelPos', data: [], borderColor: '#fcc419', borderWidth: 1.5, pointRadius: 0, tension: 0.2 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        display: true,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: {
+                            color: 'rgba(255,255,255,0.7)', font: { size: 9 }, maxTicksLimit: 6,
+                            callback: v => (v / 1000).toFixed(1) + 's'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: 'rgba(255,255,255,0.7)', font: { size: 9 }, maxTicksLimit: 6 }
+                    }
+                },
+                interaction: { enabled: false }
+            }
+        });
+
+        function onTelemetry(event) {
+            const dv = event.target.value;
+            if (dv.byteLength < 13) return;
+            const pitch = dv.getInt16(0, true) / 100;
+            const pitchRate = dv.getInt16(2, true) / 10;
+            const wheelVel = dv.getInt16(4, true) / 10;
+            const wheelPos = dv.getInt16(6, true) / 100;
+            const torque = dv.getInt16(8, true) / 100;
+            const dtUs = dv.getUint16(10, true);
+            const flags = dv.getUint8(12);
+
+            mcuTimeMs += dtUs / 1000;
+            livePitch.textContent = pitch.toFixed(2) + '\u00B0';
+            liveTorque.textContent = torque.toFixed(2) + 'V';
+            liveVel.textContent = wheelVel.toFixed(1);
+            liveWpos.textContent = wheelPos.toFixed(1);
+            chartDt.textContent = 'dt ' + dtUs + '\u00B5s';
+            chartContainer.classList.toggle('saturated', (flags & 0x01) !== 0);
+
+            chart.data.labels.push(mcuTimeMs);
+            chart.data.datasets[0].data.push(pitch);
+            chart.data.datasets[1].data.push(torque);
+            chart.data.datasets[2].data.push(wheelVel);
+            chart.data.datasets[3].data.push(wheelPos);
+            if (chart.data.labels.length > MAX_POINTS) {
+                chart.data.labels.shift();
+                chart.data.datasets.forEach(ds => ds.data.shift());
+            }
+            chart.update();
+        }
+
+        function clearChart() {
+            mcuTimeMs = 0;
+            chart.data.labels = [];
+            chart.data.datasets.forEach(ds => ds.data = []);
+            chart.update();
+            livePitch.textContent = '--';
+            liveTorque.textContent = '--';
+            liveVel.textContent = '--';
+            liveWpos.textContent = '--';
+            chartDt.textContent = '';
+            chartContainer.classList.remove('saturated');
+        }
+
+        // ==================== BLE ====================
+        async function sendCmd(cmd) {
+            if (!charCmd) return;
+            try {
+                await charCmd.writeValue(new TextEncoder().encode(cmd));
+            } catch (e) {
+                showError('Send failed: ' + e.message);
+            }
+        }
+
+        let lastPitch = null, lastOffset = null;
+
+        function onStatusNotify(event) {
+            try {
+                const data = JSON.parse(new TextDecoder().decode(event.target.value));
+                if (data.offset !== undefined) {
+                    lastOffset = data.offset;
+                    zeroInfo.textContent = `OFFSET: ${data.offset.toFixed(2)}\u00B0` +
+                        (data.pitch !== undefined ? ` | PITCH: ${data.pitch.toFixed(2)}\u00B0` : '');
+                    zeroInfo.style.display = 'block';
+                }
+                if (data.pitch !== undefined) lastPitch = data.pitch;
+            } catch (e) { }
+        }
+
+        async function readStatus() {
+            if (!charStatus) return;
+            try {
+                const data = JSON.parse(new TextDecoder().decode(await charStatus.readValue()));
+                if (data.P !== undefined) { sliders.kpPitch.el.value = data.P; sliders.kpPitch.val.textContent = data.P.toFixed(2); }
+                if (data.I !== undefined) { sliders.kiPitch.el.value = data.I; sliders.kiPitch.val.textContent = data.I.toFixed(3); }
+                if (data.D !== undefined) { sliders.kdPitch.el.value = data.D; sliders.kdPitch.val.textContent = data.D.toFixed(2); }
+                if (data.p !== undefined) { sliders.kpVel.el.value = data.p; sliders.kpVel.val.textContent = data.p.toFixed(2); }
+                if (data.i !== undefined) { sliders.kiVel.el.value = data.i; sliders.kiVel.val.textContent = data.i.toFixed(3); }
+                if (data.d !== undefined) { sliders.kdVel.el.value = data.d; sliders.kdVel.val.textContent = data.d.toFixed(2); }
+                if (data.T !== undefined) { sliders.maxTorque.el.value = data.T; sliders.maxTorque.val.textContent = data.T.toFixed(1); }
+                if (data.S !== undefined) { sliders.slew.el.value = data.S; sliders.slew.val.textContent = data.S.toFixed(0); }
+                if (data.h !== undefined) { sliders.posKp.el.value = data.h; sliders.posKp.val.textContent = data.h.toFixed(3); }
+                if (data.pitch !== undefined) lastPitch = data.pitch;
+                if (data.offset !== undefined) lastOffset = data.offset;
+            } catch (e) { console.warn('readStatus failed:', e); }
+        }
+
+        Object.entries(sliders).forEach(([k, s]) => {
+            s.el.addEventListener('input', () => s.val.textContent = parseFloat(s.el.value).toFixed(s.fmt));
+            s.el.addEventListener('change', () => sendCmd(s.cmd + s.el.value));
+        });
+
+        const zeroInfo = document.getElementById('zeroInfo');
+        zeroBtn.addEventListener('click', async () => {
+            await sendCmd('z0');
+            zeroBtn.textContent = 'OK!';
+            // Wait for firmware to process and update characteristic
+            await new Promise(r => setTimeout(r, 500));
+            await readStatus();
+            if (lastOffset !== null) {
+                zeroInfo.textContent = `ZERO SET — OFFSET: ${lastOffset.toFixed(2)}\u00B0` +
+                    (lastPitch !== null ? ` | PITCH: ${lastPitch.toFixed(2)}\u00B0` : '');
+            } else {
+                zeroInfo.textContent = 'ZERO SET';
+            }
+            zeroInfo.style.display = 'block';
+            setTimeout(() => { zeroBtn.textContent = 'Zero'; }, 1500);
+        });
+
+        function setupMoveBtn(btn, pressCmd) {
+            let interval = null;
+            function press() {
+                if (btn.disabled) return;
+                sendCmd(pressCmd);
+                btn.classList.add('active');
+                if (interval) clearInterval(interval);
+                interval = setInterval(() => sendCmd(pressCmd), 200);
+            }
+            function release() {
+                if (interval) { clearInterval(interval); interval = null; }
+                sendCmd('x');
+                btn.classList.remove('active');
+            }
+            btn.addEventListener('mousedown', press);
+            btn.addEventListener('mouseup', release);
+            btn.addEventListener('mouseleave', release);
+            btn.addEventListener('touchstart', e => { e.preventDefault(); press(); });
+            btn.addEventListener('touchend', e => { e.preventDefault(); release(); });
+        }
+
+        setupMoveBtn(btnFwd, 'f');
+        setupMoveBtn(btnBack, 'b');
+        setupMoveBtn(btnLeft, 'l');
+        setupMoveBtn(btnRight, 'r');
+        btnStop.addEventListener('click', () => sendCmd('x'));
+        teleplotToggle.addEventListener('change', () => sendCmd('t0'));
+
+        connectBtn.addEventListener('click', async () => {
+            if (device && device.gatt.connected) { device.gatt.disconnect(); return; }
+            try {
+                updateStatus('SCAN...', false);
+                device = await navigator.bluetooth.requestDevice({
+                    filters: [{ name: 'BalanceBot' }, { namePrefix: 'Balance' }, { services: [SERVICE_UUID] }],
+                    optionalServices: [SERVICE_UUID]
+                });
+                device.addEventListener('gattserverdisconnected', onDisconnected);
+                updateStatus('LINK...', false);
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService(SERVICE_UUID);
+                charCmd = await service.getCharacteristic(CHAR_CMD_UUID);
+                charStatus = await service.getCharacteristic(CHAR_STATUS_UUID);
+                charData = await service.getCharacteristic(CHAR_DATA_UUID);
+                await charData.startNotifications();
+                charData.addEventListener('characteristicvaluechanged', onTelemetry);
+                await charStatus.startNotifications();
+                charStatus.addEventListener('characteristicvaluechanged', onStatusNotify);
+                clearChart();
+                await readStatus();
+                updateStatus('ONLINE', true);
+                connectBtn.textContent = 'Disconnect';
+                enableControls(true);
+            } catch (e) {
+                showError('Connection failed: ' + e.message);
+                updateStatus('OFFLINE', false);
+                connectBtn.textContent = 'Connect';
+            }
+        });
+
+        function onDisconnected() {
+            updateStatus('OFFLINE', false);
+            connectBtn.textContent = 'Connect';
+            enableControls(false);
+            device = null; charCmd = null; charStatus = null; charData = null;
+        }
+    </script>
+</body>
+
+</html>
