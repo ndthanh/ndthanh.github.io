@@ -422,14 +422,11 @@
         }
 
         .chart-dt {
-            position: absolute;
-            top: 4px;
-            right: 8px;
             font-family: 'Orbitron', sans-serif;
             font-size: 8px;
             color: rgba(255, 255, 255, 0.5);
             letter-spacing: 1px;
-            z-index: 1;
+            margin-left: 8px;
         }
 
         .sat-badge {
@@ -500,6 +497,12 @@
                 class="tbtn tbtn-zero"
                 disabled
             >Zero</button>
+            <button
+                id="clearBtn"
+                class="tbtn"
+                style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6)"
+                onclick="clearChart(); _teleLogCount=0;"
+            >Clear</button>
             <div class="toolbar-sep"></div>
             <div class="move-pad">
                 <div class="empty"></div>
