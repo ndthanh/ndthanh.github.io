@@ -813,8 +813,14 @@
         <!-- Toolbar -->
         <div class="toolbar">
             <span class="toolbar-title">BalanceBot</span>
-            <button class="tab-btn active" data-tab="tuner">Tuner</button>
-            <button class="tab-btn" data-tab="ota">OTA</button>
+            <button
+                class="tab-btn active"
+                data-tab="tuner"
+            >Tuner</button>
+            <button
+                class="tab-btn"
+                data-tab="ota"
+            >OTA</button>
             <div
                 id="statusBadge"
                 class="status-badge"
@@ -823,7 +829,10 @@
                 id="connectBtn"
                 class="tbtn tbtn-connect"
             >Connect</button>
-            <span id="tunerToolbar" class="tuner-toolbar">
+            <span
+                id="tunerToolbar"
+                class="tuner-toolbar"
+            >
                 <button
                     id="zeroBtn"
                     class="tbtn tbtn-zero"
@@ -894,10 +903,17 @@
         ></div>
 
         <!-- TAB: TUNER -->
-        <div id="tabTuner" class="tab-content active">
+        <div
+            id="tabTuner"
+            class="tab-content active"
+        >
             <div class="main">
                 <div class="col-left">
-                    <div id="profActive" class="prof-active" style="display:none"></div>
+                    <div
+                        id="profActive"
+                        class="prof-active"
+                        style="display:none"
+                    ></div>
                     <div class="sec">
                         <div class="sec-title">Pitch PID (Inner)</div>
                         <div class="pg">
@@ -963,7 +979,7 @@
                                 class="slider"
                                 min="0"
                                 max="5"
-                                step="0.05"
+                                step="0.01"
                                 value="0"
                                 disabled
                             >
@@ -1030,9 +1046,9 @@
                                 id="slew"
                                 class="slider"
                                 min="10"
-                                max="100"
-                                step="5"
-                                value="30"
+                                max="500"
+                                step="10"
+                                value="100"
                                 disabled
                             >
                         </div>
@@ -1052,54 +1068,155 @@
                                 disabled
                             >
                         </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Steer Gain</span><span
+                                    id="steerGainVal"
+                                    class="pg-val"
+                                >1.00</span></div>
+                            <input
+                                type="range"
+                                id="steerGain"
+                                class="slider"
+                                min="0"
+                                max="5"
+                                step="0.1"
+                                value="1.0"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Ctrl Freq (Hz)</span><span
+                                    id="ctrlFreqVal"
+                                    class="pg-val"
+                                >200</span></div>
+                            <input
+                                type="range"
+                                id="ctrlFreq"
+                                class="slider"
+                                min="50"
+                                max="1000"
+                                step="50"
+                                value="200"
+                                disabled
+                            >
+                        </div>
                     </div>
 
                     <div class="sec">
                         <div class="sec-title">Profiles</div>
                         <div class="prof-bar">
-                            <button class="tbtn" style="background:linear-gradient(135deg,#0d6efd,#6610f2);color:white" onclick="showSaveForm()">Save</button>
+                            <button
+                                class="tbtn"
+                                style="background:linear-gradient(135deg,#0d6efd,#6610f2);color:white"
+                                onclick="showSaveForm()"
+                            >Save</button>
                         </div>
-                        <div id="profSaveForm" class="prof-save-form">
-                            <input type="text" id="profName" class="prof-input" placeholder="Profile name" maxlength="40">
-                            <input type="text" id="profDesc" class="prof-input" placeholder="Description (optional)" maxlength="100">
+                        <div
+                            id="profSaveForm"
+                            class="prof-save-form"
+                        >
+                            <input
+                                type="text"
+                                id="profName"
+                                class="prof-input"
+                                placeholder="Profile name"
+                                maxlength="40"
+                            >
+                            <input
+                                type="text"
+                                id="profDesc"
+                                class="prof-input"
+                                placeholder="Description (optional)"
+                                maxlength="100"
+                            >
                             <div class="prof-save-btns">
-                                <button class="tbtn" style="background:linear-gradient(135deg,#198754,#20c997);color:white" onclick="saveProfile()">Confirm</button>
-                                <button class="tbtn" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5)" onclick="hideSaveForm()">Cancel</button>
+                                <button
+                                    class="tbtn"
+                                    style="background:linear-gradient(135deg,#198754,#20c997);color:white"
+                                    onclick="saveProfile()"
+                                >Confirm</button>
+                                <button
+                                    class="tbtn"
+                                    style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5)"
+                                    onclick="hideSaveForm()"
+                                >Cancel</button>
                             </div>
                         </div>
-                        <div id="profList" class="prof-list"></div>
+                        <div
+                            id="profList"
+                            class="prof-list"
+                        ></div>
                     </div>
                 </div>
 
                 <div class="col-right">
-                    <div class="sec-title">Telemetry <span id="chartDt" class="chart-dt"></span></div>
+                    <div class="sec-title">Telemetry <span
+                            id="chartDt"
+                            class="chart-dt"
+                        ></span></div>
                     <div class="charts-stack">
-                        <div class="mini-chart" id="chartPitch">
+                        <div
+                            class="mini-chart"
+                            id="chartPitch"
+                        >
                             <span class="sat-badge">SAT</span>
                             <div class="mini-chart-header">
-                                <span class="mini-chart-label" style="color:#4dabf7">Pitch</span>
-                                <span id="livePitch" class="mini-chart-val">--</span>
+                                <span
+                                    class="mini-chart-label"
+                                    style="color:#4dabf7"
+                                >Pitch</span>
+                                <span
+                                    id="livePitch"
+                                    class="mini-chart-val"
+                                >--</span>
                             </div>
                             <div class="mini-chart-canvas"><canvas id="canvasPitch"></canvas></div>
                         </div>
-                        <div class="mini-chart" id="chartTorque">
+                        <div
+                            class="mini-chart"
+                            id="chartTorque"
+                        >
                             <div class="mini-chart-header">
-                                <span class="mini-chart-label" style="color:#ff6b6b">Torque</span>
-                                <span id="liveTorque" class="mini-chart-val">--</span>
+                                <span
+                                    class="mini-chart-label"
+                                    style="color:#ff6b6b"
+                                >Torque</span>
+                                <span
+                                    id="liveTorque"
+                                    class="mini-chart-val"
+                                >--</span>
                             </div>
                             <div class="mini-chart-canvas"><canvas id="canvasTorque"></canvas></div>
                         </div>
-                        <div class="mini-chart" id="chartVel">
+                        <div
+                            class="mini-chart"
+                            id="chartVel"
+                        >
                             <div class="mini-chart-header">
-                                <span class="mini-chart-label" style="color:#51cf66">Velocity</span>
-                                <span id="liveVel" class="mini-chart-val">--</span>
+                                <span
+                                    class="mini-chart-label"
+                                    style="color:#51cf66"
+                                >Velocity</span>
+                                <span
+                                    id="liveVel"
+                                    class="mini-chart-val"
+                                >--</span>
                             </div>
                             <div class="mini-chart-canvas"><canvas id="canvasVel"></canvas></div>
                         </div>
-                        <div class="mini-chart" id="chartWpos">
+                        <div
+                            class="mini-chart"
+                            id="chartWpos"
+                        >
                             <div class="mini-chart-header">
-                                <span class="mini-chart-label" style="color:#fcc419">WheelPos</span>
-                                <span id="liveWpos" class="mini-chart-val">--</span>
+                                <span
+                                    class="mini-chart-label"
+                                    style="color:#fcc419"
+                                >WheelPos</span>
+                                <span
+                                    id="liveWpos"
+                                    class="mini-chart-val"
+                                >--</span>
                             </div>
                             <div class="mini-chart-canvas"><canvas id="canvasWpos"></canvas></div>
                         </div>
@@ -1109,33 +1226,73 @@
         </div>
 
         <!-- TAB: OTA -->
-        <div id="tabOta" class="tab-content">
+        <div
+            id="tabOta"
+            class="tab-content"
+        >
             <div class="ota-panel">
-                <div class="sec-title" style="margin-bottom:16px">Firmware Update (BLE OTA)</div>
+                <div
+                    class="sec-title"
+                    style="margin-bottom:16px"
+                >Firmware Update (BLE OTA)</div>
                 <div id="otaContent">
-                    <div class="ota-file-drop" id="otaFileDrop">
-                        <input type="file" id="otaFileInput" accept=".bin" style="display:none">
+                    <div
+                        class="ota-file-drop"
+                        id="otaFileDrop"
+                    >
+                        <input
+                            type="file"
+                            id="otaFileInput"
+                            accept=".bin"
+                            style="display:none"
+                        >
                         <div class="ota-file-icon">&#128230;</div>
-                        <div class="ota-file-text" id="otaFileText">Click or drop firmware .bin file</div>
-                        <div id="otaFileName" class="ota-file-name"></div>
+                        <div
+                            class="ota-file-text"
+                            id="otaFileText"
+                        >Click or drop firmware .bin file</div>
+                        <div
+                            id="otaFileName"
+                            class="ota-file-name"
+                        ></div>
                     </div>
 
-                    <div class="ota-progress" id="otaProgressContainer" style="display:none">
+                    <div
+                        class="ota-progress"
+                        id="otaProgressContainer"
+                        style="display:none"
+                    >
                         <div class="ota-progress-bg">
-                            <div class="ota-progress-bar" id="otaProgressBar"></div>
+                            <div
+                                class="ota-progress-bar"
+                                id="otaProgressBar"
+                            ></div>
                         </div>
-                        <div class="ota-progress-text" id="otaProgressText">0%</div>
+                        <div
+                            class="ota-progress-text"
+                            id="otaProgressText"
+                        >0%</div>
                     </div>
 
-                    <button id="otaUploadBtn" class="tbtn ota-upload-btn" disabled>Upload Firmware</button>
+                    <button
+                        id="otaUploadBtn"
+                        class="tbtn ota-upload-btn"
+                        disabled
+                    >Upload Firmware</button>
 
-                    <div class="ota-log" id="otaLog"></div>
+                    <div
+                        class="ota-log"
+                        id="otaLog"
+                    ></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="profToast" class="prof-loaded-toast"></div>
+    <div
+        id="profToast"
+        class="prof-loaded-toast"
+    ></div>
 
     <script>
         // ==================== TUNER BLE UUIDs ====================
@@ -1182,7 +1339,9 @@
             kdVel: { el: document.getElementById('kdVel'), val: document.getElementById('kdVelVal'), cmd: 'd', fmt: 2 },
             maxTorque: { el: document.getElementById('maxTorque'), val: document.getElementById('maxTorqueVal'), cmd: 'T', fmt: 1 },
             slew: { el: document.getElementById('slew'), val: document.getElementById('slewVal'), cmd: 'S', fmt: 0 },
-            posKp: { el: document.getElementById('posKp'), val: document.getElementById('posKpVal'), cmd: 'h', fmt: 3 }
+            posKp: { el: document.getElementById('posKp'), val: document.getElementById('posKpVal'), cmd: 'h', fmt: 3 },
+            steerGain: { el: document.getElementById('steerGain'), val: document.getElementById('steerGainVal'), cmd: 'G', fmt: 2 },
+            ctrlFreq: { el: document.getElementById('ctrlFreq'), val: document.getElementById('ctrlFreqVal'), cmd: 'C', fmt: 0 }
         };
 
         if (!navigator.bluetooth) {
@@ -1254,7 +1413,7 @@
                         x: {
                             display: showXAxis,
                             grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 8 }, maxTicksLimit: 6, callback: v => (v / 1000).toFixed(0) + 's' }
+                            ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 8 }, maxTicksLimit: 6, callback: function (v) { var s = this.getLabelForValue(v) / 1000; return s < 10 ? s.toFixed(1) + 's' : Math.round(s) + 's'; } }
                         },
                         y: {
                             display: true,
@@ -1269,10 +1428,10 @@
         }
 
         const charts = {
-            pitch:  makeMiniChart('canvasPitch',  '#4dabf7', false),
+            pitch: makeMiniChart('canvasPitch', '#4dabf7', false),
             torque: makeMiniChart('canvasTorque', '#ff6b6b', false),
-            vel:    makeMiniChart('canvasVel',    '#51cf66', false),
-            wpos:   makeMiniChart('canvasWpos',   '#fcc419', true)
+            vel: makeMiniChart('canvasVel', '#51cf66', false),
+            wpos: makeMiniChart('canvasWpos', '#fcc419', true)
         };
 
         function onTelemetry(event) {
@@ -1348,6 +1507,8 @@
             if (data.T !== undefined) { sliders.maxTorque.el.value = data.T; sliders.maxTorque.val.textContent = data.T.toFixed(1); }
             if (data.S !== undefined) { sliders.slew.el.value = data.S; sliders.slew.val.textContent = data.S.toFixed(0); }
             if (data.h !== undefined) { sliders.posKp.el.value = data.h; sliders.posKp.val.textContent = data.h.toFixed(3); }
+            if (data.G !== undefined) { sliders.steerGain.el.value = data.G; sliders.steerGain.val.textContent = data.G.toFixed(2); }
+            if (data.C !== undefined) { sliders.ctrlFreq.el.value = data.C; sliders.ctrlFreq.val.textContent = data.C.toFixed(0); }
             if (data.pitch !== undefined) lastPitch = data.pitch;
             if (data.offset !== undefined) lastOffset = data.offset;
         }
@@ -1611,7 +1772,7 @@
 
                 try {
                     await otaControlChar.writeValueWithResponse(new Uint8Array([OTA_CMD_ABORT]));
-                } catch (_) {}
+                } catch (_) { }
             }
 
             otaUploading = false;
