@@ -616,6 +616,167 @@
             color: #dc3545;
         }
 
+        /* ===== PROFILES ===== */
+        .prof-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
+        .prof-bar .tbtn {
+            flex: 1;
+            font-size: 8px;
+            padding: 4px 6px;
+        }
+
+        .prof-save-form {
+            display: none;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 6px;
+        }
+
+        .prof-save-form.show {
+            display: block;
+        }
+
+        .prof-input {
+            width: 100%;
+            padding: 5px 8px;
+            margin-bottom: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #e2e8f0;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .prof-input:focus {
+            border-color: rgba(13, 110, 253, 0.5);
+        }
+
+        .prof-input::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        .prof-save-btns {
+            display: flex;
+            gap: 4px;
+        }
+
+        .prof-save-btns .tbtn {
+            flex: 1;
+            font-size: 8px;
+            padding: 4px 6px;
+        }
+
+        .prof-list {
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+        .prof-list::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .prof-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+
+        .prof-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 6px 8px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .prof-item:hover {
+            border-color: rgba(13, 110, 253, 0.3);
+        }
+
+        .prof-item-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            font-weight: 700;
+            color: #0d6efd;
+            letter-spacing: 0.5px;
+        }
+
+        .prof-item-desc {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 2px;
+            line-height: 1.3;
+        }
+
+        .prof-item-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .prof-item-actions .tbtn {
+            font-size: 7px;
+            padding: 2px 8px;
+        }
+
+        .prof-item.loading {
+            border-color: rgba(25, 135, 84, 0.5);
+            background: rgba(25, 135, 84, 0.05);
+        }
+
+        .prof-empty {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.25);
+            text-align: center;
+            padding: 8px;
+        }
+
+        .prof-active {
+            background: rgba(13, 110, 253, 0.1);
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            border-radius: 6px;
+            padding: 5px 8px;
+            margin-bottom: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            color: #0d6efd;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .prof-loaded-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(25, 135, 84, 0.9);
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 8px 20px;
+            border-radius: 8px;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .prof-loaded-toast.show {
+            opacity: 1;
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             body {
@@ -736,6 +897,7 @@
         <div id="tabTuner" class="tab-content active">
             <div class="main">
                 <div class="col-left">
+                    <div id="profActive" class="prof-active" style="display:none"></div>
                     <div class="sec">
                         <div class="sec-title">Pitch PID (Inner)</div>
                         <div class="pg">
@@ -891,6 +1053,22 @@
                             >
                         </div>
                     </div>
+
+                    <div class="sec">
+                        <div class="sec-title">Profiles</div>
+                        <div class="prof-bar">
+                            <button class="tbtn" style="background:linear-gradient(135deg,#0d6efd,#6610f2);color:white" onclick="showSaveForm()">Save</button>
+                        </div>
+                        <div id="profSaveForm" class="prof-save-form">
+                            <input type="text" id="profName" class="prof-input" placeholder="Profile name" maxlength="40">
+                            <input type="text" id="profDesc" class="prof-input" placeholder="Description (optional)" maxlength="100">
+                            <div class="prof-save-btns">
+                                <button class="tbtn" style="background:linear-gradient(135deg,#198754,#20c997);color:white" onclick="saveProfile()">Confirm</button>
+                                <button class="tbtn" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5)" onclick="hideSaveForm()">Cancel</button>
+                            </div>
+                        </div>
+                        <div id="profList" class="prof-list"></div>
+                    </div>
                 </div>
 
                 <div class="col-right">
@@ -956,6 +1134,8 @@
             </div>
         </div>
     </div>
+
+    <div id="profToast" class="prof-loaded-toast"></div>
 
     <script>
         // ==================== TUNER BLE UUIDs ====================
@@ -1441,6 +1621,143 @@
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
+
+        // ==================== PROFILES ====================
+        const PROF_STORAGE_KEY = 'balancebot_profiles';
+        const profList = document.getElementById('profList');
+        const profSaveForm = document.getElementById('profSaveForm');
+        const profNameInput = document.getElementById('profName');
+        const profDescInput = document.getElementById('profDesc');
+
+        function getProfiles() {
+            try { return JSON.parse(localStorage.getItem(PROF_STORAGE_KEY)) || []; }
+            catch { return []; }
+        }
+
+        function saveProfiles(profiles) {
+            localStorage.setItem(PROF_STORAGE_KEY, JSON.stringify(profiles));
+        }
+
+        function getCurrentParams() {
+            const params = {};
+            Object.entries(sliders).forEach(([k, s]) => {
+                params[s.cmd] = parseFloat(s.el.value);
+            });
+            return params;
+        }
+
+        function showSaveForm() {
+            profSaveForm.classList.add('show');
+            profNameInput.value = '';
+            profDescInput.value = '';
+            profNameInput.focus();
+        }
+
+        function hideSaveForm() {
+            profSaveForm.classList.remove('show');
+        }
+
+        function saveProfile() {
+            const name = profNameInput.value.trim();
+            if (!name) { profNameInput.focus(); return; }
+            const profiles = getProfiles();
+            profiles.unshift({
+                name,
+                desc: profDescInput.value.trim(),
+                ts: Date.now(),
+                params: getCurrentParams()
+            });
+            saveProfiles(profiles);
+            hideSaveForm();
+            renderProfiles();
+        }
+
+        function deleteProfile(index) {
+            const profiles = getProfiles();
+            profiles.splice(index, 1);
+            saveProfiles(profiles);
+            renderProfiles();
+        }
+
+        const profActive = document.getElementById('profActive');
+        const profToast = document.getElementById('profToast');
+
+        function showProfileToast(msg) {
+            profToast.textContent = msg;
+            profToast.classList.add('show');
+            setTimeout(() => profToast.classList.remove('show'), 2000);
+        }
+
+        async function loadProfile(index) {
+            const profiles = getProfiles();
+            const prof = profiles[index];
+            if (!prof) return;
+
+            // Update sliders UI
+            Object.entries(sliders).forEach(([k, s]) => {
+                if (prof.params[s.cmd] !== undefined) {
+                    s.el.value = prof.params[s.cmd];
+                    s.val.textContent = parseFloat(prof.params[s.cmd]).toFixed(s.fmt);
+                }
+            });
+
+            // Show active profile name
+            profActive.textContent = prof.name;
+            profActive.style.display = '';
+
+            // Highlight loading item
+            const items = profList.querySelectorAll('.prof-item');
+            if (items[index]) items[index].classList.add('loading');
+
+            // Send to robot sequentially
+            if (charCmd) {
+                for (const [cmd, val] of Object.entries(prof.params)) {
+                    while (_gattBusy) await sleep(30);
+                    _gattBusy = true;
+                    try {
+                        await charCmd.writeValue(new TextEncoder().encode(cmd + val));
+                    } catch (e) { }
+                    _gattBusy = false;
+                    await sleep(80);
+                }
+                showProfileToast('PROFILE LOADED — READY');
+            } else {
+                showProfileToast('PROFILE LOADED (OFFLINE)');
+            }
+
+            setTimeout(() => {
+                if (items[index]) items[index].classList.remove('loading');
+            }, 500);
+        }
+
+        function renderProfiles() {
+            const profiles = getProfiles();
+            if (profiles.length === 0) {
+                profList.innerHTML = '<div class="prof-empty">No saved profiles</div>';
+                return;
+            }
+            profList.innerHTML = profiles.map((p, i) => `
+                <div class="prof-item">
+                    <div class="prof-item-name">${esc(p.name)}</div>
+                    ${p.desc ? `<div class="prof-item-desc">${esc(p.desc)}</div>` : ''}
+                    <div class="prof-item-actions">
+                        <button class="tbtn" style="background:linear-gradient(135deg,#198754,#20c997);color:white" onclick="loadProfile(${i})">Load</button>
+                        <button class="tbtn" style="background:rgba(220,53,69,0.2);color:#dc3545;border:1px solid rgba(220,53,69,0.3)" onclick="deleteProfile(${i})">Del</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function esc(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        // Enter key to save
+        profNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') saveProfile(); });
+
+        renderProfiles();
     </script>
 </body>
 
