@@ -804,6 +804,31 @@
             .mini-chart-canvas {
                 min-height: 80px;
             }
+
+            .toolbar {
+                gap: 8px;
+            }
+
+            .toolbar-sep {
+                display: none;
+            }
+
+            .move-pad {
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(3, 52px);
+                gap: 6px;
+                width: 100%;
+                order: 99;
+            }
+
+            .move-pad .mbtn {
+                font-size: 22px;
+                border-radius: 10px;
+            }
+
+            .move-pad .mbtn.stp {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -1088,7 +1113,7 @@
                             <div class="pg-label"><span>Ctrl Freq (Hz)</span><span
                                     id="ctrlFreqVal"
                                     class="pg-val"
-                                >200</span></div>
+                                >400</span></div>
                             <input
                                 type="range"
                                 id="ctrlFreq"
@@ -1096,7 +1121,7 @@
                                 min="50"
                                 max="1000"
                                 step="50"
-                                value="200"
+                                value="400"
                                 disabled
                             >
                         </div>
@@ -1594,6 +1619,31 @@
         setupMoveBtn(btnLeft, 'l');
         setupMoveBtn(btnRight, 'r');
         btnStop.addEventListener('click', () => sendCmd('x'));
+
+        // ==================== KEYBOARD WASD CONTROLS ====================
+        const keyMap = { w: { btn: btnFwd, cmd: 'f' }, s: { btn: btnBack, cmd: 'b' }, a: { btn: btnLeft, cmd: 'l' }, d: { btn: btnRight, cmd: 'r' } };
+        const keyHeld = {};
+        document.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            const k = e.key.toLowerCase();
+            if (k === 'x' || k === ' ') { sendCmd('x'); Object.values(keyMap).forEach(m => m.btn.classList.remove('active')); return; }
+            const m = keyMap[k];
+            if (!m || m.btn.disabled || keyHeld[k]) return;
+            keyHeld[k] = true;
+            sendCmd(m.cmd);
+            m.btn.classList.add('active');
+            m._interval = setInterval(() => sendCmd(m.cmd), 200);
+        });
+        document.addEventListener('keyup', e => {
+            const k = e.key.toLowerCase();
+            const m = keyMap[k];
+            if (!m || !keyHeld[k]) return;
+            keyHeld[k] = false;
+            if (m._interval) { clearInterval(m._interval); m._interval = null; }
+            m.btn.classList.remove('active');
+            if (!Object.values(keyHeld).some(v => v)) sendCmd('x');
+        });
+
         teleplotToggle.addEventListener('change', () => sendCmd('t0'));
 
         // ==================== BLE CONNECT (shared) ====================
