@@ -945,7 +945,7 @@
                             <div class="pg-label"><span>Kp</span><span
                                     id="kpPitchVal"
                                     class="pg-val"
-                                >0.60</span></div>
+                                >1.00</span></div>
                             <input
                                 type="range"
                                 id="kpPitch"
@@ -953,7 +953,7 @@
                                 min="0"
                                 max="2"
                                 step="0.01"
-                                value="0.60"
+                                value="1.00"
                                 disabled
                             >
                         </div>
@@ -977,7 +977,7 @@
                             <div class="pg-label"><span>Kd</span><span
                                     id="kdPitchVal"
                                     class="pg-val"
-                                >0.00</span></div>
+                                >0.01</span></div>
                             <input
                                 type="range"
                                 id="kdPitch"
@@ -985,7 +985,7 @@
                                 min="0"
                                 max="0.5"
                                 step="0.005"
-                                value="0"
+                                value="0.01"
                                 disabled
                             >
                         </div>
@@ -1049,15 +1049,15 @@
                             <div class="pg-label"><span>Max Torque (V)</span><span
                                     id="maxTorqueVal"
                                     class="pg-val"
-                                >4.5</span></div>
+                                >1.5</span></div>
                             <input
                                 type="range"
                                 id="maxTorque"
                                 class="slider"
-                                min="1"
+                                min="0.5"
                                 max="8"
                                 step="0.1"
-                                value="4.5"
+                                value="1.5"
                                 disabled
                             >
                         </div>
@@ -1081,7 +1081,7 @@
                             <div class="pg-label"><span>Pos Kp</span><span
                                     id="posKpVal"
                                     class="pg-val"
-                                >0.095</span></div>
+                                >0.120</span></div>
                             <input
                                 type="range"
                                 id="posKp"
@@ -1089,7 +1089,7 @@
                                 min="0"
                                 max="1"
                                 step="0.005"
-                                value="0.095"
+                                value="0.120"
                                 disabled
                             >
                         </div>
@@ -1097,7 +1097,7 @@
                             <div class="pg-label"><span>Steer Gain</span><span
                                     id="steerGainVal"
                                     class="pg-val"
-                                >1.00</span></div>
+                                >0.80</span></div>
                             <input
                                 type="range"
                                 id="steerGain"
@@ -1105,7 +1105,23 @@
                                 min="0"
                                 max="5"
                                 step="0.1"
-                                value="1.0"
+                                value="0.8"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Move Speed</span><span
+                                    id="moveSpeedVal"
+                                    class="pg-val"
+                                >3.0</span></div>
+                            <input
+                                type="range"
+                                id="moveSpeed"
+                                class="slider"
+                                min="1"
+                                max="20"
+                                step="0.5"
+                                value="3"
                                 disabled
                             >
                         </div>
@@ -1366,6 +1382,7 @@
             slew: { el: document.getElementById('slew'), val: document.getElementById('slewVal'), cmd: 'S', fmt: 0 },
             posKp: { el: document.getElementById('posKp'), val: document.getElementById('posKpVal'), cmd: 'h', fmt: 3 },
             steerGain: { el: document.getElementById('steerGain'), val: document.getElementById('steerGainVal'), cmd: 'G', fmt: 2 },
+            moveSpeed: { el: document.getElementById('moveSpeed'), val: document.getElementById('moveSpeedVal'), cmd: 'M', fmt: 1 },
             ctrlFreq: { el: document.getElementById('ctrlFreq'), val: document.getElementById('ctrlFreqVal'), cmd: 'C', fmt: 0 }
         };
 
@@ -1533,6 +1550,7 @@
             if (data.S !== undefined) { sliders.slew.el.value = data.S; sliders.slew.val.textContent = data.S.toFixed(0); }
             if (data.h !== undefined) { sliders.posKp.el.value = data.h; sliders.posKp.val.textContent = data.h.toFixed(3); }
             if (data.G !== undefined) { sliders.steerGain.el.value = data.G; sliders.steerGain.val.textContent = data.G.toFixed(2); }
+            if (data.M !== undefined) { sliders.moveSpeed.el.value = data.M; sliders.moveSpeed.val.textContent = data.M.toFixed(1); }
             if (data.C !== undefined) { sliders.ctrlFreq.el.value = data.C; sliders.ctrlFreq.val.textContent = data.C.toFixed(0); }
             if (data.pitch !== undefined) lastPitch = data.pitch;
             if (data.offset !== undefined) lastOffset = data.offset;
