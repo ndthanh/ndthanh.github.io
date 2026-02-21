@@ -758,14 +758,18 @@
                     </div>
 
                     <div class="sec">
-                        <div class="sec-title">Swing-Up</div>
+                        <div class="sec-title">Swing-Up (Gravity PD)</div>
                         <div class="pg">
-                            <div class="pg-label"><span>K_swing</span><span id="kSwingVal" class="pg-val">5.00</span></div>
-                            <input type="range" id="kSwing" class="slider" min="0.5" max="20" step="0.5" value="5.0" disabled>
+                            <div class="pg-label"><span>K_swing</span><span id="kSwingVal" class="pg-val">3.00</span></div>
+                            <input type="range" id="kSwing" class="slider" min="0.5" max="10" step="0.25" value="3.0" disabled>
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>K_damping</span><span id="kDampingVal" class="pg-val">0.300</span></div>
-                            <input type="range" id="kDamping" class="slider" min="0" max="2" step="0.05" value="0.3" disabled>
+                            <div class="pg-label"><span>K_damping</span><span id="kDampingVal" class="pg-val">0.600</span></div>
+                            <input type="range" id="kDamping" class="slider" min="0" max="3" step="0.05" value="0.6" disabled>
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Swing Max V</span><span id="swingMaxVal" class="pg-val">5.0</span></div>
+                            <input type="range" id="swingMax" class="slider" min="2" max="10" step="0.5" value="5.0" disabled>
                         </div>
                     </div>
 
@@ -904,7 +908,8 @@
             moveSpeed: { el: document.getElementById('moveSpeed'), val: document.getElementById('moveSpeedVal'), cmd: 'M', fmt: 1 },
             ctrlFreq:  { el: document.getElementById('ctrlFreq'),  val: document.getElementById('ctrlFreqVal'),  cmd: 'C', fmt: 0 },
             kSwing:    { el: document.getElementById('kSwing'),    val: document.getElementById('kSwingVal'),    cmd: 'J', fmt: 2 },
-            kDamping:  { el: document.getElementById('kDamping'),  val: document.getElementById('kDampingVal'),  cmd: 'K', fmt: 3 }
+            kDamping:  { el: document.getElementById('kDamping'),  val: document.getElementById('kDampingVal'),  cmd: 'K', fmt: 3 },
+            swingMax:  { el: document.getElementById('swingMax'),  val: document.getElementById('swingMaxVal'),  cmd: 'H', fmt: 1 }
         };
 
         if (!navigator.bluetooth) {
@@ -1103,6 +1108,7 @@
             if (data.C !== undefined) { sliders.ctrlFreq.el.value = data.C; sliders.ctrlFreq.val.textContent = data.C.toFixed(0); }
             if (data.J !== undefined) { sliders.kSwing.el.value = data.J; sliders.kSwing.val.textContent = data.J.toFixed(2); }
             if (data.K !== undefined) { sliders.kDamping.el.value = data.K; sliders.kDamping.val.textContent = data.K.toFixed(3); }
+            if (data.H !== undefined) { sliders.swingMax.el.value = data.H; sliders.swingMax.val.textContent = data.H.toFixed(1); }
             if (data.armed !== undefined) {
                 isArmed = data.armed === 1;
                 updateArmUI();
