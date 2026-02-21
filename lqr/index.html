@@ -605,6 +605,48 @@
 
         .prof-loaded-toast.show { opacity: 1; }
 
+        /* Swing-up button */
+        .tbtn-swing {
+            background: rgba(255, 193, 7, 0.15);
+            border: 2px solid rgba(255, 193, 7, 0.5);
+            color: #ffc107;
+            font-size: 9px;
+            padding: 5px 12px;
+            transition: all 0.3s;
+        }
+
+        .tbtn-swing:disabled { opacity: 0.3; }
+
+        .tbtn-swing.active {
+            background: rgba(255, 193, 7, 0.3);
+            border-color: rgba(255, 193, 7, 0.8);
+            color: #ffda6a;
+            box-shadow: 0 0 12px rgba(255, 193, 7, 0.4);
+            animation: swing-pulse 0.8s ease-in-out infinite;
+        }
+
+        @keyframes swing-pulse {
+            0%, 100% { box-shadow: 0 0 12px rgba(255, 193, 7, 0.4); }
+            50% { box-shadow: 0 0 20px rgba(255, 193, 7, 0.7); }
+        }
+
+        .state-badge {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.4);
+            white-space: nowrap;
+        }
+
+        .state-badge.fallen { background: rgba(108, 117, 125, 0.2); border-color: rgba(108, 117, 125, 0.5); color: #adb5bd; }
+        .state-badge.swing { background: rgba(255, 193, 7, 0.2); border-color: rgba(255, 193, 7, 0.5); color: #ffc107; }
+        .state-badge.balancing { background: rgba(25, 135, 84, 0.2); border-color: rgba(25, 135, 84, 0.5); color: #20c997; }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             body { height: auto; overflow: auto; }
@@ -641,6 +683,8 @@
             <button id="connectBtn" class="tbtn tbtn-connect">Connect</button>
             <span id="tunerToolbar" class="tuner-toolbar">
                 <button id="armBtn" class="tbtn tbtn-arm" disabled>DISARMED</button>
+                <button id="swingBtn" class="tbtn tbtn-swing" disabled>SWING UP</button>
+                <span id="stateBadge" class="state-badge fallen">FALLEN</span>
                 <button id="zeroBtn" class="tbtn tbtn-zero" disabled>Zero</button>
                 <button id="clearBtn" class="tbtn"
                     style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6)"
@@ -710,6 +754,18 @@
                         <div class="pg">
                             <div class="pg-label"><span>Ctrl Freq (Hz)</span><span id="ctrlFreqVal" class="pg-val">400</span></div>
                             <input type="range" id="ctrlFreq" class="slider" min="50" max="1000" step="50" value="400" disabled>
+                        </div>
+                    </div>
+
+                    <div class="sec">
+                        <div class="sec-title">Swing-Up</div>
+                        <div class="pg">
+                            <div class="pg-label"><span>K_swing</span><span id="kSwingVal" class="pg-val">5.00</span></div>
+                            <input type="range" id="kSwing" class="slider" min="0.5" max="20" step="0.5" value="5.0" disabled>
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>K_damping</span><span id="kDampingVal" class="pg-val">0.300</span></div>
+                            <input type="range" id="kDamping" class="slider" min="0" max="2" step="0.05" value="0.3" disabled>
                         </div>
                     </div>
 
@@ -818,12 +874,15 @@
         let otaControlChar = null, otaDataChar = null;
         let otaHasService = false;
         let isArmed = false;
+        let robotState = 0; // 0=FALLEN, 1=SWING_UP, 2=BALANCING
 
         const statusBadge = document.getElementById('statusBadge');
         const statusText = document.getElementById('statusText');
         const errorDiv = document.getElementById('error');
         const connectBtn = document.getElementById('connectBtn');
         const armBtn = document.getElementById('armBtn');
+        const swingBtn = document.getElementById('swingBtn');
+        const stateBadge = document.getElementById('stateBadge');
         const zeroBtn = document.getElementById('zeroBtn');
 
         const btnFwd = document.getElementById('btnFwd');
@@ -843,7 +902,9 @@
             slew:      { el: document.getElementById('slew'),      val: document.getElementById('slewVal'),      cmd: 'S', fmt: 0 },
             steerGain: { el: document.getElementById('steerGain'), val: document.getElementById('steerGainVal'), cmd: 'G', fmt: 2 },
             moveSpeed: { el: document.getElementById('moveSpeed'), val: document.getElementById('moveSpeedVal'), cmd: 'M', fmt: 1 },
-            ctrlFreq:  { el: document.getElementById('ctrlFreq'),  val: document.getElementById('ctrlFreqVal'),  cmd: 'C', fmt: 0 }
+            ctrlFreq:  { el: document.getElementById('ctrlFreq'),  val: document.getElementById('ctrlFreqVal'),  cmd: 'C', fmt: 0 },
+            kSwing:    { el: document.getElementById('kSwing'),    val: document.getElementById('kSwingVal'),    cmd: 'J', fmt: 2 },
+            kDamping:  { el: document.getElementById('kDamping'),  val: document.getElementById('kDampingVal'),  cmd: 'K', fmt: 3 }
         };
 
         if (!navigator.bluetooth) {
@@ -866,6 +927,7 @@
             Object.values(sliders).forEach(s => s.el.disabled = !enabled);
             zeroBtn.disabled = !enabled;
             armBtn.disabled = !enabled;
+            swingBtn.disabled = !enabled;
             btnFwd.disabled = !enabled;
             btnBack.disabled = !enabled;
             btnLeft.disabled = !enabled;
@@ -876,6 +938,16 @@
         function updateArmUI() {
             armBtn.textContent = isArmed ? 'ARMED' : 'DISARMED';
             armBtn.classList.toggle('armed', isArmed);
+        }
+
+        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING'];
+        const STATE_CLASSES = ['fallen', 'swing', 'balancing'];
+
+        function updateStateUI() {
+            const s = Math.min(robotState, 2);
+            stateBadge.textContent = STATE_NAMES[s];
+            stateBadge.className = 'state-badge ' + STATE_CLASSES[s];
+            swingBtn.classList.toggle('active', robotState === 1);
         }
 
         // ==================== TABS ====================
@@ -967,6 +1039,13 @@
                 updateArmUI();
             }
 
+            // Update state from telemetry flags (bit2-3)
+            const telState = (flags >> 2) & 0x03;
+            if (telState !== robotState) {
+                robotState = telState;
+                updateStateUI();
+            }
+
             const values = { pitch, torque, vel: wheelVel, wpos: wheelPos };
             Object.entries(charts).forEach(([key, c]) => {
                 c.data.labels.push(mcuTimeMs);
@@ -1022,9 +1101,15 @@
             if (data.G !== undefined) { sliders.steerGain.el.value = data.G; sliders.steerGain.val.textContent = data.G.toFixed(2); }
             if (data.M !== undefined) { sliders.moveSpeed.el.value = data.M; sliders.moveSpeed.val.textContent = data.M.toFixed(1); }
             if (data.C !== undefined) { sliders.ctrlFreq.el.value = data.C; sliders.ctrlFreq.val.textContent = data.C.toFixed(0); }
+            if (data.J !== undefined) { sliders.kSwing.el.value = data.J; sliders.kSwing.val.textContent = data.J.toFixed(2); }
+            if (data.K !== undefined) { sliders.kDamping.el.value = data.K; sliders.kDamping.val.textContent = data.K.toFixed(3); }
             if (data.armed !== undefined) {
                 isArmed = data.armed === 1;
                 updateArmUI();
+            }
+            if (data.st !== undefined) {
+                robotState = data.st;
+                updateStateUI();
             }
             if (data.pitch !== undefined) lastPitch = data.pitch;
             if (data.offset !== undefined) lastOffset = data.offset;
@@ -1068,6 +1153,12 @@
             isArmed = !isArmed;
             updateArmUI();
             await sendCmd('E' + (isArmed ? '1' : '0'));
+        });
+
+        // Swing-up button
+        swingBtn.addEventListener('click', async () => {
+            if (robotState === 1) return; // Already swinging
+            await sendCmd('U1');
         });
 
         // Zero button
@@ -1198,7 +1289,9 @@
             connectBtn.textContent = 'Connect';
             enableControls(false);
             isArmed = false;
+            robotState = 0;
             updateArmUI();
+            updateStateUI();
             device = null; charCmd = null; charStatus = null; charData = null;
             otaControlChar = null; otaDataChar = null; otaHasService = false;
             otaUploading = false;
