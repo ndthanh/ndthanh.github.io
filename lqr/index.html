@@ -3,13 +3,20 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
     <title>BalanceBot LQR Tuner</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Rajdhani', sans-serif;
@@ -97,8 +104,16 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
-        .tab-content { display: none; flex: 1; min-height: 0; }
-        .tab-content.active { display: flex; flex-direction: column; }
+        .tab-content {
+            display: none;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
 
         .status-badge {
             font-family: 'Orbitron', sans-serif;
@@ -135,10 +150,20 @@
             transition: all 0.2s;
         }
 
-        .tbtn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .tbtn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
 
-        .tbtn-connect { background: linear-gradient(135deg, #0d6efd, #6610f2); color: white; }
-        .tbtn-zero { background: linear-gradient(135deg, #198754, #20c997); color: white; }
+        .tbtn-connect {
+            background: linear-gradient(135deg, #0d6efd, #6610f2);
+            color: white;
+        }
+
+        .tbtn-zero {
+            background: linear-gradient(135deg, #198754, #20c997);
+            color: white;
+        }
 
         /* ARM button */
         .tbtn-arm {
@@ -185,7 +210,10 @@
             padding: 0;
         }
 
-        .move-pad .mbtn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .move-pad .mbtn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
 
         .move-pad .mbtn.dir {
             background: rgba(13, 110, 253, 0.2);
@@ -206,12 +234,22 @@
             font-size: 10px;
         }
 
-        .move-pad .empty { background: transparent; border: none; }
+        .move-pad .empty {
+            background: transparent;
+            border: none;
+        }
 
-        .toolbar-spacer { flex: 1; }
+        .toolbar-spacer {
+            flex: 1;
+        }
 
-        .tuner-toolbar { display: contents; }
-        .tuner-toolbar.hidden { display: none; }
+        .tuner-toolbar {
+            display: contents;
+        }
+
+        .tuner-toolbar.hidden {
+            display: none;
+        }
 
         .error {
             background: rgba(220, 53, 69, 0.2);
@@ -225,7 +263,9 @@
             flex-shrink: 0;
         }
 
-        .error.show { display: block; }
+        .error.show {
+            display: block;
+        }
 
         .zero-info {
             background: rgba(25, 135, 84, 0.15);
@@ -256,8 +296,14 @@
             padding-right: 4px;
         }
 
-        .col-left::-webkit-scrollbar { width: 3px; }
-        .col-left::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+        .col-left::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .col-left::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
 
         .col-right {
             flex: 1;
@@ -279,7 +325,9 @@
             border-bottom: 1px solid rgba(13, 110, 253, 0.25);
         }
 
-        .sec { margin-bottom: 12px; }
+        .sec {
+            margin-bottom: 12px;
+        }
 
         .pg {
             background: rgba(255, 255, 255, 0.03);
@@ -324,7 +372,9 @@
             cursor: pointer;
         }
 
-        .slider:disabled { opacity: 0.3; }
+        .slider:disabled {
+            opacity: 0.3;
+        }
 
         /* ===== CHARTS ===== */
         .charts-stack {
@@ -374,7 +424,11 @@
             color: rgba(255, 255, 255, 0.9);
         }
 
-        .mini-chart-canvas { flex: 1; position: relative; min-height: 0; }
+        .mini-chart-canvas {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
 
         .chart-dt {
             font-family: 'Orbitron', sans-serif;
@@ -399,10 +453,16 @@
             letter-spacing: 1px;
         }
 
-        .mini-chart.saturated .sat-badge { display: block; }
+        .mini-chart.saturated .sat-badge {
+            display: block;
+        }
 
         /* ===== OTA TAB ===== */
-        .ota-panel { max-width: 500px; margin: 0 auto; width: 100%; }
+        .ota-panel {
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+        }
 
         .ota-file-drop {
             border: 2px dashed rgba(255, 255, 255, 0.15);
@@ -414,7 +474,8 @@
             margin-bottom: 16px;
         }
 
-        .ota-file-drop:hover, .ota-file-drop.dragover {
+        .ota-file-drop:hover,
+        .ota-file-drop.dragover {
             border-color: rgba(13, 110, 253, 0.5);
             background: rgba(13, 110, 253, 0.05);
         }
@@ -424,8 +485,17 @@
             background: rgba(25, 135, 84, 0.05);
         }
 
-        .ota-file-icon { font-size: 32px; margin-bottom: 8px; opacity: 0.5; }
-        .ota-file-text { font-size: 13px; color: rgba(255, 255, 255, 0.5); }
+        .ota-file-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        .ota-file-text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
         .ota-file-name {
             font-family: 'Orbitron', sans-serif;
             font-size: 10px;
@@ -434,7 +504,9 @@
             letter-spacing: 0.5px;
         }
 
-        .ota-progress { margin-bottom: 16px; }
+        .ota-progress {
+            margin-bottom: 16px;
+        }
 
         .ota-progress-bg {
             width: 100%;
@@ -482,17 +554,43 @@
             line-height: 1.6;
         }
 
-        .ota-log::-webkit-scrollbar { width: 3px; }
-        .ota-log::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+        .ota-log::-webkit-scrollbar {
+            width: 3px;
+        }
 
-        .ota-log-entry { color: rgba(255, 255, 255, 0.4); }
-        .ota-log-entry.info { color: #4dabf7; }
-        .ota-log-entry.success { color: #20c997; }
-        .ota-log-entry.error { color: #dc3545; }
+        .ota-log::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+
+        .ota-log-entry {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .ota-log-entry.info {
+            color: #4dabf7;
+        }
+
+        .ota-log-entry.success {
+            color: #20c997;
+        }
+
+        .ota-log-entry.error {
+            color: #dc3545;
+        }
 
         /* ===== PROFILES ===== */
-        .prof-bar { display: flex; gap: 4px; margin-bottom: 6px; }
-        .prof-bar .tbtn { flex: 1; font-size: 8px; padding: 4px 6px; }
+        .prof-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
+        .prof-bar .tbtn {
+            flex: 1;
+            font-size: 8px;
+            padding: 4px 6px;
+        }
 
         .prof-save-form {
             display: none;
@@ -503,7 +601,9 @@
             margin-bottom: 6px;
         }
 
-        .prof-save-form.show { display: block; }
+        .prof-save-form.show {
+            display: block;
+        }
 
         .prof-input {
             width: 100%;
@@ -518,15 +618,38 @@
             outline: none;
         }
 
-        .prof-input:focus { border-color: rgba(13, 110, 253, 0.5); }
-        .prof-input::placeholder { color: rgba(255, 255, 255, 0.25); }
+        .prof-input:focus {
+            border-color: rgba(13, 110, 253, 0.5);
+        }
 
-        .prof-save-btns { display: flex; gap: 4px; }
-        .prof-save-btns .tbtn { flex: 1; font-size: 8px; padding: 4px 6px; }
+        .prof-input::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
 
-        .prof-list { max-height: 160px; overflow-y: auto; }
-        .prof-list::-webkit-scrollbar { width: 3px; }
-        .prof-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+        .prof-save-btns {
+            display: flex;
+            gap: 4px;
+        }
+
+        .prof-save-btns .tbtn {
+            flex: 1;
+            font-size: 8px;
+            padding: 4px 6px;
+        }
+
+        .prof-list {
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+        .prof-list::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .prof-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
 
         .prof-item {
             background: rgba(255, 255, 255, 0.03);
@@ -538,7 +661,9 @@
             transition: all 0.2s;
         }
 
-        .prof-item:hover { border-color: rgba(13, 110, 253, 0.3); }
+        .prof-item:hover {
+            border-color: rgba(13, 110, 253, 0.3);
+        }
 
         .prof-item-name {
             font-family: 'Orbitron', sans-serif;
@@ -555,8 +680,16 @@
             line-height: 1.3;
         }
 
-        .prof-item-actions { display: flex; gap: 4px; margin-top: 4px; }
-        .prof-item-actions .tbtn { font-size: 7px; padding: 2px 8px; }
+        .prof-item-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .prof-item-actions .tbtn {
+            font-size: 7px;
+            padding: 2px 8px;
+        }
 
         .prof-item.loading {
             border-color: rgba(25, 135, 84, 0.5);
@@ -603,7 +736,9 @@
             pointer-events: none;
         }
 
-        .prof-loaded-toast.show { opacity: 1; }
+        .prof-loaded-toast.show {
+            opacity: 1;
+        }
 
         /* Swing-up button */
         .tbtn-swing {
@@ -615,7 +750,9 @@
             transition: all 0.3s;
         }
 
-        .tbtn-swing:disabled { opacity: 0.3; }
+        .tbtn-swing:disabled {
+            opacity: 0.3;
+        }
 
         .tbtn-swing.active {
             background: rgba(255, 193, 7, 0.3);
@@ -626,8 +763,15 @@
         }
 
         @keyframes swing-pulse {
-            0%, 100% { box-shadow: 0 0 12px rgba(255, 193, 7, 0.4); }
-            50% { box-shadow: 0 0 20px rgba(255, 193, 7, 0.7); }
+
+            0%,
+            100% {
+                box-shadow: 0 0 12px rgba(255, 193, 7, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 20px rgba(255, 193, 7, 0.7);
+            }
         }
 
         .state-badge {
@@ -643,20 +787,59 @@
             white-space: nowrap;
         }
 
-        .state-badge.fallen { background: rgba(108, 117, 125, 0.2); border-color: rgba(108, 117, 125, 0.5); color: #adb5bd; }
-        .state-badge.swing { background: rgba(255, 193, 7, 0.2); border-color: rgba(255, 193, 7, 0.5); color: #ffc107; }
-        .state-badge.balancing { background: rgba(25, 135, 84, 0.2); border-color: rgba(25, 135, 84, 0.5); color: #20c997; }
+        .state-badge.fallen {
+            background: rgba(108, 117, 125, 0.2);
+            border-color: rgba(108, 117, 125, 0.5);
+            color: #adb5bd;
+        }
+
+        .state-badge.swing {
+            background: rgba(255, 193, 7, 0.2);
+            border-color: rgba(255, 193, 7, 0.5);
+            color: #ffc107;
+        }
+
+        .state-badge.balancing {
+            background: rgba(25, 135, 84, 0.2);
+            border-color: rgba(25, 135, 84, 0.5);
+            color: #20c997;
+        }
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
-            body { height: auto; overflow: auto; }
-            .container { height: auto; }
-            .toolbar { flex-wrap: wrap; }
-            .main { flex-direction: column; }
-            .col-left { width: 100%; overflow-y: visible; }
-            .mini-chart-canvas { min-height: 80px; }
-            .toolbar { gap: 8px; }
-            .toolbar-sep { display: none; }
+            body {
+                height: auto;
+                overflow: auto;
+            }
+
+            .container {
+                height: auto;
+            }
+
+            .toolbar {
+                flex-wrap: wrap;
+            }
+
+            .main {
+                flex-direction: column;
+            }
+
+            .col-left {
+                width: 100%;
+                overflow-y: visible;
+            }
+
+            .mini-chart-canvas {
+                min-height: 80px;
+            }
+
+            .toolbar {
+                gap: 8px;
+            }
+
+            .toolbar-sep {
+                display: none;
+            }
 
             .move-pad {
                 grid-template-columns: repeat(3, 1fr);
@@ -666,8 +849,14 @@
                 order: 99;
             }
 
-            .move-pad .mbtn { font-size: 22px; border-radius: 10px; }
-            .move-pad .mbtn.stp { font-size: 16px; }
+            .move-pad .mbtn {
+                font-size: 22px;
+                border-radius: 10px;
+            }
+
+            .move-pad .mbtn.stp {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -677,148 +866,428 @@
         <!-- Toolbar -->
         <div class="toolbar">
             <span class="toolbar-title">LQR Tuner</span>
-            <button class="tab-btn active" data-tab="tuner">Tuner</button>
-            <button class="tab-btn" data-tab="ota">OTA</button>
-            <div id="statusBadge" class="status-badge"><span id="statusText">OFFLINE</span></div>
-            <button id="connectBtn" class="tbtn tbtn-connect">Connect</button>
-            <span id="tunerToolbar" class="tuner-toolbar">
-                <button id="armBtn" class="tbtn tbtn-arm" disabled>DISARMED</button>
-                <button id="swingBtn" class="tbtn tbtn-swing" disabled>SWING UP</button>
-                <span id="stateBadge" class="state-badge fallen">FALLEN</span>
-                <button id="zeroBtn" class="tbtn tbtn-zero" disabled>Zero</button>
-                <button id="clearBtn" class="tbtn"
+            <button
+                class="tab-btn active"
+                data-tab="tuner"
+            >Tuner</button>
+            <button
+                class="tab-btn"
+                data-tab="ota"
+            >OTA</button>
+            <div
+                id="statusBadge"
+                class="status-badge"
+            ><span id="statusText">OFFLINE</span></div>
+            <button
+                id="connectBtn"
+                class="tbtn tbtn-connect"
+            >Connect</button>
+            <span
+                id="tunerToolbar"
+                class="tuner-toolbar"
+            >
+                <button
+                    id="armBtn"
+                    class="tbtn tbtn-arm"
+                    disabled
+                >DISARMED</button>
+                <button
+                    id="swingBtn"
+                    class="tbtn tbtn-swing"
+                    disabled
+                >SWING UP</button>
+                <span
+                    id="stateBadge"
+                    class="state-badge fallen"
+                >FALLEN</span>
+                <button
+                    id="zeroBtn"
+                    class="tbtn tbtn-zero"
+                    disabled
+                >Zero</button>
+                <button
+                    id="clearBtn"
+                    class="tbtn"
                     style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6)"
-                    onclick="clearChart()">Clear</button>
+                    onclick="clearChart()"
+                >Clear</button>
                 <div class="toolbar-sep"></div>
                 <div class="move-pad">
                     <div class="empty"></div>
-                    <button id="btnFwd" class="mbtn dir" disabled>&#9650;</button>
+                    <button
+                        id="btnFwd"
+                        class="mbtn dir"
+                        disabled
+                    >&#9650;</button>
                     <div class="empty"></div>
-                    <button id="btnLeft" class="mbtn dir" disabled>&#9664;</button>
-                    <button id="btnStop" class="mbtn stp" disabled>&#9632;</button>
-                    <button id="btnRight" class="mbtn dir" disabled>&#9654;</button>
+                    <button
+                        id="btnLeft"
+                        class="mbtn dir"
+                        disabled
+                    >&#9664;</button>
+                    <button
+                        id="btnStop"
+                        class="mbtn stp"
+                        disabled
+                    >&#9632;</button>
+                    <button
+                        id="btnRight"
+                        class="mbtn dir"
+                        disabled
+                    >&#9654;</button>
                     <div class="empty"></div>
-                    <button id="btnBack" class="mbtn dir" disabled>&#9660;</button>
+                    <button
+                        id="btnBack"
+                        class="mbtn dir"
+                        disabled
+                    >&#9660;</button>
                     <div class="empty"></div>
                 </div>
                 <div class="toolbar-spacer"></div>
             </span>
         </div>
 
-        <div id="error" class="error"></div>
-        <div id="zeroInfo" class="zero-info" style="display:none"></div>
+        <div
+            id="error"
+            class="error"
+        ></div>
+        <div
+            id="zeroInfo"
+            class="zero-info"
+            style="display:none"
+        ></div>
 
         <!-- TAB: TUNER -->
-        <div id="tabTuner" class="tab-content active">
+        <div
+            id="tabTuner"
+            class="tab-content active"
+        >
             <div class="main">
                 <div class="col-left">
-                    <div id="profActive" class="prof-active" style="display:none"></div>
+                    <div
+                        id="profActive"
+                        class="prof-active"
+                        style="display:none"
+                    ></div>
                     <div class="sec">
                         <div class="sec-title">LQR Gains</div>
                         <div class="pg">
-                            <div class="pg-label"><span>K1 (Angle)</span><span id="k1Val" class="pg-val">0.44</span></div>
-                            <input type="range" id="k1" class="slider" min="0" max="3" step="0.01" value="0.44" disabled>
+                            <div class="pg-label"><span>K1 (Angle)</span><span
+                                    id="k1Val"
+                                    class="pg-val"
+                                >0.44</span></div>
+                            <input
+                                type="range"
+                                id="k1"
+                                class="slider"
+                                min="0"
+                                max="3"
+                                step="0.01"
+                                value="0.44"
+                                disabled
+                            >
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>K2 (Rate)</span><span id="k2Val" class="pg-val">0.036</span></div>
-                            <input type="range" id="k2" class="slider" min="0" max="0.3" step="0.001" value="0.036" disabled>
+                            <div class="pg-label"><span>K2 (Rate)</span><span
+                                    id="k2Val"
+                                    class="pg-val"
+                                >0.036</span></div>
+                            <input
+                                type="range"
+                                id="k2"
+                                class="slider"
+                                min="0"
+                                max="0.3"
+                                step="0.001"
+                                value="0.036"
+                                disabled
+                            >
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>K3 (Velocity)</span><span id="k3Val" class="pg-val">0.50</span></div>
-                            <input type="range" id="k3" class="slider" min="0" max="3" step="0.01" value="0.50" disabled>
+                            <div class="pg-label"><span>K3 (Velocity)</span><span
+                                    id="k3Val"
+                                    class="pg-val"
+                                >0.50</span></div>
+                            <input
+                                type="range"
+                                id="k3"
+                                class="slider"
+                                min="0"
+                                max="3"
+                                step="0.01"
+                                value="0.50"
+                                disabled
+                            >
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>K4 (Position)</span><span id="k4Val" class="pg-val">1.00</span></div>
-                            <input type="range" id="k4" class="slider" min="0" max="5" step="0.01" value="1.00" disabled>
+                            <div class="pg-label"><span>K4 (Position)</span><span
+                                    id="k4Val"
+                                    class="pg-val"
+                                >1.00</span></div>
+                            <input
+                                type="range"
+                                id="k4"
+                                class="slider"
+                                min="0"
+                                max="5"
+                                step="0.01"
+                                value="1.00"
+                                disabled
+                            >
                         </div>
                     </div>
 
                     <div class="sec">
                         <div class="sec-title">System</div>
                         <div class="pg">
-                            <div class="pg-label"><span>Max Torque (V)</span><span id="maxTorqueVal" class="pg-val">3.0</span></div>
-                            <input type="range" id="maxTorque" class="slider" min="0.5" max="8" step="0.1" value="3.0" disabled>
+                            <div class="pg-label"><span>Max Torque (V)</span><span
+                                    id="maxTorqueVal"
+                                    class="pg-val"
+                                >3.0</span></div>
+                            <input
+                                type="range"
+                                id="maxTorque"
+                                class="slider"
+                                min="0.5"
+                                max="8"
+                                step="0.1"
+                                value="3.0"
+                                disabled
+                            >
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>Slew (V/s)</span><span id="slewVal" class="pg-val">500</span></div>
-                            <input type="range" id="slew" class="slider" min="10" max="2000" step="10" value="500" disabled>
+                            <div class="pg-label"><span>Slew (V/s)</span><span
+                                    id="slewVal"
+                                    class="pg-val"
+                                >500</span></div>
+                            <input
+                                type="range"
+                                id="slew"
+                                class="slider"
+                                min="10"
+                                max="2000"
+                                step="10"
+                                value="500"
+                                disabled
+                            >
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>Steer Gain</span><span id="steerGainVal" class="pg-val">0.80</span></div>
-                            <input type="range" id="steerGain" class="slider" min="0" max="5" step="0.1" value="0.8" disabled>
+                            <div class="pg-label"><span>Steer Gain</span><span
+                                    id="steerGainVal"
+                                    class="pg-val"
+                                >0.80</span></div>
+                            <input
+                                type="range"
+                                id="steerGain"
+                                class="slider"
+                                min="0"
+                                max="5"
+                                step="0.1"
+                                value="0.8"
+                                disabled
+                            >
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>Move Speed</span><span id="moveSpeedVal" class="pg-val">3.0</span></div>
-                            <input type="range" id="moveSpeed" class="slider" min="1" max="20" step="0.5" value="3" disabled>
+                            <div class="pg-label"><span>Move Speed</span><span
+                                    id="moveSpeedVal"
+                                    class="pg-val"
+                                >3.0</span></div>
+                            <input
+                                type="range"
+                                id="moveSpeed"
+                                class="slider"
+                                min="1"
+                                max="20"
+                                step="0.5"
+                                value="3"
+                                disabled
+                            >
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>Ctrl Freq (Hz)</span><span id="ctrlFreqVal" class="pg-val">400</span></div>
-                            <input type="range" id="ctrlFreq" class="slider" min="50" max="1000" step="50" value="400" disabled>
+                            <div class="pg-label"><span>Ctrl Freq (Hz)</span><span
+                                    id="ctrlFreqVal"
+                                    class="pg-val"
+                                >400</span></div>
+                            <input
+                                type="range"
+                                id="ctrlFreq"
+                                class="slider"
+                                min="50"
+                                max="1000"
+                                step="50"
+                                value="400"
+                                disabled
+                            >
                         </div>
                     </div>
 
                     <div class="sec">
                         <div class="sec-title">Swing-Up (Gravity PD)</div>
                         <div class="pg">
-                            <div class="pg-label"><span>K_swing</span><span id="kSwingVal" class="pg-val">3.00</span></div>
-                            <input type="range" id="kSwing" class="slider" min="0.5" max="10" step="0.25" value="3.0" disabled>
+                            <div class="pg-label"><span>K_swing</span><span
+                                    id="kSwingVal"
+                                    class="pg-val"
+                                >4.00</span></div>
+                            <input
+                                type="range"
+                                id="kSwing"
+                                class="slider"
+                                min="0.5"
+                                max="10"
+                                step="0.25"
+                                value="4.0"
+                                disabled
+                            >
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>K_damping</span><span id="kDampingVal" class="pg-val">0.600</span></div>
-                            <input type="range" id="kDamping" class="slider" min="0" max="3" step="0.05" value="0.6" disabled>
+                            <div class="pg-label"><span>K_damping</span><span
+                                    id="kDampingVal"
+                                    class="pg-val"
+                                >0.0</span></div>
+                            <input
+                                type="range"
+                                id="kDamping"
+                                class="slider"
+                                min="0"
+                                max="3"
+                                step="0.05"
+                                value="0.0"
+                                disabled
+                            >
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>Swing Max V</span><span id="swingMaxVal" class="pg-val">5.0</span></div>
-                            <input type="range" id="swingMax" class="slider" min="2" max="10" step="0.5" value="5.0" disabled>
+                            <div class="pg-label"><span>Swing Max V</span><span
+                                    id="swingMaxVal"
+                                    class="pg-val"
+                                >5.0</span></div>
+                            <input
+                                type="range"
+                                id="swingMax"
+                                class="slider"
+                                min="2"
+                                max="10"
+                                step="0.5"
+                                value="5.0"
+                                disabled
+                            >
                         </div>
                     </div>
 
                     <div class="sec">
                         <div class="sec-title">Profiles</div>
                         <div class="prof-bar">
-                            <button class="tbtn" style="background:linear-gradient(135deg,#0d6efd,#6610f2);color:white" onclick="showSaveForm()">Save</button>
+                            <button
+                                class="tbtn"
+                                style="background:linear-gradient(135deg,#0d6efd,#6610f2);color:white"
+                                onclick="showSaveForm()"
+                            >Save</button>
                         </div>
-                        <div id="profSaveForm" class="prof-save-form">
-                            <input type="text" id="profName" class="prof-input" placeholder="Profile name" maxlength="40">
-                            <input type="text" id="profDesc" class="prof-input" placeholder="Description (optional)" maxlength="100">
+                        <div
+                            id="profSaveForm"
+                            class="prof-save-form"
+                        >
+                            <input
+                                type="text"
+                                id="profName"
+                                class="prof-input"
+                                placeholder="Profile name"
+                                maxlength="40"
+                            >
+                            <input
+                                type="text"
+                                id="profDesc"
+                                class="prof-input"
+                                placeholder="Description (optional)"
+                                maxlength="100"
+                            >
                             <div class="prof-save-btns">
-                                <button class="tbtn" style="background:linear-gradient(135deg,#198754,#20c997);color:white" onclick="saveProfile()">Confirm</button>
-                                <button class="tbtn" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5)" onclick="hideSaveForm()">Cancel</button>
+                                <button
+                                    class="tbtn"
+                                    style="background:linear-gradient(135deg,#198754,#20c997);color:white"
+                                    onclick="saveProfile()"
+                                >Confirm</button>
+                                <button
+                                    class="tbtn"
+                                    style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5)"
+                                    onclick="hideSaveForm()"
+                                >Cancel</button>
                             </div>
                         </div>
-                        <div id="profList" class="prof-list"></div>
+                        <div
+                            id="profList"
+                            class="prof-list"
+                        ></div>
                     </div>
                 </div>
 
                 <div class="col-right">
-                    <div class="sec-title">Telemetry <span id="chartDt" class="chart-dt"></span></div>
+                    <div class="sec-title">Telemetry <span
+                            id="chartDt"
+                            class="chart-dt"
+                        ></span></div>
                     <div class="charts-stack">
-                        <div class="mini-chart" id="chartPitch">
+                        <div
+                            class="mini-chart"
+                            id="chartPitch"
+                        >
                             <span class="sat-badge">SAT</span>
                             <div class="mini-chart-header">
-                                <span class="mini-chart-label" style="color:#4dabf7">Pitch</span>
-                                <span id="livePitch" class="mini-chart-val">--</span>
+                                <span
+                                    class="mini-chart-label"
+                                    style="color:#4dabf7"
+                                >Pitch</span>
+                                <span
+                                    id="livePitch"
+                                    class="mini-chart-val"
+                                >--</span>
                             </div>
                             <div class="mini-chart-canvas"><canvas id="canvasPitch"></canvas></div>
                         </div>
-                        <div class="mini-chart" id="chartTorque">
+                        <div
+                            class="mini-chart"
+                            id="chartTorque"
+                        >
                             <div class="mini-chart-header">
-                                <span class="mini-chart-label" style="color:#ff6b6b">Torque (V)</span>
-                                <span id="liveTorque" class="mini-chart-val">--</span>
+                                <span
+                                    class="mini-chart-label"
+                                    style="color:#ff6b6b"
+                                >Torque (V)</span>
+                                <span
+                                    id="liveTorque"
+                                    class="mini-chart-val"
+                                >--</span>
                             </div>
                             <div class="mini-chart-canvas"><canvas id="canvasTorque"></canvas></div>
                         </div>
-                        <div class="mini-chart" id="chartVel">
+                        <div
+                            class="mini-chart"
+                            id="chartVel"
+                        >
                             <div class="mini-chart-header">
-                                <span class="mini-chart-label" style="color:#51cf66">Velocity</span>
-                                <span id="liveVel" class="mini-chart-val">--</span>
+                                <span
+                                    class="mini-chart-label"
+                                    style="color:#51cf66"
+                                >Velocity</span>
+                                <span
+                                    id="liveVel"
+                                    class="mini-chart-val"
+                                >--</span>
                             </div>
                             <div class="mini-chart-canvas"><canvas id="canvasVel"></canvas></div>
                         </div>
-                        <div class="mini-chart" id="chartWpos">
+                        <div
+                            class="mini-chart"
+                            id="chartWpos"
+                        >
                             <div class="mini-chart-header">
-                                <span class="mini-chart-label" style="color:#fcc419">WheelPos</span>
-                                <span id="liveWpos" class="mini-chart-val">--</span>
+                                <span
+                                    class="mini-chart-label"
+                                    style="color:#fcc419"
+                                >WheelPos</span>
+                                <span
+                                    id="liveWpos"
+                                    class="mini-chart-val"
+                                >--</span>
                             </div>
                             <div class="mini-chart-canvas"><canvas id="canvasWpos"></canvas></div>
                         </div>
@@ -828,33 +1297,73 @@
         </div>
 
         <!-- TAB: OTA -->
-        <div id="tabOta" class="tab-content">
+        <div
+            id="tabOta"
+            class="tab-content"
+        >
             <div class="ota-panel">
-                <div class="sec-title" style="margin-bottom:16px">Firmware Update (BLE OTA)</div>
+                <div
+                    class="sec-title"
+                    style="margin-bottom:16px"
+                >Firmware Update (BLE OTA)</div>
                 <div id="otaContent">
-                    <div class="ota-file-drop" id="otaFileDrop">
-                        <input type="file" id="otaFileInput" accept=".bin" style="display:none">
+                    <div
+                        class="ota-file-drop"
+                        id="otaFileDrop"
+                    >
+                        <input
+                            type="file"
+                            id="otaFileInput"
+                            accept=".bin"
+                            style="display:none"
+                        >
                         <div class="ota-file-icon">&#128230;</div>
-                        <div class="ota-file-text" id="otaFileText">Click or drop firmware .bin file</div>
-                        <div id="otaFileName" class="ota-file-name"></div>
+                        <div
+                            class="ota-file-text"
+                            id="otaFileText"
+                        >Click or drop firmware .bin file</div>
+                        <div
+                            id="otaFileName"
+                            class="ota-file-name"
+                        ></div>
                     </div>
 
-                    <div class="ota-progress" id="otaProgressContainer" style="display:none">
+                    <div
+                        class="ota-progress"
+                        id="otaProgressContainer"
+                        style="display:none"
+                    >
                         <div class="ota-progress-bg">
-                            <div class="ota-progress-bar" id="otaProgressBar"></div>
+                            <div
+                                class="ota-progress-bar"
+                                id="otaProgressBar"
+                            ></div>
                         </div>
-                        <div class="ota-progress-text" id="otaProgressText">0%</div>
+                        <div
+                            class="ota-progress-text"
+                            id="otaProgressText"
+                        >0%</div>
                     </div>
 
-                    <button id="otaUploadBtn" class="tbtn ota-upload-btn" disabled>Upload Firmware</button>
+                    <button
+                        id="otaUploadBtn"
+                        class="tbtn ota-upload-btn"
+                        disabled
+                    >Upload Firmware</button>
 
-                    <div class="ota-log" id="otaLog"></div>
+                    <div
+                        class="ota-log"
+                        id="otaLog"
+                    ></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="profToast" class="prof-loaded-toast"></div>
+    <div
+        id="profToast"
+        class="prof-loaded-toast"
+    ></div>
 
     <script>
         // ==================== BLE UUIDs ====================
@@ -898,18 +1407,18 @@
         // Slider definitions: LQR gains + system params
         // cmd = BLE command character, fmt = decimal places
         const sliders = {
-            k1:        { el: document.getElementById('k1'),        val: document.getElementById('k1Val'),        cmd: 'A', fmt: 2 },
-            k2:        { el: document.getElementById('k2'),        val: document.getElementById('k2Val'),        cmd: 'B', fmt: 3 },
-            k3:        { el: document.getElementById('k3'),        val: document.getElementById('k3Val'),        cmd: 'V', fmt: 2 },
-            k4:        { el: document.getElementById('k4'),        val: document.getElementById('k4Val'),        cmd: 'W', fmt: 2 },
+            k1: { el: document.getElementById('k1'), val: document.getElementById('k1Val'), cmd: 'A', fmt: 2 },
+            k2: { el: document.getElementById('k2'), val: document.getElementById('k2Val'), cmd: 'B', fmt: 3 },
+            k3: { el: document.getElementById('k3'), val: document.getElementById('k3Val'), cmd: 'V', fmt: 2 },
+            k4: { el: document.getElementById('k4'), val: document.getElementById('k4Val'), cmd: 'W', fmt: 2 },
             maxTorque: { el: document.getElementById('maxTorque'), val: document.getElementById('maxTorqueVal'), cmd: 'T', fmt: 1 },
-            slew:      { el: document.getElementById('slew'),      val: document.getElementById('slewVal'),      cmd: 'S', fmt: 0 },
+            slew: { el: document.getElementById('slew'), val: document.getElementById('slewVal'), cmd: 'S', fmt: 0 },
             steerGain: { el: document.getElementById('steerGain'), val: document.getElementById('steerGainVal'), cmd: 'G', fmt: 2 },
             moveSpeed: { el: document.getElementById('moveSpeed'), val: document.getElementById('moveSpeedVal'), cmd: 'M', fmt: 1 },
-            ctrlFreq:  { el: document.getElementById('ctrlFreq'),  val: document.getElementById('ctrlFreqVal'),  cmd: 'C', fmt: 0 },
-            kSwing:    { el: document.getElementById('kSwing'),    val: document.getElementById('kSwingVal'),    cmd: 'J', fmt: 2 },
-            kDamping:  { el: document.getElementById('kDamping'),  val: document.getElementById('kDampingVal'),  cmd: 'K', fmt: 3 },
-            swingMax:  { el: document.getElementById('swingMax'),  val: document.getElementById('swingMaxVal'),  cmd: 'H', fmt: 1 }
+            ctrlFreq: { el: document.getElementById('ctrlFreq'), val: document.getElementById('ctrlFreqVal'), cmd: 'C', fmt: 0 },
+            kSwing: { el: document.getElementById('kSwing'), val: document.getElementById('kSwingVal'), cmd: 'J', fmt: 2 },
+            kDamping: { el: document.getElementById('kDamping'), val: document.getElementById('kDampingVal'), cmd: 'K', fmt: 3 },
+            swingMax: { el: document.getElementById('swingMax'), val: document.getElementById('swingMaxVal'), cmd: 'H', fmt: 1 }
         };
 
         if (!navigator.bluetooth) {
