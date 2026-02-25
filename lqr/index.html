@@ -1767,7 +1767,6 @@
 
         // Swing-up button
         swingBtn.addEventListener('click', async () => {
-            if (robotState === 1) return; // Already swinging
             await sendCmd('U1');
         });
 
