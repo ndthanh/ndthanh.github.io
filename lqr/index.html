@@ -811,7 +811,7 @@
             flex-direction: column;
             align-items: center;
             gap: 24px;
-            padding: 24px 16px 60px;
+            padding: 24px 16px;
             max-width: 480px;
             margin: 0 auto;
             width: 100%;
@@ -1354,49 +1354,6 @@
                         Invert Steer (L/R)
                     </label>
                 </div>
-
-                <!-- Maneuvers -->
-                <div style="width:100%;max-width:480px;margin-top:16px;">
-                    <div style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:#0d6efd;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid rgba(13,110,253,0.25);">Maneuvers</div>
-                    <!-- Flip buttons -->
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-                        <button id="flipFwdBtn" class="tbtn ctrl-big-btn" disabled
-                            style="background:rgba(220,53,69,0.2);border:2px solid rgba(220,53,69,0.5);color:#dc3545;">
-                            &#9650; FLIP FWD
-                        </button>
-                        <button id="flipBackBtn" class="tbtn ctrl-big-btn" disabled
-                            style="background:rgba(220,53,69,0.2);border:2px solid rgba(220,53,69,0.5);color:#dc3545;">
-                            FLIP BACK &#9660;
-                        </button>
-                    </div>
-                    <!-- Dash buttons -->
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-                        <button id="dashFwdBtn" class="tbtn ctrl-big-btn" disabled
-                            style="background:rgba(255,193,7,0.15);border:2px solid rgba(255,193,7,0.4);color:#ffc107;">
-                            &#9654;&#9654; DASH FWD
-                        </button>
-                        <button id="dashBackBtn" class="tbtn ctrl-big-btn" disabled
-                            style="background:rgba(255,193,7,0.15);border:2px solid rgba(255,193,7,0.4);color:#ffc107;">
-                            DASH BACK &#9664;&#9664;
-                        </button>
-                    </div>
-                    <!-- Maneuver params (compact sliders) -->
-                    <details style="color:rgba(255,255,255,0.6);font-size:11px;">
-                        <summary style="cursor:pointer;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,0.4);margin-bottom:8px;">PARAMETERS</summary>
-                        <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
-                            <div class="pg"><div class="pg-label"><span>Flip Torque (V)</span><span id="flipTorqueVal" class="pg-val">8.0</span></div>
-                                <input type="range" id="flipTorque" class="slider" min="2" max="12" step="0.5" value="8.0" disabled></div>
-                            <div class="pg"><div class="pg-label"><span>Flip Run (ms)</span><span id="flipRunMsVal" class="pg-val">250</span></div>
-                                <input type="range" id="flipRunMs" class="slider" min="50" max="600" step="10" value="250" disabled></div>
-                            <div class="pg"><div class="pg-label"><span>Flip Brake (ms)</span><span id="flipBrakeMsVal" class="pg-val">80</span></div>
-                                <input type="range" id="flipBrakeMs" class="slider" min="20" max="300" step="10" value="80" disabled></div>
-                            <div class="pg"><div class="pg-label"><span>Dash Torque (V)</span><span id="dashTorqueVal" class="pg-val">4.0</span></div>
-                                <input type="range" id="dashTorque" class="slider" min="1" max="10" step="0.5" value="4.0" disabled></div>
-                            <div class="pg"><div class="pg-label"><span>Dash Duration (ms)</span><span id="dashMsVal" class="pg-val">150</span></div>
-                                <input type="range" id="dashMs" class="slider" min="50" max="500" step="10" value="150" disabled></div>
-                        </div>
-                    </details>
-                </div>
             </div>
         </div>
 
@@ -1572,32 +1529,8 @@
             await sendCmd('L');
         });
 
-        // Maneuver buttons + sliders
-        const flipFwdBtn   = document.getElementById('flipFwdBtn');
-        const flipBackBtn  = document.getElementById('flipBackBtn');
-        const dashFwdBtn   = document.getElementById('dashFwdBtn');
-        const dashBackBtn  = document.getElementById('dashBackBtn');
-
-        const manSliders = {
-            flipTorque:  { el: document.getElementById('flipTorque'),  val: document.getElementById('flipTorqueVal'),  cmd: 'p', fmt: 1 },
-            flipRunMs:   { el: document.getElementById('flipRunMs'),   val: document.getElementById('flipRunMsVal'),   cmd: 'q', fmt: 0 },
-            flipBrakeMs: { el: document.getElementById('flipBrakeMs'), val: document.getElementById('flipBrakeMsVal'), cmd: 'o', fmt: 0 },
-            dashTorque:  { el: document.getElementById('dashTorque'),  val: document.getElementById('dashTorqueVal'),  cmd: 'e', fmt: 1 },
-            dashMs:      { el: document.getElementById('dashMs'),      val: document.getElementById('dashMsVal'),      cmd: 'g', fmt: 0 },
-        };
-        Object.values(manSliders).forEach(s => {
-            s.el.addEventListener('input', () => s.val.textContent = parseFloat(s.el.value).toFixed(s.fmt));
-            s.el.addEventListener('change', () => sendCmd(s.cmd + s.el.value));
-        });
-
-        flipFwdBtn.addEventListener('click',  () => sendCmd('F1'));
-        flipBackBtn.addEventListener('click', () => sendCmd('F-1'));
-        dashFwdBtn.addEventListener('click',  () => sendCmd('D1'));
-        dashBackBtn.addEventListener('click', () => sendCmd('D-1'));
-
         function enableControls(enabled) {
             Object.values(sliders).forEach(s => s.el.disabled = !enabled);
-            Object.values(manSliders).forEach(s => s.el.disabled = !enabled);
             zeroBtn.disabled = !enabled;
             armBtn.disabled = !enabled;
             swingBtn.disabled = !enabled;
@@ -1607,10 +1540,6 @@
             btnRight.disabled = !enabled;
             btnStop.disabled = !enabled;
             telemetryToggle.disabled = !enabled;
-            flipFwdBtn.disabled = !enabled;
-            flipBackBtn.disabled = !enabled;
-            dashFwdBtn.disabled = !enabled;
-            dashBackBtn.disabled = !enabled;
             if (!enabled) { telemetryOn = false; updateTelemetryToggleUI(); }
         }
 
