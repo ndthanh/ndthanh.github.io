@@ -805,6 +805,84 @@
             color: #20c997;
         }
 
+        /* ===== CONTROLLER TAB ===== */
+        .ctrl-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            padding: 24px 16px;
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .ctrl-status {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .ctrl-card {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px 8px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .ctrl-card-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .ctrl-card-val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .ctrl-card.online { border-color: rgba(25, 135, 84, 0.5); background: rgba(25, 135, 84, 0.1); }
+        .ctrl-card.online .ctrl-card-val { color: #20c997; }
+        .ctrl-card.armed { border-color: rgba(25, 135, 84, 0.5); background: rgba(25, 135, 84, 0.1); }
+        .ctrl-card.armed .ctrl-card-val { color: #20c997; }
+        .ctrl-card.state-swing { border-color: rgba(255, 193, 7, 0.5); background: rgba(255, 193, 7, 0.1); }
+        .ctrl-card.state-swing .ctrl-card-val { color: #ffc107; }
+        .ctrl-card.state-balance { border-color: rgba(13, 110, 253, 0.5); background: rgba(13, 110, 253, 0.1); }
+        .ctrl-card.state-balance .ctrl-card-val { color: #4dabf7; }
+
+        .ctrl-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .ctrl-big-btn {
+            padding: 12px 8px !important;
+            font-size: 10px !important;
+            border-radius: 8px !important;
+        }
+
+        .ctrl-dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 52px);
+            grid-template-rows: repeat(3, 52px);
+            gap: 6px;
+        }
+
+        .ctrl-dpad .mbtn { font-size: 18px; border-radius: 8px; }
+        .ctrl-dpad .mbtn.stp { font-size: 14px; }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             body {
@@ -866,85 +944,11 @@
         <!-- Toolbar -->
         <div class="toolbar">
             <span class="toolbar-title">LQR Tuner</span>
-            <button
-                class="tab-btn active"
-                data-tab="tuner"
-            >Tuner</button>
-            <button
-                class="tab-btn"
-                data-tab="ota"
-            >OTA</button>
-            <div
-                id="statusBadge"
-                class="status-badge"
-            ><span id="statusText">OFFLINE</span></div>
-            <button
-                id="connectBtn"
-                class="tbtn tbtn-connect"
-            >Connect</button>
-            <span
-                id="tunerToolbar"
-                class="tuner-toolbar"
-            >
-                <button
-                    id="armBtn"
-                    class="tbtn tbtn-arm"
-                    disabled
-                >DISARMED</button>
-                <button
-                    id="swingBtn"
-                    class="tbtn tbtn-swing"
-                    disabled
-                >SWING UP</button>
-                <span
-                    id="stateBadge"
-                    class="state-badge fallen"
-                >FALLEN</span>
-                <button
-                    id="zeroBtn"
-                    class="tbtn tbtn-zero"
-                    disabled
-                >Zero</button>
-                <button
-                    id="clearBtn"
-                    class="tbtn"
-                    style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6)"
-                    onclick="clearChart()"
-                >Clear</button>
-                <div class="toolbar-sep"></div>
-                <div class="move-pad">
-                    <div class="empty"></div>
-                    <button
-                        id="btnFwd"
-                        class="mbtn dir"
-                        disabled
-                    >&#9650;</button>
-                    <div class="empty"></div>
-                    <button
-                        id="btnLeft"
-                        class="mbtn dir"
-                        disabled
-                    >&#9664;</button>
-                    <button
-                        id="btnStop"
-                        class="mbtn stp"
-                        disabled
-                    >&#9632;</button>
-                    <button
-                        id="btnRight"
-                        class="mbtn dir"
-                        disabled
-                    >&#9654;</button>
-                    <div class="empty"></div>
-                    <button
-                        id="btnBack"
-                        class="mbtn dir"
-                        disabled
-                    >&#9660;</button>
-                    <div class="empty"></div>
-                </div>
-                <div class="toolbar-spacer"></div>
-            </span>
+            <button class="tab-btn active" data-tab="tuner">Tuner</button>
+            <button class="tab-btn" data-tab="controller">Controller</button>
+            <button class="tab-btn" data-tab="ota">OTA</button>
+            <div id="statusBadge" class="status-badge"><span id="statusText">OFFLINE</span></div>
+            <button id="connectBtn" class="tbtn tbtn-connect">Connect</button>
         </div>
 
         <div
@@ -1127,7 +1131,7 @@
                             <div class="pg-label"><span>K_swing</span><span
                                     id="kSwingVal"
                                     class="pg-val"
-                                >5.00</span></div>
+                                >4.50</span></div>
                             <input
                                 type="range"
                                 id="kSwing"
@@ -1135,7 +1139,7 @@
                                 min="0.5"
                                 max="10"
                                 step="0.25"
-                                value="5.0"
+                                value="4.5"
                                 disabled
                             >
                         </div>
@@ -1296,6 +1300,60 @@
             </div>
         </div>
 
+        <!-- TAB: CONTROLLER -->
+        <div id="tabController" class="tab-content">
+            <div class="ctrl-panel">
+                <!-- Status cards -->
+                <div class="ctrl-status">
+                    <div class="ctrl-card" id="ctrlConnCard">
+                        <div class="ctrl-card-label">Connection</div>
+                        <div class="ctrl-card-val" id="ctrlConnVal">OFFLINE</div>
+                    </div>
+                    <div class="ctrl-card" id="ctrlArmCard">
+                        <div class="ctrl-card-label">Safety</div>
+                        <div class="ctrl-card-val" id="ctrlArmVal">DISARMED</div>
+                    </div>
+                    <div class="ctrl-card" id="ctrlStateCard">
+                        <div class="ctrl-card-label">State</div>
+                        <div class="ctrl-card-val" id="ctrlStateVal">FALLEN</div>
+                    </div>
+                </div>
+
+                <!-- Control buttons -->
+                <div class="ctrl-btns">
+                    <button id="armBtn" class="tbtn tbtn-arm ctrl-big-btn" disabled>DISARMED</button>
+                    <button id="swingBtn" class="tbtn tbtn-swing ctrl-big-btn" disabled>SWING UP</button>
+                    <button id="zeroBtn" class="tbtn tbtn-zero ctrl-big-btn" disabled>Zero</button>
+                    <button class="tbtn ctrl-big-btn" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6)" onclick="clearChart()">Clear</button>
+                </div>
+
+                <!-- D-pad -->
+                <div class="ctrl-dpad">
+                    <div class="empty"></div>
+                    <button id="btnFwd" class="mbtn dir" disabled>&#9650;</button>
+                    <div class="empty"></div>
+                    <button id="btnLeft" class="mbtn dir" disabled>&#9664;</button>
+                    <button id="btnStop" class="mbtn stp" disabled>&#9632;</button>
+                    <button id="btnRight" class="mbtn dir" disabled>&#9654;</button>
+                    <div class="empty"></div>
+                    <button id="btnBack" class="mbtn dir" disabled>&#9660;</button>
+                    <div class="empty"></div>
+                </div>
+
+                <!-- Direction invert toggles -->
+                <div style="display:flex;gap:12px;justify-content:center;margin-top:10px;flex-wrap:wrap;">
+                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
+                        <input type="checkbox" id="invertDrive" style="width:16px;height:16px;accent-color:#4fc3f7;">
+                        Invert Drive (F/B)
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
+                        <input type="checkbox" id="invertSteer" style="width:16px;height:16px;accent-color:#4fc3f7;">
+                        Invert Steer (L/R)
+                    </label>
+                </div>
+            </div>
+        </div>
+
         <!-- TAB: OTA -->
         <div
             id="tabOta"
@@ -1395,8 +1453,14 @@
         const connectBtn = document.getElementById('connectBtn');
         const armBtn = document.getElementById('armBtn');
         const swingBtn = document.getElementById('swingBtn');
-        const stateBadge = document.getElementById('stateBadge');
         const zeroBtn = document.getElementById('zeroBtn');
+        // Controller tab status cards
+        const ctrlConnCard = document.getElementById('ctrlConnCard');
+        const ctrlConnVal = document.getElementById('ctrlConnVal');
+        const ctrlArmCard = document.getElementById('ctrlArmCard');
+        const ctrlArmVal = document.getElementById('ctrlArmVal');
+        const ctrlStateCard = document.getElementById('ctrlStateCard');
+        const ctrlStateVal = document.getElementById('ctrlStateVal');
 
         const btnFwd = document.getElementById('btnFwd');
         const btnBack = document.getElementById('btnBack');
@@ -1435,6 +1499,8 @@
         function updateStatus(msg, connected) {
             statusText.textContent = msg;
             statusBadge.classList.toggle('connected', connected);
+            ctrlConnVal.textContent = connected ? 'ONLINE' : msg;
+            ctrlConnCard.classList.toggle('online', connected);
         }
 
         function enableControls(enabled) {
@@ -1452,28 +1518,29 @@
         function updateArmUI() {
             armBtn.textContent = isArmed ? 'ARMED' : 'DISARMED';
             armBtn.classList.toggle('armed', isArmed);
+            ctrlArmVal.textContent = isArmed ? 'ARMED' : 'DISARMED';
+            ctrlArmCard.classList.toggle('armed', isArmed);
         }
 
         const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING'];
-        const STATE_CLASSES = ['fallen', 'swing', 'balancing'];
+        const STATE_CSS = ['', 'state-swing', 'state-balance'];
 
         function updateStateUI() {
             const s = Math.min(robotState, 2);
-            stateBadge.textContent = STATE_NAMES[s];
-            stateBadge.className = 'state-badge ' + STATE_CLASSES[s];
             swingBtn.classList.toggle('active', robotState === 1);
+            ctrlStateVal.textContent = STATE_NAMES[s];
+            ctrlStateCard.className = 'ctrl-card ' + STATE_CSS[s];
         }
 
         // ==================== TABS ====================
         const tabBtns = document.querySelectorAll('.tab-btn');
-        const tunerToolbar = document.getElementById('tunerToolbar');
+        const tabMap = { tuner: 'tabTuner', controller: 'tabController', ota: 'tabOta' };
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             tabBtns.forEach(b => b.classList.remove('active'));
-            document.getElementById(tabName === 'ota' ? 'tabOta' : 'tabTuner').classList.add('active');
+            document.getElementById(tabMap[tabName] || 'tabTuner').classList.add('active');
             document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
-            tunerToolbar.classList.toggle('hidden', tabName !== 'tuner');
             updateOtaUI();
         }
 
@@ -1699,15 +1766,30 @@
             setTimeout(() => { zeroBtn.textContent = 'Zero'; }, 1500);
         });
 
+        // Invert toggles — load from localStorage
+        const invertDriveEl = document.getElementById('invertDrive');
+        const invertSteerEl = document.getElementById('invertSteer');
+        invertDriveEl.checked = localStorage.getItem('invertDrive') === '1';
+        invertSteerEl.checked = localStorage.getItem('invertSteer') === '1';
+        invertDriveEl.addEventListener('change', () => localStorage.setItem('invertDrive', invertDriveEl.checked ? '1' : '0'));
+        invertSteerEl.addEventListener('change', () => localStorage.setItem('invertSteer', invertSteerEl.checked ? '1' : '0'));
+
+        function mapMoveCmd(cmd) {
+            const inv = { f: 'b', b: 'f', l: 'r', r: 'l' };
+            if ((cmd === 'f' || cmd === 'b') && invertDriveEl.checked) cmd = inv[cmd];
+            if ((cmd === 'l' || cmd === 'r') && invertSteerEl.checked) cmd = inv[cmd];
+            return cmd;
+        }
+
         // Movement buttons (press & hold with repeat)
         function setupMoveBtn(btn, pressCmd) {
             let interval = null;
             function press() {
                 if (btn.disabled) return;
-                sendCmd(pressCmd);
+                sendCmd(mapMoveCmd(pressCmd));
                 btn.classList.add('active');
                 if (interval) clearInterval(interval);
-                interval = setInterval(() => sendCmd(pressCmd), 200);
+                interval = setInterval(() => sendCmd(mapMoveCmd(pressCmd)), 200);
             }
             function release() {
                 if (interval) { clearInterval(interval); interval = null; }
@@ -1737,9 +1819,9 @@
             const m = keyMap[k];
             if (!m || m.btn.disabled || keyHeld[k]) return;
             keyHeld[k] = true;
-            sendCmd(m.cmd);
+            sendCmd(mapMoveCmd(m.cmd));
             m.btn.classList.add('active');
-            m._interval = setInterval(() => sendCmd(m.cmd), 200);
+            m._interval = setInterval(() => sendCmd(mapMoveCmd(m.cmd)), 200);
         });
         document.addEventListener('keyup', e => {
             const k = e.key.toLowerCase();
@@ -1757,7 +1839,7 @@
             try {
                 updateStatus('SCAN...', false);
                 device = await navigator.bluetooth.requestDevice({
-                    filters: [{ name: 'BalanceBot' }, { namePrefix: 'Balance' }, { services: [SERVICE_UUID] }],
+                    acceptAllDevices: true,
                     optionalServices: [SERVICE_UUID, OTA_SERVICE_UUID]
                 });
                 device.addEventListener('gattserverdisconnected', onDisconnected);
