@@ -1225,10 +1225,13 @@
                 </div>
 
                 <div class="col-right">
-                    <div class="sec-title">Telemetry <span
-                            id="chartDt"
-                            class="chart-dt"
-                        ></span></div>
+                    <div class="sec-title" style="display:flex;align-items:center;justify-content:space-between;">
+                        <span>Telemetry <span id="chartDt" class="chart-dt"></span></span>
+                        <button id="telemetryToggle" class="tbtn" disabled
+                            style="font-size:8px;padding:3px 8px;background:rgba(25,135,84,0.2);border:1px solid rgba(25,135,84,0.5);color:#20c997;">
+                            &#9646;&#9646; PAUSE
+                        </button>
+                    </div>
                     <div class="charts-stack">
                         <div
                             class="mini-chart"
@@ -1503,6 +1506,29 @@
             ctrlConnCard.classList.toggle('online', connected);
         }
 
+        const telemetryToggle = document.getElementById('telemetryToggle');
+        let telemetryOn = false;
+
+        function updateTelemetryToggleUI() {
+            if (telemetryOn) {
+                telemetryToggle.innerHTML = '&#9646;&#9646; PAUSE';
+                telemetryToggle.style.background = 'rgba(25,135,84,0.2)';
+                telemetryToggle.style.borderColor = 'rgba(25,135,84,0.5)';
+                telemetryToggle.style.color = '#20c997';
+            } else {
+                telemetryToggle.innerHTML = '&#9654; RESUME';
+                telemetryToggle.style.background = 'rgba(255,193,7,0.2)';
+                telemetryToggle.style.borderColor = 'rgba(255,193,7,0.5)';
+                telemetryToggle.style.color = '#ffc107';
+            }
+        }
+
+        telemetryToggle.addEventListener('click', async () => {
+            telemetryOn = !telemetryOn;
+            updateTelemetryToggleUI();
+            await sendCmd('L');
+        });
+
         function enableControls(enabled) {
             Object.values(sliders).forEach(s => s.el.disabled = !enabled);
             zeroBtn.disabled = !enabled;
@@ -1513,6 +1539,8 @@
             btnLeft.disabled = !enabled;
             btnRight.disabled = !enabled;
             btnStop.disabled = !enabled;
+            telemetryToggle.disabled = !enabled;
+            if (!enabled) { telemetryOn = false; updateTelemetryToggleUI(); }
         }
 
         function updateArmUI() {
