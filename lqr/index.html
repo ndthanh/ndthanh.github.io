@@ -2042,6 +2042,7 @@
                 await sleep(500);
 
                 const totalChunks = Math.ceil(dataToSend.length / OTA_CHUNK_SIZE);
+                let lastLoggedPercent = -1;
                 for (let i = 0; i < totalChunks; i++) {
                     const start = i * OTA_CHUNK_SIZE;
                     const end = Math.min(start + OTA_CHUNK_SIZE, dataToSend.length);
@@ -2052,7 +2053,8 @@
                     const percent = Math.round(((i + 1) / totalChunks) * 100);
                     otaSetProgress(percent);
 
-                    if (percent % 10 === 0 && percent !== 100) {
+                    if (percent % 10 === 0 && percent !== 100 && percent !== lastLoggedPercent) {
+                        lastLoggedPercent = percent;
                         otaLog(`Uploading... ${percent}%`, 'info');
                     }
                 }
