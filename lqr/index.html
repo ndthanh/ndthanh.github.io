@@ -1373,10 +1373,16 @@
                                 class="slider"
                                 min="-15"
                                 max="15"
-                                step="0.1"
+                                step="0.01"
                                 value="0"
                                 disabled
                             >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label">
+                                <span>IMU Temperature</span>
+                                <span id="imuTempVal" class="pg-val" style="color:#fcc419">--°C</span>
+                            </div>
                         </div>
                     </div>
 
@@ -1608,6 +1614,10 @@
                         <input type="checkbox" id="invertSteer" style="width:16px;height:16px;accent-color:#4fc3f7;">
                         Invert Steer (L/R)
                     </label>
+                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
+                        <input type="checkbox" id="swingDisarmedCb" style="width:16px;height:16px;accent-color:#ffc107;" disabled>
+                        <span style="color:#ffc107;">Swing Up while Disarmed</span>
+                    </label>
                 </div>
             </div>
         </div>
@@ -1790,7 +1800,7 @@
             steerGain: { el: document.getElementById('steerGain'), val: document.getElementById('steerGainVal'), cmd: 'G', fmt: 2 },
             moveSpeed: { el: document.getElementById('moveSpeed'), val: document.getElementById('moveSpeedVal'), cmd: 'M', fmt: 1 },
             ctrlFreq: { el: document.getElementById('ctrlFreq'), val: document.getElementById('ctrlFreqVal'), cmd: 'C', fmt: 0 },
-            pitchOffset: { el: document.getElementById('pitchOffset'), val: document.getElementById('pitchOffsetVal'), cmd: 'O', fmt: 2 },
+            pitchOffset: { el: document.getElementById('pitchOffset'), val: document.getElementById('pitchOffsetVal'), cmd: 'O', fmt: 2, confirm: true },
             kSwing: { el: document.getElementById('kSwing'), val: document.getElementById('kSwingVal'), cmd: 'J', fmt: 2 },
             kDamping: { el: document.getElementById('kDamping'), val: document.getElementById('kDampingVal'), cmd: 'K', fmt: 3 },
             swingMax: { el: document.getElementById('swingMax'), val: document.getElementById('swingMaxVal'), cmd: 'H', fmt: 1 }
@@ -1848,6 +1858,7 @@
             btnRight.disabled = !enabled;
             btnStop.disabled = !enabled;
             telemetryToggle.disabled = !enabled;
+            swingDisarmedCb.disabled = !enabled;
             if (!enabled) { telemetryOn = false; updateTelemetryToggleUI(); }
         }
 
@@ -2032,6 +2043,14 @@
             }
             if (data.pitch !== undefined) lastPitch = data.pitch;
             if (data.offset !== undefined) lastOffset = data.offset;
+            if (data.temp !== undefined) {
+                const el = document.getElementById('imuTempVal');
+                if (el) el.textContent = data.temp.toFixed(1) + '\u00B0C';
+            }
+            if (data.Y !== undefined) {
+                const cb = document.getElementById('swingDisarmedCb');
+                if (cb) cb.checked = data.Y === 1;
+            }
         }
 
         function onStatusNotify(event) {
@@ -2064,7 +2083,14 @@
         // Slider input/change handlers
         Object.entries(sliders).forEach(([k, s]) => {
             s.el.addEventListener('input', () => s.val.textContent = parseFloat(s.el.value).toFixed(s.fmt));
-            s.el.addEventListener('change', () => sendCmd(s.cmd + s.el.value));
+            s.el.addEventListener('change', async () => {
+                sendCmd(s.cmd + s.el.value);
+                if (s.confirm) {
+                    showProfileToast('SAVING...');
+                    const d = await waitForStatusNotify(2000);
+                    showProfileToast(d ? 'OFFSET SAVED \u2713' : 'OFFSET SENT');
+                }
+            });
         });
 
         // ARM/DISARM button
@@ -2109,6 +2135,10 @@
         invertSteerEl.checked = localStorage.getItem('invertSteer') === '1';
         invertDriveEl.addEventListener('change', () => localStorage.setItem('invertDrive', invertDriveEl.checked ? '1' : '0'));
         invertSteerEl.addEventListener('change', () => localStorage.setItem('invertSteer', invertSteerEl.checked ? '1' : '0'));
+
+        // Swing while disarmed checkbox — sends 'Y1'/'Y0' to firmware
+        const swingDisarmedCb = document.getElementById('swingDisarmedCb');
+        swingDisarmedCb.addEventListener('change', () => sendCmd('Y' + (swingDisarmedCb.checked ? '1' : '0')));
 
         function mapMoveCmd(cmd) {
             const inv = { f: 'b', b: 'f', l: 'r', r: 'l' };
