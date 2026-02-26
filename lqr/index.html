@@ -1887,8 +1887,8 @@
             try {
                 updateStatus('SCAN...', false);
                 device = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true,
-                    optionalServices: [SERVICE_UUID, OTA_SERVICE_UUID]
+                    filters: [{ services: [SERVICE_UUID] }],
+                    optionalServices: [OTA_SERVICE_UUID]
                 });
                 device.addEventListener('gattserverdisconnected', onDisconnected);
                 updateStatus('LINK...', false);
