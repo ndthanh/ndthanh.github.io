@@ -1181,7 +1181,10 @@
     <div class="container">
         <!-- Toolbar -->
         <div class="toolbar">
-            <span class="toolbar-title">LQR Tuner</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:1px">
+                <span class="toolbar-title">LQR Tuner</span>
+                <div id="fwChip" style="display:none;font-size:8px;color:rgba(255,255,255,0.35);letter-spacing:0.5px;white-space:nowrap;padding-left:2px"></div>
+            </div>
             <button class="tab-btn active" data-tab="tuner">Tuner</button>
             <button class="tab-btn" data-tab="controller">Controller</button>
             <button class="tab-btn" data-tab="ota">OTA</button>
@@ -1581,6 +1584,10 @@
                         <div class="ctrl-card-label">State</div>
                         <div class="ctrl-card-val" id="ctrlStateVal">FALLEN</div>
                     </div>
+                    <div class="ctrl-card" id="ctrlOffsetCard">
+                        <div class="ctrl-card-label">Offset</div>
+                        <div class="ctrl-card-val" id="ctrlOffsetVal" style="color:#fcc419">--°</div>
+                    </div>
                 </div>
 
                 <!-- Control buttons -->
@@ -1671,6 +1678,10 @@
                         >0%</div>
                     </div>
 
+                    <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.55);margin-bottom:6px;cursor:pointer;">
+                        <input type="checkbox" id="otaUseCompression" checked style="accent-color:#4fc3f7;">
+                        Use zlib compression (smaller/faster — uncheck if OTA hangs)
+                    </label>
                     <button
                         id="otaUploadBtn"
                         class="tbtn ota-upload-btn"
@@ -1736,7 +1747,7 @@
         const OTA_CMD_BEGIN   = 0x01;  // Uncompressed: [0x01, size[4]]
         const OTA_CMD_END     = 0x02;
         const OTA_CMD_ABORT   = 0x03;
-        const OTA_CMD_BEGIN_Z = 0x05;  // zlib compressed: [0x05, csize[4]]
+        const OTA_CMD_BEGIN_Z = 0x05;  // zlib compressed: [0x05, usize[4], csize[4]] (9 bytes)
         const OTA_STATUS_OK       = 0x01;
         const OTA_STATUS_ERROR    = 0x03;
         const OTA_CHUNK_SIZE = 512;
@@ -1781,6 +1792,7 @@
         const ctrlArmVal = document.getElementById('ctrlArmVal');
         const ctrlStateCard = document.getElementById('ctrlStateCard');
         const ctrlStateVal = document.getElementById('ctrlStateVal');
+        const ctrlOffsetVal = document.getElementById('ctrlOffsetVal');
 
         const btnFwd = document.getElementById('btnFwd');
         const btnBack = document.getElementById('btnBack');
@@ -2029,7 +2041,12 @@
             if (data.G !== undefined) { sliders.steerGain.el.value = data.G; sliders.steerGain.val.textContent = data.G.toFixed(2); }
             if (data.M !== undefined) { sliders.moveSpeed.el.value = data.M; sliders.moveSpeed.val.textContent = data.M.toFixed(1); }
             if (data.C !== undefined) { sliders.ctrlFreq.el.value = data.C; sliders.ctrlFreq.val.textContent = data.C.toFixed(0); }
-            if (data.O !== undefined) { sliders.pitchOffset.el.value = data.O; sliders.pitchOffset.val.textContent = data.O.toFixed(2); }
+            if (data.O !== undefined) {
+                sliders.pitchOffset.el.value = data.O;
+                sliders.pitchOffset.val.textContent = data.O.toFixed(2);
+                lastOffset = data.O;
+                ctrlOffsetVal.textContent = (data.O >= 0 ? '+' : '') + data.O.toFixed(2) + '\u00B0';
+            }
             if (data.J !== undefined) { sliders.kSwing.el.value = data.J; sliders.kSwing.val.textContent = data.J.toFixed(2); }
             if (data.K !== undefined) { sliders.kDamping.el.value = data.K; sliders.kDamping.val.textContent = data.K.toFixed(3); }
             if (data.H !== undefined) { sliders.swingMax.el.value = data.H; sliders.swingMax.val.textContent = data.H.toFixed(1); }
@@ -2042,7 +2059,6 @@
                 updateStateUI();
             }
             if (data.pitch !== undefined) lastPitch = data.pitch;
-            if (data.offset !== undefined) lastOffset = data.offset;
             if (data.temp !== undefined) {
                 const el = document.getElementById('imuTempVal');
                 if (el) el.textContent = data.temp.toFixed(1) + '\u00B0C';
@@ -2050,6 +2066,10 @@
             if (data.Y !== undefined) {
                 const cb = document.getElementById('swingDisarmedCb');
                 if (cb) cb.checked = data.Y === 1;
+            }
+            if (data.fw !== undefined) {
+                const chip = document.getElementById('fwChip');
+                if (chip) { chip.textContent = 'FW ' + data.fw; chip.style.display = 'block'; }
             }
         }
 
@@ -2112,17 +2132,11 @@
             const notifyPromise = waitForStatusNotify(1500);
             await sendCmd('z0');
             const data = await notifyPromise;
-            if (data && data.offset !== undefined) {
-                zeroInfo.textContent = `ZERO SET \u2014 OFFSET: ${data.offset.toFixed(2)}\u00B0` +
-                    (data.pitch !== undefined ? ` | PITCH: ${data.pitch.toFixed(2)}\u00B0` : '');
+            // updateSlidersFromData already ran (slider + card both updated)
+            if (lastOffset !== null) {
+                zeroInfo.textContent = `ZERO SET \u2014 OFFSET: ${lastOffset.toFixed(2)}\u00B0`;
             } else {
-                await readStatus();
-                if (lastOffset !== null) {
-                    zeroInfo.textContent = `ZERO SET \u2014 OFFSET: ${lastOffset.toFixed(2)}\u00B0` +
-                        (lastPitch !== null ? ` | PITCH: ${lastPitch.toFixed(2)}\u00B0` : '');
-                } else {
-                    zeroInfo.textContent = 'ZERO SET';
-                }
+                zeroInfo.textContent = 'ZERO SET';
             }
             zeroInfo.style.display = 'block';
             setTimeout(() => { zeroBtn.textContent = 'Zero'; }, 1500);
@@ -2251,6 +2265,8 @@
                     const otaService = await server.getPrimaryService(OTA_SERVICE_UUID);
                     otaControlChar = await otaService.getCharacteristic(OTA_CONTROL_CHAR_UUID);
                     otaDataChar = await otaService.getCharacteristic(OTA_DATA_CHAR_UUID);
+                    await otaControlChar.startNotifications();
+                    otaControlChar.addEventListener('characteristicvaluechanged', onOtaControlNotify);
                     otaHasService = true;
                     otaLog('OTA service ready', 'success');
                 } catch (e) {
@@ -2271,6 +2287,7 @@
         });
 
         function onDisconnected() {
+            if (otaDisconnectResolve) { otaDisconnectResolve(true); otaDisconnectResolve = null; }
             updateStatus('OFFLINE', false);
             connectBtn.textContent = 'Connect';
             enableControls(false);
@@ -2280,6 +2297,8 @@
             updateStateUI();
             device = null; charCmd = null; charStatus = null; charData = null;
             otaControlChar = null; otaDataChar = null; otaHasService = false;
+            const fwChip = document.getElementById('fwChip');
+            if (fwChip) fwChip.style.display = 'none';
             otaUploading = false;
             updateOtaUI();
         }
@@ -2297,6 +2316,20 @@
 
         let otaFirmwareData = null;
         let otaUploading = false;
+        let otaDisconnectResolve = null; // resolves when BLE disconnects (reboot = OTA success)
+
+        function onOtaControlNotify(event) {
+            // Only used to catch OTA_STATUS_ERROR from firmware (logged but not blocking)
+            const bytes = new Uint8Array(event.target.value.buffer);
+            if (bytes[0] === OTA_STATUS_ERROR) otaLog('Device reported flash ERROR.', 'error');
+        }
+
+        function waitForDisconnect(timeoutMs = 20000) {
+            return new Promise(resolve => {
+                otaDisconnectResolve = resolve;
+                setTimeout(() => { if (otaDisconnectResolve) { otaDisconnectResolve = null; resolve(false); } }, timeoutMs);
+            });
+        }
 
         function updateOtaUI() {
             otaUploadBtn.disabled = !otaHasService || !otaFirmwareData || otaUploading;
@@ -2356,9 +2389,10 @@
             otaSetProgress(0);
 
             try {
-                // Compress if browser supports it (produces zlib format for esp32-flashz)
+                // Compress if browser supports it AND user hasn't disabled it
                 let dataToSend = otaFirmwareData;
-                let useCompression = typeof CompressionStream !== 'undefined';
+                const compressionCb = document.getElementById('otaUseCompression');
+                let useCompression = typeof CompressionStream !== 'undefined' && compressionCb && compressionCb.checked;
                 if (useCompression) {
                     otaLog(`Compressing ${otaFirmwareData.length} bytes...`, 'info');
                     dataToSend = await compressZlib(otaFirmwareData);
@@ -2366,14 +2400,29 @@
                     otaLog(`Compressed: ${dataToSend.length} bytes (${ratio}% smaller, ${(dataToSend.length/1024).toFixed(1)} KB)`, 'success');
                 }
 
-                const beginCmd = new Uint8Array(5);
-                beginCmd[0] = useCompression ? OTA_CMD_BEGIN_Z : OTA_CMD_BEGIN;
-                beginCmd[1] = dataToSend.length & 0xFF;
-                beginCmd[2] = (dataToSend.length >> 8) & 0xFF;
-                beginCmd[3] = (dataToSend.length >> 16) & 0xFF;
-                beginCmd[4] = (dataToSend.length >> 24) & 0xFF;
+                let beginCmd;
+                if (useCompression) {
+                    // 9 bytes: [cmd][usize:4][csize:4]
+                    // usize = original firmware size (for FlashZ Update.begin)
+                    // csize = compressed stream size (for progress/last-chunk detection)
+                    const usize = otaFirmwareData.length;
+                    const csize = dataToSend.length;
+                    beginCmd = new Uint8Array(9);
+                    beginCmd[0] = OTA_CMD_BEGIN_Z;
+                    beginCmd[1] = usize & 0xFF;        beginCmd[2] = (usize >> 8) & 0xFF;
+                    beginCmd[3] = (usize >> 16) & 0xFF; beginCmd[4] = (usize >> 24) & 0xFF;
+                    beginCmd[5] = csize & 0xFF;        beginCmd[6] = (csize >> 8) & 0xFF;
+                    beginCmd[7] = (csize >> 16) & 0xFF; beginCmd[8] = (csize >> 24) & 0xFF;
+                } else {
+                    beginCmd = new Uint8Array(5);
+                    beginCmd[0] = OTA_CMD_BEGIN;
+                    beginCmd[1] = dataToSend.length & 0xFF;
+                    beginCmd[2] = (dataToSend.length >> 8) & 0xFF;
+                    beginCmd[3] = (dataToSend.length >> 16) & 0xFF;
+                    beginCmd[4] = (dataToSend.length >> 24) & 0xFF;
+                }
 
-                otaLog(`Starting OTA${useCompression ? ' (zlib)' : ''}: ${dataToSend.length} bytes`, 'info');
+                otaLog(`Starting OTA${useCompression ? ` (zlib, ${(dataToSend.length/1024).toFixed(1)}KB → ${(otaFirmwareData.length/1024).toFixed(1)}KB)` : ''}: ${dataToSend.length} bytes`, 'info');
 
                 // OTA auto-disarms the robot
                 isArmed = false;
@@ -2402,11 +2451,19 @@
 
                 otaLog('All data sent. Finalizing...', 'info');
                 await sleep(500);
-
+                const disconnectPromise = waitForDisconnect(20000);
                 await otaControlChar.writeValueWithResponse(new Uint8Array([OTA_CMD_END]));
 
-                otaLog('OTA complete! Device will reboot.', 'success');
-                otaSetProgress(100);
+                // Success = device reboots = BLE disconnects
+                otaLog('Waiting for device to reboot (BLE disconnect)...', 'info');
+                const rebooted = await disconnectPromise;
+                if (rebooted) {
+                    otaLog('OTA complete! Device rebooted successfully.', 'success');
+                    otaSetProgress(100);
+                } else {
+                    otaLog('WARNING: Device did not disconnect after 20s — OTA likely failed (endz hang).', 'info');
+                    otaSetProgress(100);
+                }
 
             } catch (e) {
                 otaLog(`OTA failed: ${e.message}`, 'error');
