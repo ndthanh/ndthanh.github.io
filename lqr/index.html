@@ -1437,12 +1437,33 @@
         const OTA_CONTROL_CHAR_UUID = 'fb1e4002-54ae-4a28-9f74-dfccb248601d';
         const OTA_DATA_CHAR_UUID = 'fb1e4003-54ae-4a28-9f74-dfccb248601d';
 
-        const OTA_CMD_BEGIN = 0x01;
-        const OTA_CMD_END = 0x02;
-        const OTA_CMD_ABORT = 0x03;
-        const OTA_STATUS_OK = 0x01;
-        const OTA_STATUS_ERROR = 0x03;
+        const OTA_CMD_BEGIN   = 0x01;  // Uncompressed: [0x01, size[4]]
+        const OTA_CMD_END     = 0x02;
+        const OTA_CMD_ABORT   = 0x03;
+        const OTA_CMD_BEGIN_Z = 0x05;  // zlib compressed: [0x05, csize[4]]
+        const OTA_STATUS_OK       = 0x01;
+        const OTA_STATUS_ERROR    = 0x03;
         const OTA_CHUNK_SIZE = 512;
+
+        // Compress Uint8Array using zlib (deflate with header) — matches esp32-flashz
+        async function compressZlib(data) {
+            const cs = new CompressionStream('deflate');
+            const writer = cs.writable.getWriter();
+            const reader = cs.readable.getReader();
+            writer.write(data);
+            writer.close();
+            const chunks = [];
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(value);
+            }
+            const total = chunks.reduce((s, c) => s + c.length, 0);
+            const out = new Uint8Array(total);
+            let off = 0;
+            for (const c of chunks) { out.set(c, off); off += c.length; }
+            return out;
+        }
 
         let device = null, charCmd = null, charStatus = null, charData = null;
         let otaControlChar = null, otaDataChar = null;
@@ -1994,14 +2015,24 @@
             otaSetProgress(0);
 
             try {
-                const beginCmd = new Uint8Array(5);
-                beginCmd[0] = OTA_CMD_BEGIN;
-                beginCmd[1] = otaFirmwareData.length & 0xFF;
-                beginCmd[2] = (otaFirmwareData.length >> 8) & 0xFF;
-                beginCmd[3] = (otaFirmwareData.length >> 16) & 0xFF;
-                beginCmd[4] = (otaFirmwareData.length >> 24) & 0xFF;
+                // Compress if browser supports it (produces zlib format for esp32-flashz)
+                let dataToSend = otaFirmwareData;
+                let useCompression = typeof CompressionStream !== 'undefined';
+                if (useCompression) {
+                    otaLog(`Compressing ${otaFirmwareData.length} bytes...`, 'info');
+                    dataToSend = await compressZlib(otaFirmwareData);
+                    const ratio = (100 - dataToSend.length / otaFirmwareData.length * 100).toFixed(1);
+                    otaLog(`Compressed: ${dataToSend.length} bytes (${ratio}% smaller, ${(dataToSend.length/1024).toFixed(1)} KB)`, 'success');
+                }
 
-                otaLog(`Starting OTA: ${otaFirmwareData.length} bytes`, 'info');
+                const beginCmd = new Uint8Array(5);
+                beginCmd[0] = useCompression ? OTA_CMD_BEGIN_Z : OTA_CMD_BEGIN;
+                beginCmd[1] = dataToSend.length & 0xFF;
+                beginCmd[2] = (dataToSend.length >> 8) & 0xFF;
+                beginCmd[3] = (dataToSend.length >> 16) & 0xFF;
+                beginCmd[4] = (dataToSend.length >> 24) & 0xFF;
+
+                otaLog(`Starting OTA${useCompression ? ' (zlib)' : ''}: ${dataToSend.length} bytes`, 'info');
 
                 // OTA auto-disarms the robot
                 isArmed = false;
@@ -2010,11 +2041,11 @@
                 await otaControlChar.writeValueWithResponse(beginCmd);
                 await sleep(500);
 
-                const totalChunks = Math.ceil(otaFirmwareData.length / OTA_CHUNK_SIZE);
+                const totalChunks = Math.ceil(dataToSend.length / OTA_CHUNK_SIZE);
                 for (let i = 0; i < totalChunks; i++) {
                     const start = i * OTA_CHUNK_SIZE;
-                    const end = Math.min(start + OTA_CHUNK_SIZE, otaFirmwareData.length);
-                    const chunk = otaFirmwareData.slice(start, end);
+                    const end = Math.min(start + OTA_CHUNK_SIZE, dataToSend.length);
+                    const chunk = dataToSend.slice(start, end);
 
                     await otaDataChar.writeValueWithResponse(chunk);
 
