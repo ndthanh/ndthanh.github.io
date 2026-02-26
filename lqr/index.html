@@ -936,6 +936,244 @@
                 font-size: 16px;
             }
         }
+
+        /* ===== MACRO TAB ===== */
+        .macro-panel {
+            max-width: 640px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 100%;
+        }
+
+        .macro-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        .tbtn-record {
+            background: rgba(220, 53, 69, 0.2);
+            border: 2px solid rgba(220, 53, 69, 0.5);
+            color: #dc3545;
+        }
+
+        .tbtn-record.active {
+            background: rgba(220, 53, 69, 0.4);
+            border-color: #dc3545;
+            animation: rec-pulse 1s ease-in-out infinite;
+        }
+
+        .tbtn-play {
+            background: rgba(25, 135, 84, 0.2);
+            border: 2px solid rgba(25, 135, 84, 0.5);
+            color: #20c997;
+        }
+
+        .tbtn-play.active {
+            background: rgba(25, 135, 84, 0.4);
+            border-color: #20c997;
+        }
+
+        @keyframes rec-pulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(220, 53, 69, 0.4); }
+            50%       { box-shadow: 0 0 18px rgba(220, 53, 69, 0.8); }
+        }
+
+        .macro-loop-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+        }
+
+        .macro-status {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.4);
+            flex-shrink: 0;
+        }
+
+        .macro-step-list {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .macro-step-list::-webkit-scrollbar { width: 3px; }
+        .macro-step-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+
+        .macro-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 5px 10px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .macro-step.playing {
+            border-color: rgba(25, 135, 84, 0.6);
+            background: rgba(25, 135, 84, 0.1);
+        }
+
+        .macro-step-num {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            color: rgba(255,255,255,0.2);
+            width: 18px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .macro-step-icon {
+            font-size: 15px;
+            width: 22px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .macro-step-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            width: 65px;
+            flex-shrink: 0;
+        }
+
+        .macro-step-dur {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 4px;
+            color: #0d6efd;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            width: 68px;
+            text-align: right;
+            outline: none;
+        }
+
+        .macro-step-dur:focus { border-color: rgba(13,110,253,0.5); }
+
+        .macro-step-ms {
+            font-size: 9px;
+            color: rgba(255,255,255,0.25);
+            flex-shrink: 0;
+        }
+
+        .macro-step-del {
+            margin-left: auto;
+            background: transparent;
+            border: none;
+            color: rgba(220,53,69,0.4);
+            cursor: pointer;
+            font-size: 13px;
+            padding: 0 2px;
+            transition: color 0.2s;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        .macro-step-del:hover { color: #dc3545; }
+
+        .macro-empty {
+            text-align: center;
+            color: rgba(255,255,255,0.18);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            letter-spacing: 1px;
+            padding: 28px;
+        }
+
+        .macro-save-area {
+            border-top: 1px solid rgba(255,255,255,0.08);
+            padding-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .macro-save-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .macro-save-input {
+            flex: 1;
+            padding: 5px 8px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            background: rgba(0,0,0,0.3);
+            color: #e2e8f0;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .macro-save-input:focus { border-color: rgba(13,110,253,0.5); }
+        .macro-save-input::placeholder { color: rgba(255,255,255,0.2); }
+
+        .macro-saved-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            max-height: 72px;
+            overflow-y: auto;
+        }
+
+        .macro-saved-item {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px;
+            padding: 3px 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: border-color 0.2s;
+        }
+
+        .macro-saved-item:hover { border-color: rgba(13,110,253,0.4); }
+
+        .macro-saved-item-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            color: #4dabf7;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+        }
+
+        .macro-saved-item-del {
+            background: none;
+            border: none;
+            color: rgba(220,53,69,0.4);
+            cursor: pointer;
+            font-size: 10px;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .macro-saved-item-del:hover { color: #dc3545; }
     </style>
 </head>
 
@@ -947,6 +1185,7 @@
             <button class="tab-btn active" data-tab="tuner">Tuner</button>
             <button class="tab-btn" data-tab="controller">Controller</button>
             <button class="tab-btn" data-tab="ota">OTA</button>
+            <button class="tab-btn" data-tab="macro">Macro</button>
             <div id="statusBadge" class="status-badge"><span id="statusText">OFFLINE</span></div>
             <button id="connectBtn" class="tbtn tbtn-connect">Connect</button>
         </div>
@@ -1419,6 +1658,37 @@
                 </div>
             </div>
         </div>
+
+        <!-- TAB: MACRO -->
+        <div id="tabMacro" class="tab-content">
+            <div class="macro-panel">
+                <div class="macro-controls">
+                    <button id="macroRecordBtn" class="tbtn tbtn-record">&#9679; REC</button>
+                    <button id="macroPlayBtn" class="tbtn tbtn-play" disabled>&#9654; PLAY</button>
+                    <label class="macro-loop-toggle">
+                        <input type="checkbox" id="macroLoop" style="width:14px;height:14px;accent-color:#20c997;">
+                        LOOP
+                    </label>
+                    <div class="toolbar-spacer"></div>
+                    <button id="macroClearBtn" class="tbtn" style="background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.4)">&#10005; Clear</button>
+                </div>
+
+                <div id="macroStatus" class="macro-status">No steps — go to Controller tab and use D-pad while recording</div>
+
+                <div id="macroStepList" class="macro-step-list">
+                    <div class="macro-empty">No steps recorded</div>
+                </div>
+
+                <div class="macro-save-area">
+                    <div class="sec-title">Saved Macros</div>
+                    <div class="macro-save-row">
+                        <input type="text" id="macroSaveName" class="macro-save-input" placeholder="Macro name" maxlength="40">
+                        <button id="macroSaveBtn" class="tbtn" style="background:linear-gradient(135deg,#0d6efd,#6610f2);color:white;flex-shrink:0">Save</button>
+                    </div>
+                    <div id="macroSavedList" class="macro-saved-list"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div
@@ -1583,7 +1853,7 @@
 
         // ==================== TABS ====================
         const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabMap = { tuner: 'tabTuner', controller: 'tabController', ota: 'tabOta' };
+        const tabMap = { tuner: 'tabTuner', controller: 'tabController', ota: 'tabOta', macro: 'tabMacro' };
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -1829,11 +2099,32 @@
             return cmd;
         }
 
+        // ==================== MACRO STATE (shared with MACRO section below) ====================
+        let macroRecording = false;
+        let macroPlaying = false;
+        let macroCurrentCmd = null;
+        let macroCurrentStart = 0;
+        let macroCurrentSteps = [];
+        let macroPlayingIndex = -1;
+        let macroAbortController = null;
+
+        function macroOnCmdChange(rawCmd) {
+            if (!macroRecording) return;
+            const now = Date.now();
+            if (macroCurrentCmd !== null) {
+                const duration = now - macroCurrentStart;
+                if (duration >= 50) macroCurrentSteps.push({ cmd: macroCurrentCmd, duration });
+            }
+            macroCurrentCmd = rawCmd;
+            macroCurrentStart = now;
+        }
+
         // Movement buttons (press & hold with repeat)
         function setupMoveBtn(btn, pressCmd) {
             let interval = null;
             function press() {
                 if (btn.disabled) return;
+                macroOnCmdChange(pressCmd);
                 sendCmd(mapMoveCmd(pressCmd));
                 btn.classList.add('active');
                 if (interval) clearInterval(interval);
@@ -1841,6 +2132,7 @@
             }
             function release() {
                 if (interval) { clearInterval(interval); interval = null; }
+                macroOnCmdChange('x');
                 sendCmd('x');
                 btn.classList.remove('active');
             }
@@ -1855,7 +2147,7 @@
         setupMoveBtn(btnBack, 'b');
         setupMoveBtn(btnLeft, 'l');
         setupMoveBtn(btnRight, 'r');
-        btnStop.addEventListener('click', () => sendCmd('x'));
+        btnStop.addEventListener('click', () => { macroOnCmdChange('x'); sendCmd('x'); });
 
         // Keyboard WASD controls
         const keyMap = { w: { btn: btnFwd, cmd: 'f' }, s: { btn: btnBack, cmd: 'b' }, a: { btn: btnLeft, cmd: 'l' }, d: { btn: btnRight, cmd: 'r' } };
@@ -1863,10 +2155,11 @@
         document.addEventListener('keydown', e => {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             const k = e.key.toLowerCase();
-            if (k === 'x' || k === ' ') { sendCmd('x'); Object.values(keyMap).forEach(m => m.btn.classList.remove('active')); return; }
+            if (k === 'x' || k === ' ') { macroOnCmdChange('x'); sendCmd('x'); Object.values(keyMap).forEach(m => m.btn.classList.remove('active')); return; }
             const m = keyMap[k];
             if (!m || m.btn.disabled || keyHeld[k]) return;
             keyHeld[k] = true;
+            macroOnCmdChange(m.cmd);
             sendCmd(mapMoveCmd(m.cmd));
             m.btn.classList.add('active');
             m._interval = setInterval(() => sendCmd(mapMoveCmd(m.cmd)), 200);
@@ -1878,7 +2171,7 @@
             keyHeld[k] = false;
             if (m._interval) { clearInterval(m._interval); m._interval = null; }
             m.btn.classList.remove('active');
-            if (!Object.values(keyHeld).some(v => v)) sendCmd('x');
+            if (!Object.values(keyHeld).some(v => v)) { macroOnCmdChange('x'); sendCmd('x'); }
         });
 
         // ==================== BLE CONNECT ====================
@@ -2083,6 +2376,193 @@
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
+
+        // ==================== MACRO ====================
+        const MACRO_STORAGE_KEY = 'balancebot_macros';
+
+        const CMD_INFO = {
+            f: { icon: '▲', label: 'FORWARD', color: '#0d6efd' },
+            b: { icon: '▼', label: 'BACK',    color: '#0d6efd' },
+            l: { icon: '◀', label: 'LEFT',    color: '#0d6efd' },
+            r: { icon: '▶', label: 'RIGHT',   color: '#0d6efd' },
+            x: { icon: '■', label: 'STOP',    color: '#dc3545' },
+        };
+
+        const macroRecordBtn  = document.getElementById('macroRecordBtn');
+        const macroPlayBtn    = document.getElementById('macroPlayBtn');
+        const macroLoopEl     = document.getElementById('macroLoop');
+        const macroClearBtn   = document.getElementById('macroClearBtn');
+        const macroStatusEl   = document.getElementById('macroStatus');
+        const macroStepListEl = document.getElementById('macroStepList');
+        const macroSaveNameEl = document.getElementById('macroSaveName');
+        const macroSaveBtn    = document.getElementById('macroSaveBtn');
+        const macroSavedListEl= document.getElementById('macroSavedList');
+
+        function macroUpdateStatus() {
+            if (macroRecording) {
+                macroStatusEl.textContent = `● RECORDING — ${macroCurrentSteps.length} steps captured`;
+                macroStatusEl.style.color = '#dc3545';
+            } else if (macroPlaying) {
+                const loop = macroLoopEl.checked;
+                macroStatusEl.textContent = `▶ PLAYING${loop ? ' (LOOP)' : ''} — step ${macroPlayingIndex + 1} / ${macroCurrentSteps.length}`;
+                macroStatusEl.style.color = '#20c997';
+            } else {
+                const n = macroCurrentSteps.length;
+                const total = macroCurrentSteps.reduce((s, st) => s + st.duration, 0);
+                macroStatusEl.textContent = n > 0
+                    ? `${n} steps · ${(total / 1000).toFixed(1)}s total`
+                    : 'No steps — go to Controller tab and use D-pad while recording';
+                macroStatusEl.style.color = 'rgba(255,255,255,0.4)';
+            }
+        }
+
+        function macroRenderSteps() {
+            macroPlayBtn.disabled = macroCurrentSteps.length === 0;
+            if (macroCurrentSteps.length === 0) {
+                macroStepListEl.innerHTML = '<div class="macro-empty">No steps recorded</div>';
+                macroUpdateStatus();
+                return;
+            }
+            macroStepListEl.innerHTML = macroCurrentSteps.map((step, i) => {
+                const info = CMD_INFO[step.cmd] || CMD_INFO.x;
+                return `<div class="macro-step" id="macroStep${i}">
+                    <span class="macro-step-num">${i + 1}</span>
+                    <span class="macro-step-icon" style="color:${info.color}">${info.icon}</span>
+                    <span class="macro-step-label" style="color:${info.color}">${info.label}</span>
+                    <input type="number" class="macro-step-dur" value="${step.duration}" min="50" max="30000" step="50"
+                        onchange="macroCurrentSteps[${i}].duration = Math.max(50, parseInt(this.value)||50); macroUpdateStatus();">
+                    <span class="macro-step-ms">ms</span>
+                    <button class="macro-step-del" onclick="macroDeleteStep(${i})">✕</button>
+                </div>`;
+            }).join('');
+            macroUpdateStatus();
+        }
+
+        function macroDeleteStep(index) {
+            macroCurrentSteps.splice(index, 1);
+            macroRenderSteps();
+        }
+
+        macroRecordBtn.addEventListener('click', () => {
+            if (macroPlaying) return;
+            macroRecording = !macroRecording;
+            if (macroRecording) {
+                macroCurrentCmd = null;
+                macroCurrentStart = Date.now();
+                macroRecordBtn.textContent = '⬛ STOP REC';
+                macroRecordBtn.classList.add('active');
+                macroPlayBtn.disabled = true;
+            } else {
+                // Finalize last held step
+                if (macroCurrentCmd !== null) {
+                    const duration = Date.now() - macroCurrentStart;
+                    if (duration >= 50) macroCurrentSteps.push({ cmd: macroCurrentCmd, duration });
+                    macroCurrentCmd = null;
+                }
+                macroRecordBtn.textContent = '● REC';
+                macroRecordBtn.classList.remove('active');
+                macroRenderSteps();
+            }
+            macroUpdateStatus();
+        });
+
+        macroClearBtn.addEventListener('click', () => {
+            if (macroPlaying) macroStopPlayback();
+            if (macroRecording) {
+                macroRecording = false;
+                macroRecordBtn.textContent = '● REC';
+                macroRecordBtn.classList.remove('active');
+                macroCurrentCmd = null;
+            }
+            macroCurrentSteps = [];
+            macroRenderSteps();
+        });
+
+        macroPlayBtn.addEventListener('click', () => {
+            if (macroPlaying) { macroStopPlayback(); } else { macroStartPlayback(); }
+        });
+
+        async function macroStartPlayback() {
+            if (macroCurrentSteps.length === 0 || !charCmd) return;
+            macroPlaying = true;
+            macroPlayBtn.textContent = '⬛ STOP';
+            macroPlayBtn.classList.add('active');
+            macroRecordBtn.disabled = true;
+            const steps = [...macroCurrentSteps];
+            const ctrl = { aborted: false };
+            macroAbortController = ctrl;
+            do {
+                for (let i = 0; i < steps.length; i++) {
+                    if (ctrl.aborted) break;
+                    macroPlayingIndex = i;
+                    macroUpdateStatus();
+                    document.querySelectorAll('.macro-step').forEach((el, idx) => el.classList.toggle('playing', idx === i));
+                    const step = steps[i];
+                    await sendCmd(step.cmd === 'x' ? 'x' : mapMoveCmd(step.cmd));
+                    const end = Date.now() + step.duration;
+                    while (Date.now() < end && !ctrl.aborted) await sleep(Math.min(50, end - Date.now()));
+                }
+            } while (!ctrl.aborted && macroLoopEl.checked);
+            sendCmd('x');
+            macroPlaying = false;
+            macroPlayingIndex = -1;
+            macroPlayBtn.textContent = '▶ PLAY';
+            macroPlayBtn.classList.remove('active');
+            macroRecordBtn.disabled = false;
+            document.querySelectorAll('.macro-step').forEach(el => el.classList.remove('playing'));
+            macroUpdateStatus();
+        }
+
+        function macroStopPlayback() {
+            if (macroAbortController) macroAbortController.aborted = true;
+        }
+
+        macroSaveBtn.addEventListener('click', () => {
+            const name = macroSaveNameEl.value.trim();
+            if (!name || macroCurrentSteps.length === 0) return;
+            const macros = getMacros();
+            macros.unshift({ name, steps: [...macroCurrentSteps], ts: Date.now() });
+            saveMacros(macros);
+            macroSaveNameEl.value = '';
+            macroRenderSaved();
+        });
+
+        macroSaveNameEl.addEventListener('keydown', e => { if (e.key === 'Enter') macroSaveBtn.click(); });
+
+        function getMacros() {
+            try { return JSON.parse(localStorage.getItem(MACRO_STORAGE_KEY)) || []; } catch { return []; }
+        }
+        function saveMacros(m) { localStorage.setItem(MACRO_STORAGE_KEY, JSON.stringify(m)); }
+
+        function macroLoadSaved(index) {
+            const macros = getMacros();
+            if (!macros[index]) return;
+            macroCurrentSteps = [...macros[index].steps];
+            macroRenderSteps();
+        }
+
+        function macroDeleteSaved(index) {
+            const macros = getMacros();
+            macros.splice(index, 1);
+            saveMacros(macros);
+            macroRenderSaved();
+        }
+
+        function macroRenderSaved() {
+            const macros = getMacros();
+            if (macros.length === 0) {
+                macroSavedListEl.innerHTML = '<span style="font-size:10px;color:rgba(255,255,255,0.2)">No saved macros</span>';
+                return;
+            }
+            macroSavedListEl.innerHTML = macros.map((m, i) => `
+                <div class="macro-saved-item">
+                    <span class="macro-saved-item-name" onclick="macroLoadSaved(${i})" title="${m.steps.length} steps · ${(m.steps.reduce((s,st)=>s+st.duration,0)/1000).toFixed(1)}s">${esc(m.name)}</span>
+                    <button class="macro-saved-item-del" onclick="macroDeleteSaved(${i})">✕</button>
+                </div>`).join('');
+        }
+
+        macroRenderSaved();
+        macroUpdateStatus();
 
         // ==================== PROFILES ====================
         const PROF_STORAGE_KEY = 'balancebot_lqr_profiles';
