@@ -762,6 +762,24 @@
             animation: swing-pulse 0.8s ease-in-out infinite;
         }
 
+        /* Fake-fall button */
+        .tbtn-fake {
+            background: rgba(233, 30, 99, 0.15);
+            border: 2px solid rgba(233, 30, 99, 0.5);
+            color: #f48fb1;
+            font-size: 9px;
+            padding: 5px 12px;
+            transition: all 0.3s;
+        }
+        .tbtn-fake:disabled { opacity: 0.3; }
+        .tbtn-fake.active {
+            background: rgba(233, 30, 99, 0.3);
+            border-color: rgba(233, 30, 99, 0.9);
+            color: #f48fb1;
+            box-shadow: 0 0 14px rgba(233, 30, 99, 0.5);
+            animation: swing-pulse 0.8s ease-in-out infinite;
+        }
+
         @keyframes swing-pulse {
 
             0%,
@@ -803,6 +821,18 @@
             background: rgba(25, 135, 84, 0.2);
             border-color: rgba(25, 135, 84, 0.5);
             color: #20c997;
+        }
+
+        .state-badge.softland {
+            background: rgba(156, 39, 176, 0.2);
+            border-color: rgba(156, 39, 176, 0.5);
+            color: #ce93d8;
+        }
+
+        .state-badge.fakefall {
+            background: rgba(233, 30, 99, 0.2);
+            border-color: rgba(233, 30, 99, 0.5);
+            color: #f48fb1;
         }
 
         /* ===== CONTROLLER TAB ===== */
@@ -859,6 +889,10 @@
         .ctrl-card.state-swing .ctrl-card-val { color: #ffc107; }
         .ctrl-card.state-balance { border-color: rgba(13, 110, 253, 0.5); background: rgba(13, 110, 253, 0.1); }
         .ctrl-card.state-balance .ctrl-card-val { color: #4dabf7; }
+        .ctrl-card.state-softland { border-color: rgba(156, 39, 176, 0.5); background: rgba(156, 39, 176, 0.1); }
+        .ctrl-card.state-softland .ctrl-card-val { color: #ce93d8; }
+        .ctrl-card.state-fakefall { border-color: rgba(233, 30, 99, 0.5); background: rgba(233, 30, 99, 0.1); }
+        .ctrl-card.state-fakefall .ctrl-card-val { color: #f48fb1; }
 
         .ctrl-btns {
             display: grid;
@@ -1439,6 +1473,38 @@
                                 disabled
                             >
                         </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>K_fall</span><span
+                                    id="kFallVal"
+                                    class="pg-val"
+                                >0.80</span></div>
+                            <input
+                                type="range"
+                                id="kFall"
+                                class="slider"
+                                min="0"
+                                max="3"
+                                step="0.05"
+                                value="0.8"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Fake Catch °</span><span
+                                    id="fakeCatchVal"
+                                    class="pg-val"
+                                >35.0°</span></div>
+                            <input
+                                type="range"
+                                id="fakeCatch"
+                                class="slider"
+                                min="20"
+                                max="55"
+                                step="1"
+                                value="35"
+                                disabled
+                            >
+                        </div>
                     </div>
 
                     <div class="sec">
@@ -1491,10 +1557,16 @@
                 <div class="col-right">
                     <div class="sec-title" style="display:flex;align-items:center;justify-content:space-between;">
                         <span>Telemetry <span id="chartDt" class="chart-dt"></span></span>
-                        <button id="telemetryToggle" class="tbtn" disabled
-                            style="font-size:8px;padding:3px 8px;background:rgba(25,135,84,0.2);border:1px solid rgba(25,135,84,0.5);color:#20c997;">
-                            &#9646;&#9646; PAUSE
-                        </button>
+                        <div style="display:flex;gap:6px;">
+                            <button class="tbtn" onclick="clearChart()"
+                                style="font-size:8px;padding:3px 8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);">
+                                &#10005; CLEAR
+                            </button>
+                            <button id="telemetryToggle" class="tbtn" disabled
+                                style="font-size:8px;padding:3px 8px;background:rgba(25,135,84,0.2);border:1px solid rgba(25,135,84,0.5);color:#20c997;">
+                                &#9646;&#9646; PAUSE
+                            </button>
+                        </div>
                     </div>
                     <div class="charts-stack">
                         <div
@@ -1594,8 +1666,8 @@
                 <div class="ctrl-btns">
                     <button id="armBtn" class="tbtn tbtn-arm ctrl-big-btn" disabled>DISARMED</button>
                     <button id="swingBtn" class="tbtn tbtn-swing ctrl-big-btn" disabled>SWING UP</button>
+                    <button id="fakeFallBtn" class="tbtn tbtn-fake ctrl-big-btn" disabled>FAKE FALL</button>
                     <button id="zeroBtn" class="tbtn tbtn-zero ctrl-big-btn" disabled>Zero</button>
-                    <button class="tbtn ctrl-big-btn" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6)" onclick="clearChart()">Clear</button>
                 </div>
 
                 <!-- D-pad -->
@@ -1784,6 +1856,7 @@
         const connectBtn = document.getElementById('connectBtn');
         const armBtn = document.getElementById('armBtn');
         const swingBtn = document.getElementById('swingBtn');
+        const fakeFallBtn = document.getElementById('fakeFallBtn');
         const zeroBtn = document.getElementById('zeroBtn');
         // Controller tab status cards
         const ctrlConnCard = document.getElementById('ctrlConnCard');
@@ -1815,7 +1888,9 @@
             pitchOffset: { el: document.getElementById('pitchOffset'), val: document.getElementById('pitchOffsetVal'), cmd: 'O', fmt: 2, confirm: true },
             kSwing: { el: document.getElementById('kSwing'), val: document.getElementById('kSwingVal'), cmd: 'J', fmt: 2 },
             kDamping: { el: document.getElementById('kDamping'), val: document.getElementById('kDampingVal'), cmd: 'K', fmt: 3 },
-            swingMax: { el: document.getElementById('swingMax'), val: document.getElementById('swingMaxVal'), cmd: 'H', fmt: 1 }
+            swingMax: { el: document.getElementById('swingMax'), val: document.getElementById('swingMaxVal'), cmd: 'H', fmt: 1 },
+            kFall: { el: document.getElementById('kFall'), val: document.getElementById('kFallVal'), cmd: 'F', fmt: 2 },
+            fakeCatch: { el: document.getElementById('fakeCatch'), val: document.getElementById('fakeCatchVal'), cmd: 'N', fmt: 1, suffix: '°' }
         };
 
         if (!navigator.bluetooth) {
@@ -1864,6 +1939,7 @@
             zeroBtn.disabled = !enabled;
             armBtn.disabled = !enabled;
             swingBtn.disabled = !enabled;
+            fakeFallBtn.disabled = !enabled;
             btnFwd.disabled = !enabled;
             btnBack.disabled = !enabled;
             btnLeft.disabled = !enabled;
@@ -1881,14 +1957,15 @@
             ctrlArmCard.classList.toggle('armed', isArmed);
         }
 
-        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING'];
-        const STATE_CSS = ['', 'state-swing', 'state-balance'];
+        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'SOFT LAND', 'FAKE FALL'];
+        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-softland', 'state-fakefall'];
 
         function updateStateUI() {
-            const s = Math.min(robotState, 2);
+            const s = Math.min(robotState, STATE_NAMES.length - 1);
             swingBtn.classList.toggle('active', robotState === 1);
-            ctrlStateVal.textContent = STATE_NAMES[s];
-            ctrlStateCard.className = 'ctrl-card ' + STATE_CSS[s];
+            fakeFallBtn.classList.toggle('active', robotState === 4);
+            ctrlStateVal.textContent = STATE_NAMES[s] || String(robotState);
+            ctrlStateCard.className = 'ctrl-card ' + (STATE_CSS[s] || '');
         }
 
         // ==================== TABS ====================
@@ -2050,6 +2127,8 @@
             if (data.J !== undefined) { sliders.kSwing.el.value = data.J; sliders.kSwing.val.textContent = data.J.toFixed(2); }
             if (data.K !== undefined) { sliders.kDamping.el.value = data.K; sliders.kDamping.val.textContent = data.K.toFixed(3); }
             if (data.H !== undefined) { sliders.swingMax.el.value = data.H; sliders.swingMax.val.textContent = data.H.toFixed(1); }
+            if (data.F !== undefined) { sliders.kFall.el.value = data.F; sliders.kFall.val.textContent = data.F.toFixed(2); }
+            if (data.N !== undefined) { sliders.fakeCatch.el.value = data.N; sliders.fakeCatch.val.textContent = data.N.toFixed(1) + '°'; }
             if (data.armed !== undefined) {
                 isArmed = data.armed === 1;
                 updateArmUI();
@@ -2102,7 +2181,7 @@
 
         // Slider input/change handlers
         Object.entries(sliders).forEach(([k, s]) => {
-            s.el.addEventListener('input', () => s.val.textContent = parseFloat(s.el.value).toFixed(s.fmt));
+            s.el.addEventListener('input', () => s.val.textContent = parseFloat(s.el.value).toFixed(s.fmt) + (s.suffix || ''));
             s.el.addEventListener('change', async () => {
                 sendCmd(s.cmd + s.el.value);
                 if (s.confirm) {
@@ -2123,6 +2202,11 @@
         // Swing-up button
         swingBtn.addEventListener('click', async () => {
             await sendCmd('U1');
+        });
+
+        // Fake fall button — Z0 = auto direction (follows current lean)
+        fakeFallBtn.addEventListener('click', async () => {
+            await sendCmd('Z0');
         });
 
         // Zero button
