@@ -1474,18 +1474,50 @@
                             >
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>K_fall</span><span
-                                    id="kFallVal"
+                            <div class="pg-label"><span>Brake Torque (V)</span><span
+                                    id="brakeTorqueVal"
                                     class="pg-val"
-                                >0.80</span></div>
+                                >3.00</span></div>
                             <input
                                 type="range"
-                                id="kFall"
+                                id="brakeTorque"
                                 class="slider"
                                 min="0"
-                                max="3"
-                                step="0.05"
-                                value="0.8"
+                                max="8"
+                                step="0.1"
+                                value="3.0"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Brake Angle (°)</span><span
+                                    id="brakeAngleVal"
+                                    class="pg-val"
+                                >50.0°</span></div>
+                            <input
+                                type="range"
+                                id="brakeAngle"
+                                class="slider"
+                                min="20"
+                                max="80"
+                                step="1"
+                                value="50"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Brake Duration (ms)</span><span
+                                    id="brakeMsVal"
+                                    class="pg-val"
+                                >150ms</span></div>
+                            <input
+                                type="range"
+                                id="brakeMs"
+                                class="slider"
+                                min="50"
+                                max="500"
+                                step="10"
+                                value="150"
                                 disabled
                             >
                         </div>
@@ -1889,7 +1921,9 @@
             kSwing: { el: document.getElementById('kSwing'), val: document.getElementById('kSwingVal'), cmd: 'J', fmt: 2 },
             kDamping: { el: document.getElementById('kDamping'), val: document.getElementById('kDampingVal'), cmd: 'K', fmt: 3 },
             swingMax: { el: document.getElementById('swingMax'), val: document.getElementById('swingMaxVal'), cmd: 'H', fmt: 1 },
-            kFall: { el: document.getElementById('kFall'), val: document.getElementById('kFallVal'), cmd: 'F', fmt: 2 },
+            brakeTorque: { el: document.getElementById('brakeTorque'), val: document.getElementById('brakeTorqueVal'), cmd: 'F', fmt: 2 },
+            brakeAngle:  { el: document.getElementById('brakeAngle'),  val: document.getElementById('brakeAngleVal'),  cmd: 'D', fmt: 1, suffix: '°' },
+            brakeMs:     { el: document.getElementById('brakeMs'),     val: document.getElementById('brakeMsVal'),     cmd: 'R', fmt: 0, suffix: 'ms' },
             fakeCatch: { el: document.getElementById('fakeCatch'), val: document.getElementById('fakeCatchVal'), cmd: 'N', fmt: 1, suffix: '°' }
         };
 
@@ -2127,7 +2161,9 @@
             if (data.J !== undefined) { sliders.kSwing.el.value = data.J; sliders.kSwing.val.textContent = data.J.toFixed(2); }
             if (data.K !== undefined) { sliders.kDamping.el.value = data.K; sliders.kDamping.val.textContent = data.K.toFixed(3); }
             if (data.H !== undefined) { sliders.swingMax.el.value = data.H; sliders.swingMax.val.textContent = data.H.toFixed(1); }
-            if (data.F !== undefined) { sliders.kFall.el.value = data.F; sliders.kFall.val.textContent = data.F.toFixed(2); }
+            if (data.F !== undefined) { sliders.brakeTorque.el.value = data.F; sliders.brakeTorque.val.textContent = data.F.toFixed(2); }
+            if (data.D !== undefined) { sliders.brakeAngle.el.value = data.D; sliders.brakeAngle.val.textContent = data.D.toFixed(1) + '°'; }
+            if (data.R !== undefined) { sliders.brakeMs.el.value = data.R; sliders.brakeMs.val.textContent = data.R.toFixed(0) + 'ms'; }
             if (data.N !== undefined) { sliders.fakeCatch.el.value = data.N; sliders.fakeCatch.val.textContent = data.N.toFixed(1) + '°'; }
             if (data.armed !== undefined) {
                 isArmed = data.armed === 1;
