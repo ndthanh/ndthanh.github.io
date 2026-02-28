@@ -1416,10 +1416,26 @@
                             >
                         </div>
                         <div class="pg">
+                            <div class="pg-label"><span>Steer Max Torque (v)</span><span
+                                    id="steerMaxTorqueVal"
+                                    class="pg-val"
+                                >5.0</span></div>
+                            <input
+                                type="range"
+                                id="steerMaxTorque"
+                                class="slider"
+                                min="0"
+                                max="9"
+                                step="0.1"
+                                value="5"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
                             <div class="pg-label"><span>Move Speed</span><span
                                     id="moveSpeedVal"
                                     class="pg-val"
-                                >50.0</span></div>
+                                >500.0</span></div>
                             <input
                                 type="range"
                                 id="moveSpeed"
@@ -1427,7 +1443,23 @@
                                 min="1"
                                 max="500"
                                 step="0.5"
-                                value="100"
+                                value="500"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Move Pitch Gain (p)</span><span
+                                    id="movePitchGainVal"
+                                    class="pg-val"
+                                >0.0</span></div>
+                            <input
+                                type="range"
+                                id="movePitchGain"
+                                class="slider"
+                                min="0"
+                                max="10"
+                                step="0.1"
+                                value="0"
                                 disabled
                             >
                         </div>
@@ -1477,7 +1509,7 @@
                             <div class="pg-label"><span>Vel Gain (c)</span><span
                                     id="crawlVelGainVal"
                                     class="pg-val"
-                                >0.080</span></div>
+                                >0.500</span></div>
                             <input
                                 type="range"
                                 id="crawlVelGain"
@@ -1485,7 +1517,7 @@
                                 min="0"
                                 max="0.5"
                                 step="0.005"
-                                value="0.08"
+                                value="0.5"
                                 disabled
                             >
                         </div>
@@ -1493,7 +1525,7 @@
                             <div class="pg-label"><span>Max Torque (o)</span><span
                                     id="crawlMaxTorqueVal"
                                     class="pg-val"
-                                >2.00</span></div>
+                                >4.00</span></div>
                             <input
                                 type="range"
                                 id="crawlMaxTorque"
@@ -1501,7 +1533,43 @@
                                 min="0"
                                 max="6"
                                 step="0.1"
-                                value="2.0"
+                                value="4.0"
+                                disabled
+                            >
+                        </div>
+                    </div>
+
+                    <div class="sec">
+                        <div class="sec-title">Stand-Up (Fallen → push to upright)</div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Push Torque (e)</span><span
+                                    id="standUpTorqueVal"
+                                    class="pg-val"
+                                >3.50</span></div>
+                            <input
+                                type="range"
+                                id="standUpTorque"
+                                class="slider"
+                                min="0"
+                                max="8"
+                                step="0.1"
+                                value="3.5"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Timeout ms (n)</span><span
+                                    id="standUpMsVal"
+                                    class="pg-val"
+                                >800</span></div>
+                            <input
+                                type="range"
+                                id="standUpMs"
+                                class="slider"
+                                min="100"
+                                max="2000"
+                                step="50"
+                                value="800"
                                 disabled
                             >
                         </div>
@@ -1786,6 +1854,7 @@
                 <div class="ctrl-btns">
                     <button id="armBtn" class="tbtn tbtn-arm ctrl-big-btn" disabled>DISARMED</button>
                     <button id="swingBtn" class="tbtn tbtn-swing ctrl-big-btn" disabled>SWING UP</button>
+                    <button id="standUpBtn" class="tbtn ctrl-big-btn" style="background:rgba(156,39,176,0.15);color:#ce93d8;border:1px solid rgba(156,39,176,0.4);" disabled>STAND UP</button>
                     <button id="fakeFallBtn" class="tbtn tbtn-fake ctrl-big-btn" disabled>FAKE FALL</button>
                     <button id="zeroBtn" class="tbtn tbtn-zero ctrl-big-btn" disabled>Zero</button>
                 </div>
@@ -1997,6 +2066,7 @@
         const armBtn = document.getElementById('armBtn');
         const swingBtn = document.getElementById('swingBtn');
         const fakeFallBtn = document.getElementById('fakeFallBtn');
+        const standUpBtn = document.getElementById('standUpBtn');
         const zeroBtn = document.getElementById('zeroBtn');
         // Controller tab status cards
         const ctrlConnCard = document.getElementById('ctrlConnCard');
@@ -2025,8 +2095,10 @@
             steerGain:  { el: document.getElementById('steerGain'),  val: document.getElementById('steerGainVal'),  cmd: 'G', fmt: 3 },
             steerKi:    { el: document.getElementById('steerKi'),    val: document.getElementById('steerKiVal'),    cmd: 'I', fmt: 4 },
             steerScale: { el: document.getElementById('steerScale'), val: document.getElementById('steerScaleVal'), cmd: 'X', fmt: 2 },
-            steerLpf:   { el: document.getElementById('steerLpf'),   val: document.getElementById('steerLpfVal'),   cmd: 'Q', fmt: 2 },
-            moveSpeed: { el: document.getElementById('moveSpeed'), val: document.getElementById('moveSpeedVal'), cmd: 'M', fmt: 1 },
+            steerLpf:        { el: document.getElementById('steerLpf'),        val: document.getElementById('steerLpfVal'),        cmd: 'Q', fmt: 2 },
+            steerMaxTorque:  { el: document.getElementById('steerMaxTorque'),  val: document.getElementById('steerMaxTorqueVal'),  cmd: 'v', fmt: 2 },
+            moveSpeed:       { el: document.getElementById('moveSpeed'),       val: document.getElementById('moveSpeedVal'),       cmd: 'M', fmt: 1 },
+            movePitchGain:   { el: document.getElementById('movePitchGain'),   val: document.getElementById('movePitchGainVal'),   cmd: 'p', fmt: 1 },
             ctrlFreq: { el: document.getElementById('ctrlFreq'), val: document.getElementById('ctrlFreqVal'), cmd: 'C', fmt: 0 },
             pitchOffset: { el: document.getElementById('pitchOffset'), val: document.getElementById('pitchOffsetVal'), cmd: 'O', fmt: 2, confirm: true },
             kSwing: { el: document.getElementById('kSwing'), val: document.getElementById('kSwingVal'), cmd: 'J', fmt: 2 },
@@ -2037,7 +2109,9 @@
             brakeMs:     { el: document.getElementById('brakeMs'),     val: document.getElementById('brakeMsVal'),     cmd: 'R', fmt: 0, suffix: 'ms' },
             fakeCatch: { el: document.getElementById('fakeCatch'), val: document.getElementById('fakeCatchVal'), cmd: 'N', fmt: 1, suffix: '°' },
             crawlVelGain:   { el: document.getElementById('crawlVelGain'),   val: document.getElementById('crawlVelGainVal'),   cmd: 'c', fmt: 3 },
-            crawlMaxTorque: { el: document.getElementById('crawlMaxTorque'), val: document.getElementById('crawlMaxTorqueVal'), cmd: 'o', fmt: 2 }
+            crawlMaxTorque: { el: document.getElementById('crawlMaxTorque'), val: document.getElementById('crawlMaxTorqueVal'), cmd: 'o', fmt: 2 },
+            standUpTorque:  { el: document.getElementById('standUpTorque'),  val: document.getElementById('standUpTorqueVal'),  cmd: 'e', fmt: 2 },
+            standUpMs:      { el: document.getElementById('standUpMs'),      val: document.getElementById('standUpMsVal'),      cmd: 'n', fmt: 0, suffix: 'ms' }
         };
 
         if (!navigator.bluetooth) {
@@ -2087,6 +2161,7 @@
             armBtn.disabled = !enabled;
             swingBtn.disabled = !enabled;
             fakeFallBtn.disabled = !enabled;
+            standUpBtn.disabled = !enabled;
             btnFwd.disabled = !enabled;
             btnBack.disabled = !enabled;
             btnLeft.disabled = !enabled;
@@ -2104,13 +2179,14 @@
             ctrlArmCard.classList.toggle('armed', isArmed);
         }
 
-        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'SOFT LAND', 'FAKE FALL'];
-        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-softland', 'state-fakefall'];
+        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'SOFT LAND', 'FAKE FALL', 'STAND UP'];
+        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-softland', 'state-fakefall', 'state-swing'];
 
         function updateStateUI() {
             const s = Math.min(robotState, STATE_NAMES.length - 1);
             swingBtn.classList.toggle('active', robotState === 1);
             fakeFallBtn.classList.toggle('active', robotState === 4);
+            standUpBtn.classList.toggle('active', robotState === 5);
             ctrlStateVal.textContent = STATE_NAMES[s] || String(robotState);
             ctrlStateCard.className = 'ctrl-card ' + (STATE_CSS[s] || '');
         }
@@ -2287,6 +2363,10 @@
             if (data.N !== undefined) { sliders.fakeCatch.el.value = data.N; sliders.fakeCatch.val.textContent = data.N.toFixed(1) + '°'; }
             if (data.c !== undefined) { sliders.crawlVelGain.el.value = data.c; sliders.crawlVelGain.val.textContent = data.c.toFixed(3); }
             if (data.o !== undefined) { sliders.crawlMaxTorque.el.value = data.o; sliders.crawlMaxTorque.val.textContent = data.o.toFixed(2); }
+            if (data.e !== undefined) { sliders.standUpTorque.el.value = data.e; sliders.standUpTorque.val.textContent = data.e.toFixed(2); }
+            if (data.n !== undefined) { sliders.standUpMs.el.value = data.n; sliders.standUpMs.val.textContent = data.n.toFixed(0) + 'ms'; }
+            if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(2); }
+            if (data.p !== undefined) { sliders.movePitchGain.el.value = data.p; sliders.movePitchGain.val.textContent = data.p.toFixed(1); }
             if (data.armed !== undefined) {
                 isArmed = data.armed === 1;
                 updateArmUI();
@@ -2365,6 +2445,10 @@
         // Fake fall button — Z0 = auto direction (follows current lean)
         fakeFallBtn.addEventListener('click', async () => {
             await sendCmd('Z0');
+        });
+
+        standUpBtn.addEventListener('click', async () => {
+            await sendCmd('u0');
         });
 
         // Zero button
