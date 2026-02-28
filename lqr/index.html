@@ -1400,6 +1400,22 @@
                             >
                         </div>
                         <div class="pg">
+                            <div class="pg-label"><span>Steer LPF τ (Q)</span><span
+                                    id="steerLpfVal"
+                                    class="pg-val"
+                                >0.40</span></div>
+                            <input
+                                type="range"
+                                id="steerLpf"
+                                class="slider"
+                                min="0"
+                                max="1"
+                                step="0.02"
+                                value="0.4"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
                             <div class="pg-label"><span>Move Speed</span><span
                                     id="moveSpeedVal"
                                     class="pg-val"
@@ -2009,6 +2025,7 @@
             steerGain:  { el: document.getElementById('steerGain'),  val: document.getElementById('steerGainVal'),  cmd: 'G', fmt: 3 },
             steerKi:    { el: document.getElementById('steerKi'),    val: document.getElementById('steerKiVal'),    cmd: 'I', fmt: 4 },
             steerScale: { el: document.getElementById('steerScale'), val: document.getElementById('steerScaleVal'), cmd: 'X', fmt: 2 },
+            steerLpf:   { el: document.getElementById('steerLpf'),   val: document.getElementById('steerLpfVal'),   cmd: 'Q', fmt: 2 },
             moveSpeed: { el: document.getElementById('moveSpeed'), val: document.getElementById('moveSpeedVal'), cmd: 'M', fmt: 1 },
             ctrlFreq: { el: document.getElementById('ctrlFreq'), val: document.getElementById('ctrlFreqVal'), cmd: 'C', fmt: 0 },
             pitchOffset: { el: document.getElementById('pitchOffset'), val: document.getElementById('pitchOffsetVal'), cmd: 'O', fmt: 2, confirm: true },
@@ -2248,6 +2265,7 @@
             if (data.G !== undefined) { sliders.steerGain.el.value = data.G; sliders.steerGain.val.textContent = data.G.toFixed(3); }
             if (data.I !== undefined) { sliders.steerKi.el.value = data.I; sliders.steerKi.val.textContent = data.I.toFixed(4); }
             if (data.X !== undefined) { sliders.steerScale.el.value = data.X; sliders.steerScale.val.textContent = data.X.toFixed(2); }
+            if (data.Q !== undefined) { sliders.steerLpf.el.value = data.Q; sliders.steerLpf.val.textContent = data.Q.toFixed(2); }
             if (data.M !== undefined) { sliders.moveSpeed.el.value = data.M; sliders.moveSpeed.val.textContent = data.M.toFixed(1); }
             if (data.C !== undefined) { sliders.ctrlFreq.el.value = data.C; sliders.ctrlFreq.val.textContent = data.C.toFixed(0); }
             if (data.O !== undefined) {
