@@ -1,3005 +1,1408 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-    <title>BalanceBot LQR Tuner</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Rajdhani', sans-serif;
-            background: #0a0e27;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 12px;
-            overflow: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background:
-                radial-gradient(ellipse at top, rgba(13, 110, 253, 0.15), transparent 50%),
-                radial-gradient(ellipse at bottom, rgba(220, 53, 69, 0.15), transparent 50%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .container {
-            background: rgba(15, 20, 40, 0.85);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(13, 110, 253, 0.3);
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            padding: 16px 20px;
-            max-width: 1100px;
-            width: 100%;
-            height: calc(100vh - 24px);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ===== TOOLBAR ===== */
-        .toolbar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-            flex-shrink: 0;
-        }
-
-        .toolbar-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 14px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #0d6efd, #6610f2, #d63384);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            white-space: nowrap;
-        }
-
-        .tab-btn {
-            padding: 4px 10px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 5px;
-            background: transparent;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 8px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.4);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .tab-btn.active {
-            background: rgba(13, 110, 253, 0.2);
-            border-color: rgba(13, 110, 253, 0.5);
-            color: #0d6efd;
-        }
-
-        .tab-btn:hover:not(.active) {
-            border-color: rgba(255, 255, 255, 0.3);
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .tab-content {
-            display: none;
-            flex: 1;
-            min-height: 0;
-        }
-
-        .tab-content.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .status-badge {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            padding: 4px 10px;
-            border-radius: 6px;
-            background: rgba(220, 53, 69, 0.2);
-            border: 1px solid rgba(220, 53, 69, 0.5);
-            color: #dc3545;
-            white-space: nowrap;
-            transition: all 0.3s;
-        }
-
-        .status-badge.connected {
-            background: rgba(25, 135, 84, 0.2);
-            border-color: rgba(25, 135, 84, 0.6);
-            color: #198754;
-            box-shadow: 0 0 10px rgba(25, 135, 84, 0.3);
-        }
-
-        .tbtn {
-            padding: 5px 12px;
-            border: none;
-            border-radius: 6px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
-
-        .tbtn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .tbtn-connect {
-            background: linear-gradient(135deg, #0d6efd, #6610f2);
-            color: white;
-        }
-
-        .tbtn-zero {
-            background: linear-gradient(135deg, #198754, #20c997);
-            color: white;
-        }
-
-        /* ARM button */
-        .tbtn-arm {
-            background: rgba(220, 53, 69, 0.2);
-            border: 2px solid rgba(220, 53, 69, 0.6);
-            color: #dc3545;
-            font-size: 10px;
-            padding: 5px 14px;
-            transition: all 0.3s;
-        }
-
-        .tbtn-arm.armed {
-            background: rgba(25, 135, 84, 0.3);
-            border-color: rgba(25, 135, 84, 0.8);
-            color: #20c997;
-            box-shadow: 0 0 12px rgba(25, 135, 84, 0.4);
-        }
-
-        .toolbar-sep {
-            width: 1px;
-            height: 24px;
-            background: rgba(255, 255, 255, 0.15);
-            flex-shrink: 0;
-        }
-
-        /* Movement D-pad */
-        .move-pad {
-            display: grid;
-            grid-template-columns: repeat(3, 28px);
-            grid-template-rows: repeat(3, 28px);
-            gap: 3px;
-            flex-shrink: 0;
-        }
-
-        .move-pad .mbtn {
-            border: none;
-            border-radius: 5px;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.15s;
-            padding: 0;
-        }
-
-        .move-pad .mbtn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .move-pad .mbtn.dir {
-            background: rgba(13, 110, 253, 0.2);
-            border: 1px solid rgba(13, 110, 253, 0.4);
-            color: #0d6efd;
-        }
-
-        .move-pad .mbtn.dir:active:not(:disabled),
-        .move-pad .mbtn.dir.active {
-            background: #0d6efd;
-            color: white;
-        }
-
-        .move-pad .mbtn.stp {
-            background: rgba(220, 53, 69, 0.2);
-            border: 1px solid rgba(220, 53, 69, 0.4);
-            color: #dc3545;
-            font-size: 10px;
-        }
-
-        .move-pad .empty {
-            background: transparent;
-            border: none;
-        }
-
-        .toolbar-spacer {
-            flex: 1;
-        }
-
-        .tuner-toolbar {
-            display: contents;
-        }
-
-        .tuner-toolbar.hidden {
-            display: none;
-        }
-
-        .error {
-            background: rgba(220, 53, 69, 0.2);
-            border: 1px solid rgba(220, 53, 69, 0.5);
-            color: #dc3545;
-            padding: 6px 10px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            font-size: 11px;
-            display: none;
-            flex-shrink: 0;
-        }
-
-        .error.show {
-            display: block;
-        }
-
-        .zero-info {
-            background: rgba(25, 135, 84, 0.15);
-            border: 1px solid rgba(25, 135, 84, 0.4);
-            color: #20c997;
-            padding: 4px 10px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 9px;
-            letter-spacing: 1px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        /* ===== MAIN LAYOUT ===== */
-        .main {
-            display: flex;
-            gap: 16px;
-            flex: 1;
-            min-height: 0;
-        }
-
-        .col-left {
-            width: 280px;
-            flex-shrink: 0;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
-
-        .col-left::-webkit-scrollbar {
-            width: 3px;
-        }
-
-        .col-left::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 3px;
-        }
-
-        .col-right {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* ===== SLIDER SECTIONS ===== */
-        .sec-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 10px;
-            font-weight: 700;
-            color: #0d6efd;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            margin-bottom: 6px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid rgba(13, 110, 253, 0.25);
-        }
-
-        .sec {
-            margin-bottom: 12px;
-        }
-
-        .pg {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 6px;
-            padding: 6px 8px;
-            margin-bottom: 4px;
-        }
-
-        .pg-label {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .pg-val {
-            font-family: 'Orbitron', sans-serif;
-            color: #0d6efd;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .slider {
-            width: 100%;
-            height: 4px;
-            border-radius: 2px;
-            background: rgba(255, 255, 255, 0.1);
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #0d6efd, #6610f2);
-            cursor: pointer;
-        }
-
-        .slider:disabled {
-            opacity: 0.3;
-        }
-
-        /* ===== CHARTS ===== */
-        .charts-stack {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            min-height: 0;
-        }
-
-        .mini-chart {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            padding: 4px 8px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            min-height: 0;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-
-        .mini-chart.saturated {
-            border-color: rgba(220, 53, 69, 0.7);
-            box-shadow: 0 0 10px rgba(220, 53, 69, 0.3);
-        }
-
-        .mini-chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .mini-chart-label {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-
-        .mini-chart-val {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 9px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .mini-chart-canvas {
-            flex: 1;
-            position: relative;
-            min-height: 0;
-        }
-
-        .chart-dt {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 8px;
-            color: rgba(255, 255, 255, 0.5);
-            letter-spacing: 1px;
-            margin-left: 8px;
-        }
-
-        .sat-badge {
-            display: none;
-            position: absolute;
-            top: 4px;
-            left: 8px;
-            background: rgba(220, 53, 69, 0.8);
-            color: white;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 8px;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 3px;
-            letter-spacing: 1px;
-        }
-
-        .mini-chart.saturated .sat-badge {
-            display: block;
-        }
-
-        /* ===== OTA TAB ===== */
-        .ota-panel {
-            max-width: 500px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .ota-file-drop {
-            border: 2px dashed rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 32px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 16px;
-        }
-
-        .ota-file-drop:hover,
-        .ota-file-drop.dragover {
-            border-color: rgba(13, 110, 253, 0.5);
-            background: rgba(13, 110, 253, 0.05);
-        }
-
-        .ota-file-drop.has-file {
-            border-color: rgba(25, 135, 84, 0.5);
-            background: rgba(25, 135, 84, 0.05);
-        }
-
-        .ota-file-icon {
-            font-size: 32px;
-            margin-bottom: 8px;
-            opacity: 0.5;
-        }
-
-        .ota-file-text {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .ota-file-name {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 10px;
-            color: #20c997;
-            margin-top: 8px;
-            letter-spacing: 0.5px;
-        }
-
-        .ota-progress {
-            margin-bottom: 16px;
-        }
-
-        .ota-progress-bg {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 6px;
-        }
-
-        .ota-progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #0d6efd, #20c997);
-            border-radius: 4px;
-            width: 0%;
-            transition: width 0.3s;
-        }
-
-        .ota-progress-text {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.6);
-            text-align: center;
-            letter-spacing: 1px;
-        }
-
-        .ota-upload-btn {
-            width: 100%;
-            padding: 10px;
-            background: linear-gradient(135deg, #198754, #20c997);
-            color: white;
-            font-size: 11px;
-            margin-bottom: 16px;
-        }
-
-        .ota-log {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            padding: 10px;
-            max-height: 240px;
-            overflow-y: auto;
-            font-family: 'SF Mono', 'Fira Code', monospace;
-            font-size: 11px;
-            line-height: 1.6;
-        }
-
-        .ota-log::-webkit-scrollbar {
-            width: 3px;
-        }
-
-        .ota-log::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 3px;
-        }
-
-        .ota-log-entry {
-            color: rgba(255, 255, 255, 0.4);
-        }
-
-        .ota-log-entry.info {
-            color: #4dabf7;
-        }
-
-        .ota-log-entry.success {
-            color: #20c997;
-        }
-
-        .ota-log-entry.error {
-            color: #dc3545;
-        }
-
-        /* ===== PROFILES ===== */
-        .prof-bar {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 6px;
-        }
-
-        .prof-bar .tbtn {
-            flex: 1;
-            font-size: 8px;
-            padding: 4px 6px;
-        }
-
-        .prof-save-form {
-            display: none;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(13, 110, 253, 0.3);
-            border-radius: 6px;
-            padding: 8px;
-            margin-bottom: 6px;
-        }
-
-        .prof-save-form.show {
-            display: block;
-        }
-
-        .prof-input {
-            width: 100%;
-            padding: 5px 8px;
-            margin-bottom: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 4px;
-            background: rgba(0, 0, 0, 0.3);
-            color: #e2e8f0;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 12px;
-            outline: none;
-        }
-
-        .prof-input:focus {
-            border-color: rgba(13, 110, 253, 0.5);
-        }
-
-        .prof-input::placeholder {
-            color: rgba(255, 255, 255, 0.25);
-        }
-
-        .prof-save-btns {
-            display: flex;
-            gap: 4px;
-        }
-
-        .prof-save-btns .tbtn {
-            flex: 1;
-            font-size: 8px;
-            padding: 4px 6px;
-        }
-
-        .prof-list {
-            max-height: 160px;
-            overflow-y: auto;
-        }
-
-        .prof-list::-webkit-scrollbar {
-            width: 3px;
-        }
-
-        .prof-list::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 3px;
-        }
-
-        .prof-item {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 6px;
-            padding: 6px 8px;
-            margin-bottom: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .prof-item:hover {
-            border-color: rgba(13, 110, 253, 0.3);
-        }
-
-        .prof-item-name {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 9px;
-            font-weight: 700;
-            color: #0d6efd;
-            letter-spacing: 0.5px;
-        }
-
-        .prof-item-desc {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.4);
-            margin-top: 2px;
-            line-height: 1.3;
-        }
-
-        .prof-item-actions {
-            display: flex;
-            gap: 4px;
-            margin-top: 4px;
-        }
-
-        .prof-item-actions .tbtn {
-            font-size: 7px;
-            padding: 2px 8px;
-        }
-
-        .prof-item.loading {
-            border-color: rgba(25, 135, 84, 0.5);
-            background: rgba(25, 135, 84, 0.05);
-        }
-
-        .prof-empty {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.25);
-            text-align: center;
-            padding: 8px;
-        }
-
-        .prof-active {
-            background: rgba(13, 110, 253, 0.1);
-            border: 1px solid rgba(13, 110, 253, 0.3);
-            border-radius: 6px;
-            padding: 5px 8px;
-            margin-bottom: 8px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 8px;
-            font-weight: 700;
-            color: #0d6efd;
-            letter-spacing: 0.5px;
-            text-align: center;
-        }
-
-        .prof-loaded-toast {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(25, 135, 84, 0.9);
-            color: white;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            padding: 8px 20px;
-            border-radius: 8px;
-            z-index: 100;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
-
-        .prof-loaded-toast.show {
-            opacity: 1;
-        }
-
-        /* Swing-up button */
-        .tbtn-swing {
-            background: rgba(255, 193, 7, 0.15);
-            border: 2px solid rgba(255, 193, 7, 0.5);
-            color: #ffc107;
-            font-size: 9px;
-            padding: 5px 12px;
-            transition: all 0.3s;
-        }
-
-        .tbtn-swing:disabled {
-            opacity: 0.3;
-        }
-
-        .tbtn-swing.active {
-            background: rgba(255, 193, 7, 0.3);
-            border-color: rgba(255, 193, 7, 0.8);
-            color: #ffda6a;
-            box-shadow: 0 0 12px rgba(255, 193, 7, 0.4);
-            animation: swing-pulse 0.8s ease-in-out infinite;
-        }
-
-        /* Fake-fall button */
-        .tbtn-fake {
-            background: rgba(233, 30, 99, 0.15);
-            border: 2px solid rgba(233, 30, 99, 0.5);
-            color: #f48fb1;
-            font-size: 9px;
-            padding: 5px 12px;
-            transition: all 0.3s;
-        }
-        .tbtn-fake:disabled { opacity: 0.3; }
-        .tbtn-fake.active {
-            background: rgba(233, 30, 99, 0.3);
-            border-color: rgba(233, 30, 99, 0.9);
-            color: #f48fb1;
-            box-shadow: 0 0 14px rgba(233, 30, 99, 0.5);
-            animation: swing-pulse 0.8s ease-in-out infinite;
-        }
-
-        @keyframes swing-pulse {
-
-            0%,
-            100% {
-                box-shadow: 0 0 12px rgba(255, 193, 7, 0.4);
-            }
-
-            50% {
-                box-shadow: 0 0 20px rgba(255, 193, 7, 0.7);
-            }
-        }
-
-        .state-badge {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 8px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            padding: 3px 8px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: rgba(255, 255, 255, 0.4);
-            white-space: nowrap;
-        }
-
-        .state-badge.fallen {
-            background: rgba(108, 117, 125, 0.2);
-            border-color: rgba(108, 117, 125, 0.5);
-            color: #adb5bd;
-        }
-
-        .state-badge.swing {
-            background: rgba(255, 193, 7, 0.2);
-            border-color: rgba(255, 193, 7, 0.5);
-            color: #ffc107;
-        }
-
-        .state-badge.balancing {
-            background: rgba(25, 135, 84, 0.2);
-            border-color: rgba(25, 135, 84, 0.5);
-            color: #20c997;
-        }
-
-        .state-badge.softland {
-            background: rgba(156, 39, 176, 0.2);
-            border-color: rgba(156, 39, 176, 0.5);
-            color: #ce93d8;
-        }
-
-        .state-badge.fakefall {
-            background: rgba(233, 30, 99, 0.2);
-            border-color: rgba(233, 30, 99, 0.5);
-            color: #f48fb1;
-        }
-
-        /* ===== CONTROLLER TAB ===== */
-        .ctrl-panel {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 24px;
-            padding: 24px 16px;
-            max-width: 480px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .ctrl-status {
-            display: flex;
-            gap: 12px;
-            width: 100%;
-        }
-
-        .ctrl-card {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 12px 8px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .ctrl-card-label {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 8px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            color: rgba(255, 255, 255, 0.3);
-            text-transform: uppercase;
-            margin-bottom: 6px;
-        }
-
-        .ctrl-card-val {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: rgba(255, 255, 255, 0.4);
-        }
-
-        .ctrl-card.online { border-color: rgba(25, 135, 84, 0.5); background: rgba(25, 135, 84, 0.1); }
-        .ctrl-card.online .ctrl-card-val { color: #20c997; }
-        .ctrl-card.armed { border-color: rgba(25, 135, 84, 0.5); background: rgba(25, 135, 84, 0.1); }
-        .ctrl-card.armed .ctrl-card-val { color: #20c997; }
-        .ctrl-card.state-swing { border-color: rgba(255, 193, 7, 0.5); background: rgba(255, 193, 7, 0.1); }
-        .ctrl-card.state-swing .ctrl-card-val { color: #ffc107; }
-        .ctrl-card.state-balance { border-color: rgba(13, 110, 253, 0.5); background: rgba(13, 110, 253, 0.1); }
-        .ctrl-card.state-balance .ctrl-card-val { color: #4dabf7; }
-        .ctrl-card.state-softland { border-color: rgba(156, 39, 176, 0.5); background: rgba(156, 39, 176, 0.1); }
-        .ctrl-card.state-softland .ctrl-card-val { color: #ce93d8; }
-        .ctrl-card.state-fakefall { border-color: rgba(233, 30, 99, 0.5); background: rgba(233, 30, 99, 0.1); }
-        .ctrl-card.state-fakefall .ctrl-card-val { color: #f48fb1; }
-
-        .ctrl-btns {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            width: 100%;
-        }
-
-        .ctrl-big-btn {
-            padding: 12px 8px !important;
-            font-size: 10px !important;
-            border-radius: 8px !important;
-        }
-
-        .ctrl-dpad {
-            display: grid;
-            grid-template-columns: repeat(3, 80px);
-            grid-template-rows: repeat(3, 80px);
-            gap: 8px;
-        }
-
-        .ctrl-dpad .mbtn { font-size: 26px; border-radius: 12px; }
-        .ctrl-dpad .mbtn.stp { font-size: 20px; }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 768px) {
-            body {
-                height: auto;
-                overflow: auto;
-            }
-
-            .container {
-                height: auto;
-            }
-
-            .toolbar {
-                flex-wrap: wrap;
-            }
-
-            .main {
-                flex-direction: column;
-            }
-
-            .col-left {
-                width: 100%;
-                overflow-y: visible;
-            }
-
-            .mini-chart-canvas {
-                min-height: 80px;
-            }
-
-            .toolbar {
-                gap: 8px;
-            }
-
-            .toolbar-sep {
-                display: none;
-            }
-
-            .move-pad {
-                grid-template-columns: repeat(3, 1fr);
-                grid-template-rows: repeat(3, 52px);
-                gap: 6px;
-                width: 100%;
-                order: 99;
-            }
-
-            .move-pad .mbtn {
-                font-size: 22px;
-                border-radius: 10px;
-            }
-
-            .move-pad .mbtn.stp {
-                font-size: 16px;
-            }
-        }
-
-        /* ===== MACRO TAB ===== */
-        .macro-panel {
-            max-width: 640px;
-            margin: 0 auto;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            height: 100%;
-        }
-
-        .macro-controls {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-            flex-shrink: 0;
-        }
-
-        .tbtn-record {
-            background: rgba(220, 53, 69, 0.2);
-            border: 2px solid rgba(220, 53, 69, 0.5);
-            color: #dc3545;
-        }
-
-        .tbtn-record.active {
-            background: rgba(220, 53, 69, 0.4);
-            border-color: #dc3545;
-            animation: rec-pulse 1s ease-in-out infinite;
-        }
-
-        .tbtn-play {
-            background: rgba(25, 135, 84, 0.2);
-            border: 2px solid rgba(25, 135, 84, 0.5);
-            color: #20c997;
-        }
-
-        .tbtn-play.active {
-            background: rgba(25, 135, 84, 0.4);
-            border-color: #20c997;
-        }
-
-        @keyframes rec-pulse {
-            0%, 100% { box-shadow: 0 0 8px rgba(220, 53, 69, 0.4); }
-            50%       { box-shadow: 0 0 18px rgba(220, 53, 69, 0.8); }
-        }
-
-        .macro-loop-toggle {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: rgba(255,255,255,0.5);
-            cursor: pointer;
-        }
-
-        .macro-status {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 9px;
-            letter-spacing: 1px;
-            color: rgba(255,255,255,0.4);
-            flex-shrink: 0;
-        }
-
-        .macro-step-list {
-            flex: 1;
-            overflow-y: auto;
-            min-height: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .macro-step-list::-webkit-scrollbar { width: 3px; }
-        .macro-step-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
-
-        .macro-step {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 6px;
-            padding: 5px 10px;
-            transition: border-color 0.2s, background 0.2s;
-        }
-
-        .macro-step.playing {
-            border-color: rgba(25, 135, 84, 0.6);
-            background: rgba(25, 135, 84, 0.1);
-        }
-
-        .macro-step-num {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 8px;
-            color: rgba(255,255,255,0.2);
-            width: 18px;
-            text-align: right;
-            flex-shrink: 0;
-        }
-
-        .macro-step-icon {
-            font-size: 15px;
-            width: 22px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .macro-step-label {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 8px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            width: 65px;
-            flex-shrink: 0;
-        }
-
-        .macro-step-dur {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 4px;
-            color: #0d6efd;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 6px;
-            width: 68px;
-            text-align: right;
-            outline: none;
-        }
-
-        .macro-step-dur:focus { border-color: rgba(13,110,253,0.5); }
-
-        .macro-step-ms {
-            font-size: 9px;
-            color: rgba(255,255,255,0.25);
-            flex-shrink: 0;
-        }
-
-        .macro-step-del {
-            margin-left: auto;
-            background: transparent;
-            border: none;
-            color: rgba(220,53,69,0.4);
-            cursor: pointer;
-            font-size: 13px;
-            padding: 0 2px;
-            transition: color 0.2s;
-            flex-shrink: 0;
-            line-height: 1;
-        }
-
-        .macro-step-del:hover { color: #dc3545; }
-
-        .macro-empty {
-            text-align: center;
-            color: rgba(255,255,255,0.18);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 9px;
-            letter-spacing: 1px;
-            padding: 28px;
-        }
-
-        .macro-save-area {
-            border-top: 1px solid rgba(255,255,255,0.08);
-            padding-top: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-
-        .macro-save-row {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .macro-save-input {
-            flex: 1;
-            padding: 5px 8px;
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 4px;
-            background: rgba(0,0,0,0.3);
-            color: #e2e8f0;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 12px;
-            outline: none;
-        }
-
-        .macro-save-input:focus { border-color: rgba(13,110,253,0.5); }
-        .macro-save-input::placeholder { color: rgba(255,255,255,0.2); }
-
-        .macro-saved-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            max-height: 72px;
-            overflow-y: auto;
-        }
-
-        .macro-saved-item {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 4px;
-            padding: 3px 6px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: border-color 0.2s;
-        }
-
-        .macro-saved-item:hover { border-color: rgba(13,110,253,0.4); }
-
-        .macro-saved-item-name {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 8px;
-            font-weight: 700;
-            color: #4dabf7;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-        }
-
-        .macro-saved-item-del {
-            background: none;
-            border: none;
-            color: rgba(220,53,69,0.4);
-            cursor: pointer;
-            font-size: 10px;
-            padding: 0;
-            line-height: 1;
-        }
-
-        .macro-saved-item-del:hover { color: #dc3545; }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <!-- Toolbar -->
-        <div class="toolbar">
-            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:1px">
-                <span class="toolbar-title">LQR Tuner</span>
-                <div id="fwChip" style="display:none;font-size:8px;color:rgba(255,255,255,0.35);letter-spacing:0.5px;white-space:nowrap;padding-left:2px"></div>
-            </div>
-            <button class="tab-btn active" data-tab="tuner">Tuner</button>
-            <button class="tab-btn" data-tab="controller">Controller</button>
-            <button class="tab-btn" data-tab="ota">OTA</button>
-            <button class="tab-btn" data-tab="macro">Macro</button>
-            <div id="statusBadge" class="status-badge"><span id="statusText">OFFLINE</span></div>
-            <button id="connectBtn" class="tbtn tbtn-connect">Connect</button>
-        </div>
-
-        <div
-            id="error"
-            class="error"
-        ></div>
-        <div
-            id="zeroInfo"
-            class="zero-info"
-            style="display:none"
-        ></div>
-
-        <!-- TAB: TUNER -->
-        <div
-            id="tabTuner"
-            class="tab-content active"
-        >
-            <div class="main">
-                <div class="col-left">
-                    <div
-                        id="profActive"
-                        class="prof-active"
-                        style="display:none"
-                    ></div>
-                    <div class="sec">
-                        <div class="sec-title">LQR Gains</div>
-                        <div class="pg">
-                            <div class="pg-label"><span>K1 (Angle)</span><span
-                                    id="k1Val"
-                                    class="pg-val"
-                                >0.44</span></div>
-                            <input
-                                type="range"
-                                id="k1"
-                                class="slider"
-                                min="0"
-                                max="3"
-                                step="0.01"
-                                value="0.44"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>K2 (Rate)</span><span
-                                    id="k2Val"
-                                    class="pg-val"
-                                >0.036</span></div>
-                            <input
-                                type="range"
-                                id="k2"
-                                class="slider"
-                                min="0"
-                                max="0.3"
-                                step="0.001"
-                                value="0.036"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>K3 (Velocity)</span><span
-                                    id="k3Val"
-                                    class="pg-val"
-                                >0.50</span></div>
-                            <input
-                                type="range"
-                                id="k3"
-                                class="slider"
-                                min="0"
-                                max="3"
-                                step="0.01"
-                                value="0.50"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>K4 (Position)</span><span
-                                    id="k4Val"
-                                    class="pg-val"
-                                >1.00</span></div>
-                            <input
-                                type="range"
-                                id="k4"
-                                class="slider"
-                                min="0"
-                                max="5"
-                                step="0.01"
-                                value="1.00"
-                                disabled
-                            >
-                        </div>
-                    </div>
-
-                    <div class="sec">
-                        <div class="sec-title">System</div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Max Torque (V)</span><span
-                                    id="maxTorqueVal"
-                                    class="pg-val"
-                                >3.0</span></div>
-                            <input
-                                type="range"
-                                id="maxTorque"
-                                class="slider"
-                                min="0.5"
-                                max="8"
-                                step="0.1"
-                                value="3.0"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Slew (V/s)</span><span
-                                    id="slewVal"
-                                    class="pg-val"
-                                >500</span></div>
-                            <input
-                                type="range"
-                                id="slew"
-                                class="slider"
-                                min="10"
-                                max="2000"
-                                step="10"
-                                value="500"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Steer Gain</span><span
-                                    id="steerGainVal"
-                                    class="pg-val"
-                                >0.80</span></div>
-                            <input
-                                type="range"
-                                id="steerGain"
-                                class="slider"
-                                min="0"
-                                max="5"
-                                step="0.1"
-                                value="0.8"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Move Speed</span><span
-                                    id="moveSpeedVal"
-                                    class="pg-val"
-                                >50.0</span></div>
-                            <input
-                                type="range"
-                                id="moveSpeed"
-                                class="slider"
-                                min="1"
-                                max="500"
-                                step="0.5"
-                                value="100"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Ctrl Freq (Hz)</span><span
-                                    id="ctrlFreqVal"
-                                    class="pg-val"
-                                >400</span></div>
-                            <input
-                                type="range"
-                                id="ctrlFreq"
-                                class="slider"
-                                min="50"
-                                max="1000"
-                                step="50"
-                                value="400"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Pitch Offset (°)</span><span
-                                    id="pitchOffsetVal"
-                                    class="pg-val"
-                                >0.00</span></div>
-                            <input
-                                type="range"
-                                id="pitchOffset"
-                                class="slider"
-                                min="-15"
-                                max="15"
-                                step="0.01"
-                                value="0"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label">
-                                <span>IMU Temperature</span>
-                                <span id="imuTempVal" class="pg-val" style="color:#fcc419">--°C</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="sec">
-                        <div class="sec-title">Swing-Up (Gravity PD)</div>
-                        <div class="pg">
-                            <div class="pg-label"><span>K_swing</span><span
-                                    id="kSwingVal"
-                                    class="pg-val"
-                                >4.50</span></div>
-                            <input
-                                type="range"
-                                id="kSwing"
-                                class="slider"
-                                min="0.5"
-                                max="10"
-                                step="0.25"
-                                value="4.5"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>K_damping</span><span
-                                    id="kDampingVal"
-                                    class="pg-val"
-                                >0.0</span></div>
-                            <input
-                                type="range"
-                                id="kDamping"
-                                class="slider"
-                                min="0"
-                                max="3"
-                                step="0.05"
-                                value="0.0"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Swing Max V</span><span
-                                    id="swingMaxVal"
-                                    class="pg-val"
-                                >5.0</span></div>
-                            <input
-                                type="range"
-                                id="swingMax"
-                                class="slider"
-                                min="2"
-                                max="10"
-                                step="0.5"
-                                value="5.0"
-                                disabled
-                            >
-                        </div>
-                        <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.6);margin:4px 0 2px;cursor:pointer;">
-                            <input type="checkbox" id="disarmBrakeCb" style="accent-color:#4fc3f7;">
-                            Enable brake landing (default: immediate cut)
-                        </label>
-                        <div class="pg">
-                            <div class="pg-label"><span>Brake Torque (V)</span><span
-                                    id="brakeTorqueVal"
-                                    class="pg-val"
-                                >3.00</span></div>
-                            <input
-                                type="range"
-                                id="brakeTorque"
-                                class="slider"
-                                min="0"
-                                max="8"
-                                step="0.1"
-                                value="3.0"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Brake Angle (°)</span><span
-                                    id="brakeAngleVal"
-                                    class="pg-val"
-                                >50.0°</span></div>
-                            <input
-                                type="range"
-                                id="brakeAngle"
-                                class="slider"
-                                min="20"
-                                max="80"
-                                step="1"
-                                value="50"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Brake Duration (ms)</span><span
-                                    id="brakeMsVal"
-                                    class="pg-val"
-                                >150ms</span></div>
-                            <input
-                                type="range"
-                                id="brakeMs"
-                                class="slider"
-                                min="50"
-                                max="500"
-                                step="10"
-                                value="150"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Fake Catch °</span><span
-                                    id="fakeCatchVal"
-                                    class="pg-val"
-                                >35.0°</span></div>
-                            <input
-                                type="range"
-                                id="fakeCatch"
-                                class="slider"
-                                min="20"
-                                max="55"
-                                step="1"
-                                value="35"
-                                disabled
-                            >
-                        </div>
-                    </div>
-
-                    <div class="sec">
-                        <div class="sec-title">Profiles</div>
-                        <div class="prof-bar">
-                            <button
-                                class="tbtn"
-                                style="background:linear-gradient(135deg,#0d6efd,#6610f2);color:white"
-                                onclick="showSaveForm()"
-                            >Save</button>
-                        </div>
-                        <div
-                            id="profSaveForm"
-                            class="prof-save-form"
-                        >
-                            <input
-                                type="text"
-                                id="profName"
-                                class="prof-input"
-                                placeholder="Profile name"
-                                maxlength="40"
-                            >
-                            <input
-                                type="text"
-                                id="profDesc"
-                                class="prof-input"
-                                placeholder="Description (optional)"
-                                maxlength="100"
-                            >
-                            <div class="prof-save-btns">
-                                <button
-                                    class="tbtn"
-                                    style="background:linear-gradient(135deg,#198754,#20c997);color:white"
-                                    onclick="saveProfile()"
-                                >Confirm</button>
-                                <button
-                                    class="tbtn"
-                                    style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5)"
-                                    onclick="hideSaveForm()"
-                                >Cancel</button>
-                            </div>
-                        </div>
-                        <div
-                            id="profList"
-                            class="prof-list"
-                        ></div>
-                    </div>
-                </div>
-
-                <div class="col-right">
-                    <div class="sec-title" style="display:flex;align-items:center;justify-content:space-between;">
-                        <span>Telemetry <span id="chartDt" class="chart-dt"></span></span>
-                        <div style="display:flex;gap:6px;">
-                            <button class="tbtn" onclick="clearChart()"
-                                style="font-size:8px;padding:3px 8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);">
-                                &#10005; CLEAR
-                            </button>
-                            <button id="telemetryToggle" class="tbtn" disabled
-                                style="font-size:8px;padding:3px 8px;background:rgba(25,135,84,0.2);border:1px solid rgba(25,135,84,0.5);color:#20c997;">
-                                &#9646;&#9646; PAUSE
-                            </button>
-                        </div>
-                    </div>
-                    <div class="charts-stack">
-                        <div
-                            class="mini-chart"
-                            id="chartPitch"
-                        >
-                            <span class="sat-badge">SAT</span>
-                            <div class="mini-chart-header">
-                                <span
-                                    class="mini-chart-label"
-                                    style="color:#4dabf7"
-                                >Pitch</span>
-                                <span
-                                    id="livePitch"
-                                    class="mini-chart-val"
-                                >--</span>
-                            </div>
-                            <div class="mini-chart-canvas"><canvas id="canvasPitch"></canvas></div>
-                        </div>
-                        <div
-                            class="mini-chart"
-                            id="chartTorque"
-                        >
-                            <div class="mini-chart-header">
-                                <span
-                                    class="mini-chart-label"
-                                    style="color:#ff6b6b"
-                                >Torque (V)</span>
-                                <span
-                                    id="liveTorque"
-                                    class="mini-chart-val"
-                                >--</span>
-                            </div>
-                            <div class="mini-chart-canvas"><canvas id="canvasTorque"></canvas></div>
-                        </div>
-                        <div
-                            class="mini-chart"
-                            id="chartVel"
-                        >
-                            <div class="mini-chart-header">
-                                <span
-                                    class="mini-chart-label"
-                                    style="color:#51cf66"
-                                >Velocity</span>
-                                <span
-                                    id="liveVel"
-                                    class="mini-chart-val"
-                                >--</span>
-                            </div>
-                            <div class="mini-chart-canvas"><canvas id="canvasVel"></canvas></div>
-                        </div>
-                        <div
-                            class="mini-chart"
-                            id="chartWpos"
-                        >
-                            <div class="mini-chart-header">
-                                <span
-                                    class="mini-chart-label"
-                                    style="color:#fcc419"
-                                >WheelPos</span>
-                                <span
-                                    id="liveWpos"
-                                    class="mini-chart-val"
-                                >--</span>
-                            </div>
-                            <div class="mini-chart-canvas"><canvas id="canvasWpos"></canvas></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB: CONTROLLER -->
-        <div id="tabController" class="tab-content">
-            <div class="ctrl-panel">
-                <!-- Status cards -->
-                <div class="ctrl-status">
-                    <div class="ctrl-card" id="ctrlConnCard">
-                        <div class="ctrl-card-label">Connection</div>
-                        <div class="ctrl-card-val" id="ctrlConnVal">OFFLINE</div>
-                    </div>
-                    <div class="ctrl-card" id="ctrlArmCard">
-                        <div class="ctrl-card-label">Safety</div>
-                        <div class="ctrl-card-val" id="ctrlArmVal">DISARMED</div>
-                    </div>
-                    <div class="ctrl-card" id="ctrlStateCard">
-                        <div class="ctrl-card-label">State</div>
-                        <div class="ctrl-card-val" id="ctrlStateVal">FALLEN</div>
-                    </div>
-                    <div class="ctrl-card" id="ctrlOffsetCard">
-                        <div class="ctrl-card-label">Offset</div>
-                        <div class="ctrl-card-val" id="ctrlOffsetVal" style="color:#fcc419">--°</div>
-                    </div>
-                </div>
-
-                <!-- Control buttons -->
-                <div class="ctrl-btns">
-                    <button id="armBtn" class="tbtn tbtn-arm ctrl-big-btn" disabled>DISARMED</button>
-                    <button id="swingBtn" class="tbtn tbtn-swing ctrl-big-btn" disabled>SWING UP</button>
-                    <button id="fakeFallBtn" class="tbtn tbtn-fake ctrl-big-btn" disabled>FAKE FALL</button>
-                    <button id="zeroBtn" class="tbtn tbtn-zero ctrl-big-btn" disabled>Zero</button>
-                </div>
-
-                <!-- D-pad -->
-                <div class="ctrl-dpad">
-                    <div class="empty"></div>
-                    <button id="btnFwd" class="mbtn dir" disabled>&#9650;</button>
-                    <div class="empty"></div>
-                    <button id="btnLeft" class="mbtn dir" disabled>&#9664;</button>
-                    <button id="btnStop" class="mbtn stp" disabled>&#9632;</button>
-                    <button id="btnRight" class="mbtn dir" disabled>&#9654;</button>
-                    <div class="empty"></div>
-                    <button id="btnBack" class="mbtn dir" disabled>&#9660;</button>
-                    <div class="empty"></div>
-                </div>
-
-                <!-- Direction invert toggles -->
-                <div style="display:flex;gap:12px;justify-content:center;margin-top:10px;flex-wrap:wrap;">
-                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
-                        <input type="checkbox" id="invertDrive" style="width:16px;height:16px;accent-color:#4fc3f7;">
-                        Invert Drive (F/B)
-                    </label>
-                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
-                        <input type="checkbox" id="invertSteer" style="width:16px;height:16px;accent-color:#4fc3f7;">
-                        Invert Steer (L/R)
-                    </label>
-                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
-                        <input type="checkbox" id="swingDisarmedCb" style="width:16px;height:16px;accent-color:#ffc107;" disabled>
-                        <span style="color:#ffc107;">Swing Up while Disarmed</span>
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB: OTA -->
-        <div
-            id="tabOta"
-            class="tab-content"
-        >
-            <div class="ota-panel">
-                <div
-                    class="sec-title"
-                    style="margin-bottom:16px"
-                >Firmware Update (BLE OTA)</div>
-                <div id="otaContent">
-                    <div
-                        class="ota-file-drop"
-                        id="otaFileDrop"
-                    >
-                        <input
-                            type="file"
-                            id="otaFileInput"
-                            accept=".bin"
-                            style="display:none"
-                        >
-                        <div class="ota-file-icon">&#128230;</div>
-                        <div
-                            class="ota-file-text"
-                            id="otaFileText"
-                        >Click or drop firmware .bin file</div>
-                        <div
-                            id="otaFileName"
-                            class="ota-file-name"
-                        ></div>
-                    </div>
-
-                    <!-- Download latest firmware from GitHub -->
-                    <div style="display:flex;align-items:center;gap:8px;margin:10px 0 6px">
-                        <div style="flex:1;height:1px;background:rgba(255,255,255,0.1)"></div>
-                        <span style="font-size:11px;color:rgba(255,255,255,0.35)">or</span>
-                        <div style="flex:1;height:1px;background:rgba(255,255,255,0.1)"></div>
-                    </div>
-                    <button
-                        id="otaFetchLatestBtn"
-                        class="tbtn"
-                        style="width:100%;background:rgba(79,195,247,0.12);color:#4fc3f7;border:1px solid rgba(79,195,247,0.3);margin-bottom:4px;font-size:13px;"
-                    >&#8659; Download Latest LQR Firmware</button>
-                    <div id="otaFetchStatus" style="font-size:11px;color:rgba(255,255,255,0.45);min-height:16px;text-align:center;margin-bottom:6px;"></div>
-
-                    <div
-                        class="ota-progress"
-                        id="otaProgressContainer"
-                        style="display:none"
-                    >
-                        <div class="ota-progress-bg">
-                            <div
-                                class="ota-progress-bar"
-                                id="otaProgressBar"
-                            ></div>
-                        </div>
-                        <div
-                            class="ota-progress-text"
-                            id="otaProgressText"
-                        >0%</div>
-                    </div>
-
-                    <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.55);margin-bottom:6px;cursor:pointer;">
-                        <input type="checkbox" id="otaUseCompression" checked style="accent-color:#4fc3f7;">
-                        Use zlib compression (smaller/faster — uncheck if OTA hangs)
-                    </label>
-                    <button
-                        id="otaUploadBtn"
-                        class="tbtn ota-upload-btn"
-                        disabled
-                    >Upload Firmware</button>
-
-                    <div
-                        class="ota-log"
-                        id="otaLog"
-                    ></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB: MACRO -->
-        <div id="tabMacro" class="tab-content">
-            <div class="macro-panel">
-                <div class="macro-controls">
-                    <button id="macroRecordBtn" class="tbtn tbtn-record">&#9679; REC</button>
-                    <button id="macroPlayBtn" class="tbtn tbtn-play" disabled>&#9654; PLAY</button>
-                    <label class="macro-loop-toggle">
-                        <input type="checkbox" id="macroLoop" style="width:14px;height:14px;accent-color:#20c997;">
-                        LOOP
-                    </label>
-                    <div class="toolbar-spacer"></div>
-                    <button id="macroClearBtn" class="tbtn" style="background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.4)">&#10005; Clear</button>
-                </div>
-
-                <div id="macroStatus" class="macro-status">No steps — go to Controller tab and use D-pad while recording</div>
-
-                <div id="macroStepList" class="macro-step-list">
-                    <div class="macro-empty">No steps recorded</div>
-                </div>
-
-                <div class="macro-save-area">
-                    <div class="sec-title">Saved Macros</div>
-                    <div class="macro-save-row">
-                        <input type="text" id="macroSaveName" class="macro-save-input" placeholder="Macro name" maxlength="40">
-                        <button id="macroSaveBtn" class="tbtn" style="background:linear-gradient(135deg,#0d6efd,#6610f2);color:white;flex-shrink:0">Save</button>
-                    </div>
-                    <div id="macroSavedList" class="macro-saved-list"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div
-        id="profToast"
-        class="prof-loaded-toast"
-    ></div>
-
-    <script>
-        // ==================== BLE UUIDs ====================
-        const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
-        const CHAR_CMD_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
-        const CHAR_STATUS_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a9';
-        const CHAR_DATA_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26aa';
-
-        const OTA_SERVICE_UUID = 'fb1e4001-54ae-4a28-9f74-dfccb248601d';
-        const OTA_CONTROL_CHAR_UUID = 'fb1e4002-54ae-4a28-9f74-dfccb248601d';
-        const OTA_DATA_CHAR_UUID = 'fb1e4003-54ae-4a28-9f74-dfccb248601d';
-
-        const OTA_CMD_BEGIN   = 0x01;  // Uncompressed: [0x01, size[4]]
-        const OTA_CMD_END     = 0x02;
-        const OTA_CMD_ABORT   = 0x03;
-        const OTA_CMD_BEGIN_Z = 0x05;  // zlib compressed: [0x05, usize[4], csize[4]] (9 bytes)
-        const OTA_STATUS_OK       = 0x01;
-        const OTA_STATUS_ERROR    = 0x03;
-        const OTA_CHUNK_SIZE = 512;
-
-        // Compress Uint8Array using zlib (deflate with header) — matches esp32-flashz
-        async function compressZlib(data) {
-            const cs = new CompressionStream('deflate');
-            const writer = cs.writable.getWriter();
-            const reader = cs.readable.getReader();
-            writer.write(data);
-            writer.close();
-            const chunks = [];
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                chunks.push(value);
-            }
-            const total = chunks.reduce((s, c) => s + c.length, 0);
-            const out = new Uint8Array(total);
-            let off = 0;
-            for (const c of chunks) { out.set(c, off); off += c.length; }
-            return out;
-        }
-
-        let device = null, charCmd = null, charStatus = null, charData = null;
-        let otaControlChar = null, otaDataChar = null;
-        let otaHasService = false;
-        let isArmed = false;
-        let robotState = 0; // 0=FALLEN, 1=SWING_UP, 2=BALANCING
-
-        const statusBadge = document.getElementById('statusBadge');
-        const statusText = document.getElementById('statusText');
-        const errorDiv = document.getElementById('error');
-        const connectBtn = document.getElementById('connectBtn');
-        const armBtn = document.getElementById('armBtn');
-        const swingBtn = document.getElementById('swingBtn');
-        const fakeFallBtn = document.getElementById('fakeFallBtn');
-        const zeroBtn = document.getElementById('zeroBtn');
-        // Controller tab status cards
-        const ctrlConnCard = document.getElementById('ctrlConnCard');
-        const ctrlConnVal = document.getElementById('ctrlConnVal');
-        const ctrlArmCard = document.getElementById('ctrlArmCard');
-        const ctrlArmVal = document.getElementById('ctrlArmVal');
-        const ctrlStateCard = document.getElementById('ctrlStateCard');
-        const ctrlStateVal = document.getElementById('ctrlStateVal');
-        const ctrlOffsetVal = document.getElementById('ctrlOffsetVal');
-
-        const btnFwd = document.getElementById('btnFwd');
-        const btnBack = document.getElementById('btnBack');
-        const btnLeft = document.getElementById('btnLeft');
-        const btnRight = document.getElementById('btnRight');
-        const btnStop = document.getElementById('btnStop');
-
-        // Slider definitions: LQR gains + system params
-        // cmd = BLE command character, fmt = decimal places
-        const sliders = {
-            k1: { el: document.getElementById('k1'), val: document.getElementById('k1Val'), cmd: 'A', fmt: 2 },
-            k2: { el: document.getElementById('k2'), val: document.getElementById('k2Val'), cmd: 'B', fmt: 3 },
-            k3: { el: document.getElementById('k3'), val: document.getElementById('k3Val'), cmd: 'V', fmt: 2 },
-            k4: { el: document.getElementById('k4'), val: document.getElementById('k4Val'), cmd: 'W', fmt: 2 },
-            maxTorque: { el: document.getElementById('maxTorque'), val: document.getElementById('maxTorqueVal'), cmd: 'T', fmt: 1 },
-            slew: { el: document.getElementById('slew'), val: document.getElementById('slewVal'), cmd: 'S', fmt: 0 },
-            steerGain: { el: document.getElementById('steerGain'), val: document.getElementById('steerGainVal'), cmd: 'G', fmt: 2 },
-            moveSpeed: { el: document.getElementById('moveSpeed'), val: document.getElementById('moveSpeedVal'), cmd: 'M', fmt: 1 },
-            ctrlFreq: { el: document.getElementById('ctrlFreq'), val: document.getElementById('ctrlFreqVal'), cmd: 'C', fmt: 0 },
-            pitchOffset: { el: document.getElementById('pitchOffset'), val: document.getElementById('pitchOffsetVal'), cmd: 'O', fmt: 2, confirm: true },
-            kSwing: { el: document.getElementById('kSwing'), val: document.getElementById('kSwingVal'), cmd: 'J', fmt: 2 },
-            kDamping: { el: document.getElementById('kDamping'), val: document.getElementById('kDampingVal'), cmd: 'K', fmt: 3 },
-            swingMax: { el: document.getElementById('swingMax'), val: document.getElementById('swingMaxVal'), cmd: 'H', fmt: 1 },
-            brakeTorque: { el: document.getElementById('brakeTorque'), val: document.getElementById('brakeTorqueVal'), cmd: 'F', fmt: 2 },
-            brakeAngle:  { el: document.getElementById('brakeAngle'),  val: document.getElementById('brakeAngleVal'),  cmd: 'D', fmt: 1, suffix: '°' },
-            brakeMs:     { el: document.getElementById('brakeMs'),     val: document.getElementById('brakeMsVal'),     cmd: 'R', fmt: 0, suffix: 'ms' },
-            fakeCatch: { el: document.getElementById('fakeCatch'), val: document.getElementById('fakeCatchVal'), cmd: 'N', fmt: 1, suffix: '°' }
-        };
-
-        if (!navigator.bluetooth) {
-            showError('Web Bluetooth not supported. Use Chrome on desktop/Android.');
-            connectBtn.disabled = true;
-        }
-
-        function showError(msg) {
-            errorDiv.textContent = msg;
-            errorDiv.classList.add('show');
-            setTimeout(() => errorDiv.classList.remove('show'), 4000);
-        }
-
-        function updateStatus(msg, connected) {
-            statusText.textContent = msg;
-            statusBadge.classList.toggle('connected', connected);
-            ctrlConnVal.textContent = connected ? 'ONLINE' : msg;
-            ctrlConnCard.classList.toggle('online', connected);
-        }
-
-        const telemetryToggle = document.getElementById('telemetryToggle');
-        let telemetryOn = false;
-
-        function updateTelemetryToggleUI() {
-            if (telemetryOn) {
-                telemetryToggle.innerHTML = '&#9646;&#9646; PAUSE';
-                telemetryToggle.style.background = 'rgba(25,135,84,0.2)';
-                telemetryToggle.style.borderColor = 'rgba(25,135,84,0.5)';
-                telemetryToggle.style.color = '#20c997';
-            } else {
-                telemetryToggle.innerHTML = '&#9654; RESUME';
-                telemetryToggle.style.background = 'rgba(255,193,7,0.2)';
-                telemetryToggle.style.borderColor = 'rgba(255,193,7,0.5)';
-                telemetryToggle.style.color = '#ffc107';
-            }
-        }
-
-        telemetryToggle.addEventListener('click', async () => {
-            telemetryOn = !telemetryOn;
-            updateTelemetryToggleUI();
-            await sendCmd('L');
-        });
-
-        function enableControls(enabled) {
-            Object.values(sliders).forEach(s => s.el.disabled = !enabled);
-            zeroBtn.disabled = !enabled;
-            armBtn.disabled = !enabled;
-            swingBtn.disabled = !enabled;
-            fakeFallBtn.disabled = !enabled;
-            btnFwd.disabled = !enabled;
-            btnBack.disabled = !enabled;
-            btnLeft.disabled = !enabled;
-            btnRight.disabled = !enabled;
-            btnStop.disabled = !enabled;
-            telemetryToggle.disabled = !enabled;
-            swingDisarmedCb.disabled = !enabled;
-            if (!enabled) { telemetryOn = false; updateTelemetryToggleUI(); }
-        }
-
-        function updateArmUI() {
-            armBtn.textContent = isArmed ? 'ARMED' : 'DISARMED';
-            armBtn.classList.toggle('armed', isArmed);
-            ctrlArmVal.textContent = isArmed ? 'ARMED' : 'DISARMED';
-            ctrlArmCard.classList.toggle('armed', isArmed);
-        }
-
-        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'SOFT LAND', 'FAKE FALL'];
-        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-softland', 'state-fakefall'];
-
-        function updateStateUI() {
-            const s = Math.min(robotState, STATE_NAMES.length - 1);
-            swingBtn.classList.toggle('active', robotState === 1);
-            fakeFallBtn.classList.toggle('active', robotState === 4);
-            ctrlStateVal.textContent = STATE_NAMES[s] || String(robotState);
-            ctrlStateCard.className = 'ctrl-card ' + (STATE_CSS[s] || '');
-        }
-
-        // ==================== TABS ====================
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabMap = { tuner: 'tabTuner', controller: 'tabController', ota: 'tabOta', macro: 'tabMacro' };
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            tabBtns.forEach(b => b.classList.remove('active'));
-            document.getElementById(tabMap[tabName] || 'tabTuner').classList.add('active');
-            document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
-            updateOtaUI();
-        }
-
-        tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
-
-        // ==================== TELEMETRY CHARTS ====================
-        const chartDt = document.getElementById('chartDt');
-        const chartPitchEl = document.getElementById('chartPitch');
-        const livePitch = document.getElementById('livePitch');
-        const liveTorque = document.getElementById('liveTorque');
-        const liveVel = document.getElementById('liveVel');
-        const liveWpos = document.getElementById('liveWpos');
-
-        const MAX_POINTS = 3000;
-        let mcuTimeMs = 0;
-
-        function makeMiniChart(canvasId, color, showXAxis) {
-            return new Chart(document.getElementById(canvasId).getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{ data: [], borderColor: color, borderWidth: 1.2, pointRadius: 0, tension: 0.2, fill: false }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: {
-                            display: showXAxis,
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 8 }, maxTicksLimit: 6, callback: function (v) { var s = this.getLabelForValue(v) / 1000; return s < 10 ? s.toFixed(1) + 's' : Math.round(s) + 's'; } }
-                        },
-                        y: {
-                            display: true,
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 8 }, maxTicksLimit: 4 }
-                        }
-                    },
-                    interaction: { enabled: false },
-                    layout: { padding: { left: 0, right: 0, top: 0, bottom: 0 } }
-                }
-            });
-        }
-
-        const charts = {
-            pitch: makeMiniChart('canvasPitch', '#4dabf7', false),
-            torque: makeMiniChart('canvasTorque', '#ff6b6b', false),
-            vel: makeMiniChart('canvasVel', '#51cf66', false),
-            wpos: makeMiniChart('canvasWpos', '#fcc419', true)
-        };
-
-        function onTelemetry(event) {
-            const dv = event.target.value;
-            if (dv.byteLength < 13) return;
-            const pitch = dv.getInt16(0, true) / 100;
-            const pitchRate = dv.getInt16(2, true) / 10;
-            const wheelVel = dv.getInt16(4, true) / 10;
-            const wheelPos = dv.getInt16(6, true) / 100;
-            const torque = dv.getInt16(8, true) / 100;
-            const dtUs = dv.getUint16(10, true);
-            const flags = dv.getUint8(12);
-
-            mcuTimeMs += dtUs / 1000;
-            livePitch.textContent = pitch.toFixed(2) + '\u00B0';
-            liveTorque.textContent = torque.toFixed(2) + 'V';
-            liveVel.textContent = wheelVel.toFixed(1);
-            liveWpos.textContent = wheelPos.toFixed(1);
-            chartDt.textContent = 'dt ' + dtUs + '\u00B5s';
-            chartPitchEl.classList.toggle('saturated', (flags & 0x01) !== 0);
-
-            // Update armed state from telemetry flags
-            const telArmed = (flags & 0x02) !== 0;
-            if (telArmed !== isArmed) {
-                isArmed = telArmed;
-                updateArmUI();
-            }
-
-            // Update state from telemetry flags (bit2-3)
-            const telState = (flags >> 2) & 0x03;
-            if (telState !== robotState) {
-                robotState = telState;
-                updateStateUI();
-            }
-
-            const values = { pitch, torque, vel: wheelVel, wpos: wheelPos };
-            Object.entries(charts).forEach(([key, c]) => {
-                c.data.labels.push(mcuTimeMs);
-                c.data.datasets[0].data.push(values[key]);
-                if (c.data.labels.length > MAX_POINTS) {
-                    c.data.labels.shift();
-                    c.data.datasets[0].data.shift();
-                }
-                c.update();
-            });
-        }
-
-        function clearChart() {
-            mcuTimeMs = 0;
-            Object.values(charts).forEach(c => {
-                c.data.labels = [];
-                c.data.datasets[0].data = [];
-                c.update();
-            });
-            livePitch.textContent = '--';
-            liveTorque.textContent = '--';
-            liveVel.textContent = '--';
-            liveWpos.textContent = '--';
-            chartDt.textContent = '';
-            chartPitchEl.classList.remove('saturated');
-        }
-
-        // ==================== BLE COMMANDS ====================
-        let _gattBusy = false;
-        async function sendCmd(cmd) {
-            if (!charCmd || _gattBusy) return;
-            _gattBusy = true;
-            try {
-                await charCmd.writeValue(new TextEncoder().encode(cmd));
-            } catch (e) {
-                showError('Send failed: ' + e.message);
-            } finally {
-                _gattBusy = false;
-            }
-        }
-
-        let lastPitch = null, lastOffset = null;
-        let statusResolve = null;
-
-        // Map BLE status JSON keys to slider definitions
-        function updateSlidersFromData(data) {
-            if (data.A !== undefined) { sliders.k1.el.value = data.A; sliders.k1.val.textContent = data.A.toFixed(2); }
-            if (data.B !== undefined) { sliders.k2.el.value = data.B; sliders.k2.val.textContent = data.B.toFixed(3); }
-            if (data.V !== undefined) { sliders.k3.el.value = data.V; sliders.k3.val.textContent = data.V.toFixed(2); }
-            if (data.W !== undefined) { sliders.k4.el.value = data.W; sliders.k4.val.textContent = data.W.toFixed(2); }
-            if (data.T !== undefined) { sliders.maxTorque.el.value = data.T; sliders.maxTorque.val.textContent = data.T.toFixed(1); }
-            if (data.S !== undefined) { sliders.slew.el.value = data.S; sliders.slew.val.textContent = data.S.toFixed(0); }
-            if (data.G !== undefined) { sliders.steerGain.el.value = data.G; sliders.steerGain.val.textContent = data.G.toFixed(2); }
-            if (data.M !== undefined) { sliders.moveSpeed.el.value = data.M; sliders.moveSpeed.val.textContent = data.M.toFixed(1); }
-            if (data.C !== undefined) { sliders.ctrlFreq.el.value = data.C; sliders.ctrlFreq.val.textContent = data.C.toFixed(0); }
-            if (data.O !== undefined) {
-                sliders.pitchOffset.el.value = data.O;
-                sliders.pitchOffset.val.textContent = data.O.toFixed(2);
-                lastOffset = data.O;
-                ctrlOffsetVal.textContent = (data.O >= 0 ? '+' : '') + data.O.toFixed(2) + '\u00B0';
-            }
-            if (data.J !== undefined) { sliders.kSwing.el.value = data.J; sliders.kSwing.val.textContent = data.J.toFixed(2); }
-            if (data.K !== undefined) { sliders.kDamping.el.value = data.K; sliders.kDamping.val.textContent = data.K.toFixed(3); }
-            if (data.H !== undefined) { sliders.swingMax.el.value = data.H; sliders.swingMax.val.textContent = data.H.toFixed(1); }
-            if (data.F !== undefined) { sliders.brakeTorque.el.value = data.F; sliders.brakeTorque.val.textContent = data.F.toFixed(2); }
-            if (data.D !== undefined) { sliders.brakeAngle.el.value = data.D; sliders.brakeAngle.val.textContent = data.D.toFixed(1) + '°'; }
-            if (data.R !== undefined) { sliders.brakeMs.el.value = data.R; sliders.brakeMs.val.textContent = data.R.toFixed(0) + 'ms'; }
-            if (data.P !== undefined) {
-                const cb = document.getElementById('disarmBrakeCb');
-                if (cb) cb.checked = data.P === 1;
-            }
-            if (data.N !== undefined) { sliders.fakeCatch.el.value = data.N; sliders.fakeCatch.val.textContent = data.N.toFixed(1) + '°'; }
-            if (data.armed !== undefined) {
-                isArmed = data.armed === 1;
-                updateArmUI();
-            }
-            if (data.st !== undefined) {
-                robotState = data.st;
-                updateStateUI();
-            }
-            if (data.pitch !== undefined) lastPitch = data.pitch;
-            if (data.temp !== undefined) {
-                const el = document.getElementById('imuTempVal');
-                if (el) el.textContent = data.temp.toFixed(1) + '\u00B0C';
-            }
-            if (data.Y !== undefined) {
-                const cb = document.getElementById('swingDisarmedCb');
-                if (cb) cb.checked = data.Y === 1;
-            }
-            if (data.fw !== undefined) {
-                const chip = document.getElementById('fwChip');
-                if (chip) { chip.textContent = 'FW ' + data.fw; chip.style.display = 'block'; }
-            }
-        }
-
-        function onStatusNotify(event) {
-            try {
-                const data = JSON.parse(new TextDecoder().decode(event.target.value));
-                updateSlidersFromData(data);
-                if (statusResolve) { statusResolve(data); statusResolve = null; }
-            } catch (e) { }
-        }
-
-        function waitForStatusNotify(timeoutMs = 1500) {
-            return new Promise(resolve => {
-                statusResolve = resolve;
-                setTimeout(() => { statusResolve = null; resolve(null); }, timeoutMs);
-            });
-        }
-
-        async function readStatus() {
-            if (!charStatus) return;
-            try {
-                const raw = await charStatus.readValue();
-                const text = new TextDecoder().decode(raw);
-                const data = JSON.parse(text);
-                updateSlidersFromData(data);
-            } catch (e) {
-                console.warn('readStatus failed:', e);
-            }
-        }
-
-        // Slider input/change handlers
-        Object.entries(sliders).forEach(([k, s]) => {
-            s.el.addEventListener('input', () => s.val.textContent = parseFloat(s.el.value).toFixed(s.fmt) + (s.suffix || ''));
-            s.el.addEventListener('change', async () => {
-                sendCmd(s.cmd + s.el.value);
-                if (s.confirm) {
-                    showProfileToast('SAVING...');
-                    const d = await waitForStatusNotify(2000);
-                    showProfileToast(d ? 'OFFSET SAVED \u2713' : 'OFFSET SENT');
-                }
-            });
-        });
-
-        // ARM/DISARM button
-        armBtn.addEventListener('click', async () => {
-            isArmed = !isArmed;
-            updateArmUI();
-            await sendCmd('E' + (isArmed ? '1' : '0'));
-        });
-
-        // Swing-up button
-        swingBtn.addEventListener('click', async () => {
-            await sendCmd('U1');
-        });
-
-        // Fake fall button — Z0 = auto direction (follows current lean)
-        fakeFallBtn.addEventListener('click', async () => {
-            await sendCmd('Z0');
-        });
-
-        // Zero button
-        const zeroInfo = document.getElementById('zeroInfo');
-        zeroBtn.addEventListener('click', async () => {
-            zeroBtn.textContent = 'OK!';
-            const notifyPromise = waitForStatusNotify(1500);
-            await sendCmd('z0');
-            const data = await notifyPromise;
-            // updateSlidersFromData already ran (slider + card both updated)
-            if (lastOffset !== null) {
-                zeroInfo.textContent = `ZERO SET \u2014 OFFSET: ${lastOffset.toFixed(2)}\u00B0`;
-            } else {
-                zeroInfo.textContent = 'ZERO SET';
-            }
-            zeroInfo.style.display = 'block';
-            setTimeout(() => { zeroBtn.textContent = 'Zero'; }, 1500);
-        });
-
-        // Invert toggles — load from localStorage
-        const invertDriveEl = document.getElementById('invertDrive');
-        const invertSteerEl = document.getElementById('invertSteer');
-        invertDriveEl.checked = localStorage.getItem('invertDrive') === '1';
-        invertSteerEl.checked = localStorage.getItem('invertSteer') === '1';
-        invertDriveEl.addEventListener('change', () => localStorage.setItem('invertDrive', invertDriveEl.checked ? '1' : '0'));
-        invertSteerEl.addEventListener('change', () => localStorage.setItem('invertSteer', invertSteerEl.checked ? '1' : '0'));
-
-        // Swing while disarmed checkbox — sends 'Y1'/'Y0' to firmware
-        const swingDisarmedCb = document.getElementById('swingDisarmedCb');
-        swingDisarmedCb.addEventListener('change', () => sendCmd('Y' + (swingDisarmedCb.checked ? '1' : '0')));
-
-        // Brake landing checkbox — sends 'P1'/'P0' to firmware
-        const disarmBrakeCb = document.getElementById('disarmBrakeCb');
-        disarmBrakeCb.addEventListener('change', () => sendCmd('P' + (disarmBrakeCb.checked ? '1' : '0')));
-
-        function mapMoveCmd(cmd) {
-            const inv = { f: 'b', b: 'f', l: 'r', r: 'l' };
-            if ((cmd === 'f' || cmd === 'b') && invertDriveEl.checked) cmd = inv[cmd];
-            if ((cmd === 'l' || cmd === 'r') && invertSteerEl.checked) cmd = inv[cmd];
-            return cmd;
-        }
-
-        // ==================== MACRO STATE (shared with MACRO section below) ====================
-        let macroRecording = false;
-        let macroPlaying = false;
-        let macroCurrentCmd = null;
-        let macroCurrentStart = 0;
-        let macroCurrentSteps = [];
-        let macroPlayingIndex = -1;
-        let macroAbortController = null;
-
-        function macroOnCmdChange(rawCmd) {
-            if (!macroRecording) return;
-            const now = Date.now();
-            if (macroCurrentCmd !== null) {
-                const duration = now - macroCurrentStart;
-                if (duration >= 50) macroCurrentSteps.push({ cmd: macroCurrentCmd, duration });
-            }
-            macroCurrentCmd = rawCmd;
-            macroCurrentStart = now;
-        }
-
-        // Movement buttons (press & hold with repeat)
-        function setupMoveBtn(btn, pressCmd) {
-            let interval = null;
-            function press() {
-                if (btn.disabled) return;
-                macroOnCmdChange(pressCmd);
-                sendCmd(mapMoveCmd(pressCmd));
-                btn.classList.add('active');
-                if (interval) clearInterval(interval);
-                interval = setInterval(() => sendCmd(mapMoveCmd(pressCmd)), 200);
-            }
-            function release() {
-                if (interval) { clearInterval(interval); interval = null; }
-                macroOnCmdChange('x');
-                sendCmd('x');
-                btn.classList.remove('active');
-            }
-            btn.addEventListener('mousedown', press);
-            btn.addEventListener('mouseup', release);
-            btn.addEventListener('mouseleave', release);
-            btn.addEventListener('touchstart', e => { e.preventDefault(); press(); });
-            btn.addEventListener('touchend', e => { e.preventDefault(); release(); });
-        }
-
-        setupMoveBtn(btnFwd, 'f');
-        setupMoveBtn(btnBack, 'b');
-        setupMoveBtn(btnLeft, 'l');
-        setupMoveBtn(btnRight, 'r');
-        btnStop.addEventListener('click', () => { macroOnCmdChange('x'); sendCmd('x'); });
-
-        // Keyboard WASD controls
-        const keyMap = { w: { btn: btnFwd, cmd: 'f' }, s: { btn: btnBack, cmd: 'b' }, a: { btn: btnLeft, cmd: 'l' }, d: { btn: btnRight, cmd: 'r' } };
-        const keyHeld = {};
-        document.addEventListener('keydown', e => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-            const k = e.key.toLowerCase();
-            if (k === 'x' || k === ' ') { macroOnCmdChange('x'); sendCmd('x'); Object.values(keyMap).forEach(m => m.btn.classList.remove('active')); return; }
-            const m = keyMap[k];
-            if (!m || m.btn.disabled || keyHeld[k]) return;
-            keyHeld[k] = true;
-            macroOnCmdChange(m.cmd);
-            sendCmd(mapMoveCmd(m.cmd));
-            m.btn.classList.add('active');
-            m._interval = setInterval(() => sendCmd(mapMoveCmd(m.cmd)), 200);
-        });
-        document.addEventListener('keyup', e => {
-            const k = e.key.toLowerCase();
-            const m = keyMap[k];
-            if (!m || !keyHeld[k]) return;
-            keyHeld[k] = false;
-            if (m._interval) { clearInterval(m._interval); m._interval = null; }
-            m.btn.classList.remove('active');
-            if (!Object.values(keyHeld).some(v => v)) { macroOnCmdChange('x'); sendCmd('x'); }
-        });
-
-        // ==================== BLE CONNECT ====================
-        connectBtn.addEventListener('click', async () => {
-            if (device && device.gatt.connected) { device.gatt.disconnect(); return; }
-            try {
-                updateStatus('SCAN...', false);
-                device = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: [SERVICE_UUID] }],
-                    optionalServices: [OTA_SERVICE_UUID]
-                });
-                device.addEventListener('gattserverdisconnected', onDisconnected);
-                updateStatus('LINK...', false);
-                const server = await device.gatt.connect();
-
-                // Tuner service
-                const service = await server.getPrimaryService(SERVICE_UUID);
-                charCmd = await service.getCharacteristic(CHAR_CMD_UUID);
-                charStatus = await service.getCharacteristic(CHAR_STATUS_UUID);
-                charData = await service.getCharacteristic(CHAR_DATA_UUID);
-                await charData.startNotifications();
-                charData.addEventListener('characteristicvaluechanged', onTelemetry);
-                await charStatus.startNotifications();
-                charStatus.addEventListener('characteristicvaluechanged', onStatusNotify);
-
-                // OTA service (optional)
-                otaHasService = false;
-                try {
-                    const otaService = await server.getPrimaryService(OTA_SERVICE_UUID);
-                    otaControlChar = await otaService.getCharacteristic(OTA_CONTROL_CHAR_UUID);
-                    otaDataChar = await otaService.getCharacteristic(OTA_DATA_CHAR_UUID);
-                    await otaControlChar.startNotifications();
-                    otaControlChar.addEventListener('characteristicvaluechanged', onOtaControlNotify);
-                    otaHasService = true;
-                    otaLog('OTA service ready', 'success');
-                } catch (e) {
-                    otaLog('OTA service not available on this device', 'info');
-                }
-
-                clearChart();
-                await readStatus();
-                updateStatus('ONLINE', true);
-                connectBtn.textContent = 'Disconnect';
-                enableControls(true);
-                updateOtaUI();
-            } catch (e) {
-                showError('Connection failed: ' + e.message);
-                updateStatus('OFFLINE', false);
-                connectBtn.textContent = 'Connect';
-            }
-        });
-
-        function onDisconnected() {
-            if (otaDisconnectResolve) { otaDisconnectResolve(true); otaDisconnectResolve = null; }
-            updateStatus('OFFLINE', false);
-            connectBtn.textContent = 'Connect';
-            enableControls(false);
-            isArmed = false;
-            robotState = 0;
-            updateArmUI();
-            updateStateUI();
-            device = null; charCmd = null; charStatus = null; charData = null;
-            otaControlChar = null; otaDataChar = null; otaHasService = false;
-            const fwChip = document.getElementById('fwChip');
-            if (fwChip) fwChip.style.display = 'none';
-            otaUploading = false;
-            updateOtaUI();
-        }
-
-        // ==================== OTA ====================
-        const otaFileDrop = document.getElementById('otaFileDrop');
-        const otaFileInput = document.getElementById('otaFileInput');
-        const otaFileText = document.getElementById('otaFileText');
-        const otaFileName = document.getElementById('otaFileName');
-        const otaUploadBtn = document.getElementById('otaUploadBtn');
-        const otaProgressContainer = document.getElementById('otaProgressContainer');
-        const otaProgressBar = document.getElementById('otaProgressBar');
-        const otaProgressText = document.getElementById('otaProgressText');
-        const otaLogEl = document.getElementById('otaLog');
-
-        let otaFirmwareData = null;
-        let otaUploading = false;
-        let otaDisconnectResolve = null; // resolves when BLE disconnects (reboot = OTA success)
-
-        function onOtaControlNotify(event) {
-            // Only used to catch OTA_STATUS_ERROR from firmware (logged but not blocking)
-            const bytes = new Uint8Array(event.target.value.buffer);
-            if (bytes[0] === OTA_STATUS_ERROR) otaLog('Device reported flash ERROR.', 'error');
-        }
-
-        function waitForDisconnect(timeoutMs = 20000) {
-            return new Promise(resolve => {
-                otaDisconnectResolve = resolve;
-                setTimeout(() => { if (otaDisconnectResolve) { otaDisconnectResolve = null; resolve(false); } }, timeoutMs);
-            });
-        }
-
-        function updateOtaUI() {
-            otaUploadBtn.disabled = !otaHasService || !otaFirmwareData || otaUploading;
-        }
-
-        function otaLog(msg, type = '') {
-            const entry = document.createElement('div');
-            entry.className = 'ota-log-entry ' + type;
-            const time = new Date().toLocaleTimeString();
-            entry.textContent = `[${time}] ${msg}`;
-            otaLogEl.appendChild(entry);
-            otaLogEl.scrollTop = otaLogEl.scrollHeight;
-        }
-
-        function otaSetProgress(percent) {
-            otaProgressBar.style.width = percent + '%';
-            otaProgressText.textContent = percent + '%';
-        }
-
-        otaFileDrop.addEventListener('click', () => otaFileInput.click());
-        otaFileDrop.addEventListener('dragover', e => { e.preventDefault(); otaFileDrop.classList.add('dragover'); });
-        otaFileDrop.addEventListener('dragleave', () => otaFileDrop.classList.remove('dragover'));
-        otaFileDrop.addEventListener('drop', e => {
-            e.preventDefault();
-            otaFileDrop.classList.remove('dragover');
-            if (e.dataTransfer.files.length > 0) loadOtaFile(e.dataTransfer.files[0]);
-        });
-        otaFileInput.addEventListener('change', () => {
-            if (otaFileInput.files.length > 0) loadOtaFile(otaFileInput.files[0]);
-        });
-
-        function loadOtaFile(file) {
-            if (!file.name.endsWith('.bin')) {
-                otaLog('Please select a .bin file', 'error');
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = e => {
-                otaFirmwareData = new Uint8Array(e.target.result);
-                otaFileText.textContent = file.name;
-                otaFileName.textContent = (otaFirmwareData.length / 1024).toFixed(1) + ' KB';
-                otaFileDrop.classList.add('has-file');
-                otaLog(`File: ${file.name} (${otaFirmwareData.length} bytes)`, 'info');
-                updateOtaUI();
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        // Download latest firmware from GitHub
-        const LATEST_FIRMWARE_URL_LQR = 'https://raw.githubusercontent.com/ndthanh/ndthanh.github.io/master/lqr/firmware.bin';
-
-        const otaFetchLatestBtn = document.getElementById('otaFetchLatestBtn');
-        const otaFetchStatus = document.getElementById('otaFetchStatus');
-
-        otaFetchLatestBtn.addEventListener('click', async () => {
-            otaFetchLatestBtn.disabled = true;
-            otaFetchStatus.textContent = 'Downloading...';
-            otaFetchStatus.style.color = 'rgba(255,255,255,0.55)';
-            try {
-                const resp = await fetch(LATEST_FIRMWARE_URL_LQR);
-                if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
-
-                const contentLength = resp.headers.get('Content-Length');
-                let data;
-                if (contentLength && resp.body) {
-                    const total = parseInt(contentLength, 10);
-                    const reader = resp.body.getReader();
-                    const chunks = [];
-                    let received = 0;
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
-                        chunks.push(value);
-                        received += value.length;
-                        otaFetchStatus.textContent = `Downloading... ${(received/1024).toFixed(1)} / ${(total/1024).toFixed(1)} KB`;
-                    }
-                    data = new Uint8Array(received);
-                    let pos = 0;
-                    for (const c of chunks) { data.set(c, pos); pos += c.length; }
-                } else {
-                    const buf = await resp.arrayBuffer();
-                    data = new Uint8Array(buf);
-                }
-
-                otaFirmwareData = data;
-                const label = 'firmware.bin (latest LQR)';
-                otaFileText.textContent = label;
-                otaFileName.textContent = (data.length / 1024).toFixed(1) + ' KB';
-                otaFileDrop.classList.add('has-file');
-                otaFetchStatus.style.color = '#4fc3f7';
-                otaFetchStatus.textContent = `✓ Ready — ${(data.length/1024).toFixed(1)} KB`;
-                otaLog(`Downloaded: ${label} (${data.length} bytes)`, 'success');
-                updateOtaUI();
-            } catch (e) {
-                otaFetchStatus.style.color = '#ef5350';
-                otaFetchStatus.textContent = `Error: ${e.message}`;
-                otaLog(`Firmware download failed: ${e.message}`, 'error');
-            } finally {
-                otaFetchLatestBtn.disabled = false;
-            }
-        });
-
-        otaUploadBtn.addEventListener('click', startOta);
-
-        async function startOta() {
-            if (!otaControlChar || !otaDataChar || !otaFirmwareData) return;
-
-            otaUploading = true;
-            updateOtaUI();
-            otaProgressContainer.style.display = '';
-            otaSetProgress(0);
-
-            try {
-                // Compress if browser supports it AND user hasn't disabled it
-                let dataToSend = otaFirmwareData;
-                const compressionCb = document.getElementById('otaUseCompression');
-                let useCompression = typeof CompressionStream !== 'undefined' && compressionCb && compressionCb.checked;
-                if (useCompression) {
-                    otaLog(`Compressing ${otaFirmwareData.length} bytes...`, 'info');
-                    dataToSend = await compressZlib(otaFirmwareData);
-                    const ratio = (100 - dataToSend.length / otaFirmwareData.length * 100).toFixed(1);
-                    otaLog(`Compressed: ${dataToSend.length} bytes (${ratio}% smaller, ${(dataToSend.length/1024).toFixed(1)} KB)`, 'success');
-                }
-
-                let beginCmd;
-                if (useCompression) {
-                    // 9 bytes: [cmd][usize:4][csize:4]
-                    // usize = original firmware size (for FlashZ Update.begin)
-                    // csize = compressed stream size (for progress/last-chunk detection)
-                    const usize = otaFirmwareData.length;
-                    const csize = dataToSend.length;
-                    beginCmd = new Uint8Array(9);
-                    beginCmd[0] = OTA_CMD_BEGIN_Z;
-                    beginCmd[1] = usize & 0xFF;        beginCmd[2] = (usize >> 8) & 0xFF;
-                    beginCmd[3] = (usize >> 16) & 0xFF; beginCmd[4] = (usize >> 24) & 0xFF;
-                    beginCmd[5] = csize & 0xFF;        beginCmd[6] = (csize >> 8) & 0xFF;
-                    beginCmd[7] = (csize >> 16) & 0xFF; beginCmd[8] = (csize >> 24) & 0xFF;
-                } else {
-                    beginCmd = new Uint8Array(5);
-                    beginCmd[0] = OTA_CMD_BEGIN;
-                    beginCmd[1] = dataToSend.length & 0xFF;
-                    beginCmd[2] = (dataToSend.length >> 8) & 0xFF;
-                    beginCmd[3] = (dataToSend.length >> 16) & 0xFF;
-                    beginCmd[4] = (dataToSend.length >> 24) & 0xFF;
-                }
-
-                otaLog(`Starting OTA${useCompression ? ` (zlib, ${(dataToSend.length/1024).toFixed(1)}KB → ${(otaFirmwareData.length/1024).toFixed(1)}KB)` : ''}: ${dataToSend.length} bytes`, 'info');
-
-                // OTA auto-disarms the robot
-                isArmed = false;
-                updateArmUI();
-
-                await otaControlChar.writeValueWithResponse(beginCmd);
-                await sleep(500);
-
-                const totalChunks = Math.ceil(dataToSend.length / OTA_CHUNK_SIZE);
-                let lastLoggedPercent = -1;
-                for (let i = 0; i < totalChunks; i++) {
-                    const start = i * OTA_CHUNK_SIZE;
-                    const end = Math.min(start + OTA_CHUNK_SIZE, dataToSend.length);
-                    const chunk = dataToSend.slice(start, end);
-
-                    await otaDataChar.writeValueWithResponse(chunk);
-
-                    const percent = Math.round(((i + 1) / totalChunks) * 100);
-                    otaSetProgress(percent);
-
-                    if (percent % 10 === 0 && percent !== 100 && percent !== lastLoggedPercent) {
-                        lastLoggedPercent = percent;
-                        otaLog(`Uploading... ${percent}%`, 'info');
-                    }
-                }
-
-                otaLog('All data sent. Finalizing...', 'info');
-                await sleep(500);
-                const disconnectPromise = waitForDisconnect(20000);
-                await otaControlChar.writeValueWithResponse(new Uint8Array([OTA_CMD_END]));
-
-                // Success = device reboots = BLE disconnects
-                otaLog('Waiting for device to reboot (BLE disconnect)...', 'info');
-                const rebooted = await disconnectPromise;
-                if (rebooted) {
-                    otaLog('OTA complete! Device rebooted successfully.', 'success');
-                    otaSetProgress(100);
-                } else {
-                    otaLog('WARNING: Device did not disconnect after 20s — OTA likely failed (endz hang).', 'info');
-                    otaSetProgress(100);
-                }
-
-            } catch (e) {
-                otaLog(`OTA failed: ${e.message}`, 'error');
-                otaSetProgress(0);
-
-                try {
-                    await otaControlChar.writeValueWithResponse(new Uint8Array([OTA_CMD_ABORT]));
-                } catch (_) { }
-            }
-
-            otaUploading = false;
-            updateOtaUI();
-        }
-
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        // ==================== MACRO ====================
-        const MACRO_STORAGE_KEY = 'balancebot_macros';
-
-        const CMD_INFO = {
-            f: { icon: '▲', label: 'FORWARD', color: '#0d6efd' },
-            b: { icon: '▼', label: 'BACK',    color: '#0d6efd' },
-            l: { icon: '◀', label: 'LEFT',    color: '#0d6efd' },
-            r: { icon: '▶', label: 'RIGHT',   color: '#0d6efd' },
-            x: { icon: '■', label: 'STOP',    color: '#dc3545' },
-        };
-
-        const macroRecordBtn  = document.getElementById('macroRecordBtn');
-        const macroPlayBtn    = document.getElementById('macroPlayBtn');
-        const macroLoopEl     = document.getElementById('macroLoop');
-        const macroClearBtn   = document.getElementById('macroClearBtn');
-        const macroStatusEl   = document.getElementById('macroStatus');
-        const macroStepListEl = document.getElementById('macroStepList');
-        const macroSaveNameEl = document.getElementById('macroSaveName');
-        const macroSaveBtn    = document.getElementById('macroSaveBtn');
-        const macroSavedListEl= document.getElementById('macroSavedList');
-
-        function macroUpdateStatus() {
-            if (macroRecording) {
-                macroStatusEl.textContent = `● RECORDING — ${macroCurrentSteps.length} steps captured`;
-                macroStatusEl.style.color = '#dc3545';
-            } else if (macroPlaying) {
-                const loop = macroLoopEl.checked;
-                macroStatusEl.textContent = `▶ PLAYING${loop ? ' (LOOP)' : ''} — step ${macroPlayingIndex + 1} / ${macroCurrentSteps.length}`;
-                macroStatusEl.style.color = '#20c997';
-            } else {
-                const n = macroCurrentSteps.length;
-                const total = macroCurrentSteps.reduce((s, st) => s + st.duration, 0);
-                macroStatusEl.textContent = n > 0
-                    ? `${n} steps · ${(total / 1000).toFixed(1)}s total`
-                    : 'No steps — go to Controller tab and use D-pad while recording';
-                macroStatusEl.style.color = 'rgba(255,255,255,0.4)';
-            }
-        }
-
-        function macroRenderSteps() {
-            macroPlayBtn.disabled = macroCurrentSteps.length === 0;
-            if (macroCurrentSteps.length === 0) {
-                macroStepListEl.innerHTML = '<div class="macro-empty">No steps recorded</div>';
-                macroUpdateStatus();
-                return;
-            }
-            macroStepListEl.innerHTML = macroCurrentSteps.map((step, i) => {
-                const info = CMD_INFO[step.cmd] || CMD_INFO.x;
-                return `<div class="macro-step" id="macroStep${i}">
-                    <span class="macro-step-num">${i + 1}</span>
-                    <span class="macro-step-icon" style="color:${info.color}">${info.icon}</span>
-                    <span class="macro-step-label" style="color:${info.color}">${info.label}</span>
-                    <input type="number" class="macro-step-dur" value="${step.duration}" min="50" max="30000" step="50"
-                        onchange="macroCurrentSteps[${i}].duration = Math.max(50, parseInt(this.value)||50); macroUpdateStatus();">
-                    <span class="macro-step-ms">ms</span>
-                    <button class="macro-step-del" onclick="macroDeleteStep(${i})">✕</button>
-                </div>`;
-            }).join('');
-            macroUpdateStatus();
-        }
-
-        function macroDeleteStep(index) {
-            macroCurrentSteps.splice(index, 1);
-            macroRenderSteps();
-        }
-
-        macroRecordBtn.addEventListener('click', () => {
-            if (macroPlaying) return;
-            macroRecording = !macroRecording;
-            if (macroRecording) {
-                macroCurrentCmd = null;
-                macroCurrentStart = Date.now();
-                macroRecordBtn.textContent = '⬛ STOP REC';
-                macroRecordBtn.classList.add('active');
-                macroPlayBtn.disabled = true;
-            } else {
-                // Finalize last held step
-                if (macroCurrentCmd !== null) {
-                    const duration = Date.now() - macroCurrentStart;
-                    if (duration >= 50) macroCurrentSteps.push({ cmd: macroCurrentCmd, duration });
-                    macroCurrentCmd = null;
-                }
-                macroRecordBtn.textContent = '● REC';
-                macroRecordBtn.classList.remove('active');
-                macroRenderSteps();
-            }
-            macroUpdateStatus();
-        });
-
-        macroClearBtn.addEventListener('click', () => {
-            if (macroPlaying) macroStopPlayback();
-            if (macroRecording) {
-                macroRecording = false;
-                macroRecordBtn.textContent = '● REC';
-                macroRecordBtn.classList.remove('active');
-                macroCurrentCmd = null;
-            }
-            macroCurrentSteps = [];
-            macroRenderSteps();
-        });
-
-        macroPlayBtn.addEventListener('click', () => {
-            if (macroPlaying) { macroStopPlayback(); } else { macroStartPlayback(); }
-        });
-
-        async function macroStartPlayback() {
-            if (macroCurrentSteps.length === 0 || !charCmd) return;
-            macroPlaying = true;
-            macroPlayBtn.textContent = '⬛ STOP';
-            macroPlayBtn.classList.add('active');
-            macroRecordBtn.disabled = true;
-            const steps = [...macroCurrentSteps];
-            const ctrl = { aborted: false };
-            macroAbortController = ctrl;
-            do {
-                for (let i = 0; i < steps.length; i++) {
-                    if (ctrl.aborted) break;
-                    macroPlayingIndex = i;
-                    macroUpdateStatus();
-                    document.querySelectorAll('.macro-step').forEach((el, idx) => el.classList.toggle('playing', idx === i));
-                    const step = steps[i];
-                    await sendCmd(step.cmd === 'x' ? 'x' : mapMoveCmd(step.cmd));
-                    const end = Date.now() + step.duration;
-                    while (Date.now() < end && !ctrl.aborted) await sleep(Math.min(50, end - Date.now()));
-                }
-            } while (!ctrl.aborted && macroLoopEl.checked);
-            sendCmd('x');
-            macroPlaying = false;
-            macroPlayingIndex = -1;
-            macroPlayBtn.textContent = '▶ PLAY';
-            macroPlayBtn.classList.remove('active');
-            macroRecordBtn.disabled = false;
-            document.querySelectorAll('.macro-step').forEach(el => el.classList.remove('playing'));
-            macroUpdateStatus();
-        }
-
-        function macroStopPlayback() {
-            if (macroAbortController) macroAbortController.aborted = true;
-        }
-
-        macroSaveBtn.addEventListener('click', () => {
-            const name = macroSaveNameEl.value.trim();
-            if (!name || macroCurrentSteps.length === 0) return;
-            const macros = getMacros();
-            macros.unshift({ name, steps: [...macroCurrentSteps], ts: Date.now() });
-            saveMacros(macros);
-            macroSaveNameEl.value = '';
-            macroRenderSaved();
-        });
-
-        macroSaveNameEl.addEventListener('keydown', e => { if (e.key === 'Enter') macroSaveBtn.click(); });
-
-        function getMacros() {
-            try { return JSON.parse(localStorage.getItem(MACRO_STORAGE_KEY)) || []; } catch { return []; }
-        }
-        function saveMacros(m) { localStorage.setItem(MACRO_STORAGE_KEY, JSON.stringify(m)); }
-
-        function macroLoadSaved(index) {
-            const macros = getMacros();
-            if (!macros[index]) return;
-            macroCurrentSteps = [...macros[index].steps];
-            macroRenderSteps();
-        }
-
-        function macroDeleteSaved(index) {
-            const macros = getMacros();
-            macros.splice(index, 1);
-            saveMacros(macros);
-            macroRenderSaved();
-        }
-
-        function macroRenderSaved() {
-            const macros = getMacros();
-            if (macros.length === 0) {
-                macroSavedListEl.innerHTML = '<span style="font-size:10px;color:rgba(255,255,255,0.2)">No saved macros</span>';
-                return;
-            }
-            macroSavedListEl.innerHTML = macros.map((m, i) => `
-                <div class="macro-saved-item">
-                    <span class="macro-saved-item-name" onclick="macroLoadSaved(${i})" title="${m.steps.length} steps · ${(m.steps.reduce((s,st)=>s+st.duration,0)/1000).toFixed(1)}s">${esc(m.name)}</span>
-                    <button class="macro-saved-item-del" onclick="macroDeleteSaved(${i})">✕</button>
-                </div>`).join('');
-        }
-
-        macroRenderSaved();
-        macroUpdateStatus();
-
-        // ==================== PROFILES ====================
-        const PROF_STORAGE_KEY = 'balancebot_lqr_profiles';
-        const profList = document.getElementById('profList');
-        const profSaveForm = document.getElementById('profSaveForm');
-        const profNameInput = document.getElementById('profName');
-        const profDescInput = document.getElementById('profDesc');
-
-        function getProfiles() {
-            try { return JSON.parse(localStorage.getItem(PROF_STORAGE_KEY)) || []; }
-            catch { return []; }
-        }
-
-        function saveProfiles(profiles) {
-            localStorage.setItem(PROF_STORAGE_KEY, JSON.stringify(profiles));
-        }
-
-        function getCurrentParams() {
-            const params = {};
-            Object.entries(sliders).forEach(([k, s]) => {
-                params[s.cmd] = parseFloat(s.el.value);
-            });
-            return params;
-        }
-
-        function showSaveForm() {
-            profSaveForm.classList.add('show');
-            profNameInput.value = '';
-            profDescInput.value = '';
-            profNameInput.focus();
-        }
-
-        function hideSaveForm() {
-            profSaveForm.classList.remove('show');
-        }
-
-        function saveProfile() {
-            const name = profNameInput.value.trim();
-            if (!name) { profNameInput.focus(); return; }
-            const profiles = getProfiles();
-            profiles.unshift({
-                name,
-                desc: profDescInput.value.trim(),
-                ts: Date.now(),
-                params: getCurrentParams()
-            });
-            saveProfiles(profiles);
-            hideSaveForm();
-            renderProfiles();
-        }
-
-        function deleteProfile(index) {
-            const profiles = getProfiles();
-            profiles.splice(index, 1);
-            saveProfiles(profiles);
-            renderProfiles();
-        }
-
-        const profActive = document.getElementById('profActive');
-        const profToast = document.getElementById('profToast');
-
-        function showProfileToast(msg) {
-            profToast.textContent = msg;
-            profToast.classList.add('show');
-            setTimeout(() => profToast.classList.remove('show'), 2000);
-        }
-
-        async function loadProfile(index) {
-            const profiles = getProfiles();
-            const prof = profiles[index];
-            if (!prof) return;
-
-            Object.entries(sliders).forEach(([k, s]) => {
-                if (prof.params[s.cmd] !== undefined) {
-                    s.el.value = prof.params[s.cmd];
-                    s.val.textContent = parseFloat(prof.params[s.cmd]).toFixed(s.fmt);
-                }
-            });
-
-            profActive.textContent = prof.name;
-            profActive.style.display = '';
-
-            const items = profList.querySelectorAll('.prof-item');
-            if (items[index]) items[index].classList.add('loading');
-
-            if (charCmd) {
-                for (const [cmd, val] of Object.entries(prof.params)) {
-                    while (_gattBusy) await sleep(30);
-                    _gattBusy = true;
-                    try {
-                        await charCmd.writeValue(new TextEncoder().encode(cmd + val));
-                    } catch (e) { }
-                    _gattBusy = false;
-                    await sleep(80);
-                }
-                showProfileToast('PROFILE LOADED \u2014 READY');
-            } else {
-                showProfileToast('PROFILE LOADED (OFFLINE)');
-            }
-
-            setTimeout(() => {
-                if (items[index]) items[index].classList.remove('loading');
-            }, 500);
-        }
-
-        function renderProfiles() {
-            const profiles = getProfiles();
-            if (profiles.length === 0) {
-                profList.innerHTML = '<div class="prof-empty">No saved profiles</div>';
-                return;
-            }
-            profList.innerHTML = profiles.map((p, i) => `
-                <div class="prof-item">
-                    <div class="prof-item-name">${esc(p.name)}</div>
-                    ${p.desc ? `<div class="prof-item-desc">${esc(p.desc)}</div>` : ''}
-                    <div class="prof-item-actions">
-                        <button class="tbtn" style="background:linear-gradient(135deg,#198754,#20c997);color:white" onclick="loadProfile(${i})">Load</button>
-                        <button class="tbtn" style="background:rgba(220,53,69,0.2);color:#dc3545;border:1px solid rgba(220,53,69,0.3)" onclick="deleteProfile(${i})">Del</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function esc(s) {
-            const d = document.createElement('div');
-            d.textContent = s;
-            return d.innerHTML;
-        }
-
-        profNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') saveProfile(); });
-
-        renderProfiles();
-    </script>
-</body>
-
-</html>
+// ESP32-S3 Nano + 2x SimpleFOC Mini v1.0 | Self-Balancing Robot — LQR Control + BLE OTA
+//
+// LQR state feedback: u = K1*angle + K2*rate + K3*velocity + K4*position
+//
+// ┌─────────────── ESP32-S3 NANO ───────────────┐
+// │  LEFT side          │  RIGHT side            │
+// │  Motor1 (LEFT)      │  Motor2 (RIGHT)        │
+// │  IN1 → GPIO 15      │  IN1 → GPIO 11         │
+// │  IN2 → GPIO 16      │  IN2 → GPIO 12         │
+// │  IN3 → GPIO 17      │  IN3 → GPIO 13         │
+// │  EN  → GPIO 18      │  EN  → GPIO 14         │
+// │                     │                        │
+// │  AS5600_1 (I2C0)    │  AS5600_2 + BMI160     │
+// │  SDA → GPIO 40      │  (I2C1)                │
+// │  SCL → GPIO 41      │  SDA → GPIO 8          │
+// │                     │  SCL → GPIO 9          │
+// └─────────────────────────────────────────────┘
+
+#include <Arduino.h>
+#include <SimpleFOC.h>
+#include <Wire.h>
+#include <NimBLEDevice.h>
+#include <Update.h>
+#include <Preferences.h>
+#include "flashz.hpp"
+
+// ==================== PROD BUILD — disable all Serial output ====================
+#ifdef PROD_BUILD
+#define DPRINTF(...) ((void)0)
+#define DPRINTLN(x) ((void)0)
+#define DSERIAL_BEGIN(baud) ((void)0)
+#else
+#define DPRINTF(...) Serial.printf(__VA_ARGS__)
+#define DPRINTLN(x) Serial.println(x)
+#define DSERIAL_BEGIN(baud) Serial.begin(baud)
+#endif
+// ================================================================================
+
+Preferences prefs;
+
+// ==================== SENSORS (AS5600) ====================
+MagneticSensorI2C sensor1 = MagneticSensorI2C(AS5600_I2C);
+MagneticSensorI2C sensor2 = MagneticSensorI2C(AS5600_I2C);
+TwoWire I2Cone = TwoWire(0);
+TwoWire I2Ctwo = TwoWire(1);
+
+// ==================== MOTORS ====================
+// SimpleFOC Mini v1.0: BLDCDriver3PWM(IN1, IN2, IN3, EN)
+BLDCMotor motor1 = BLDCMotor(7); // LEFT  — GPIO 15/16/17/18
+BLDCDriver3PWM driver1 = BLDCDriver3PWM(15, 16, 17, 18);
+
+BLDCMotor motor2 = BLDCMotor(7); // RIGHT — GPIO 11/12/13/14
+BLDCDriver3PWM driver2 = BLDCDriver3PWM(11, 12, 13, 14);
+
+// ==================== BMI160 IMU ====================
+#define I2Cimu I2Ctwo // BMI160 on I2C1 (GPIO 8/9) with AS5600 RIGHT
+#define BMI160_ADDR 0x69
+
+#define BMI160_CHIP_ID 0x00
+#define BMI160_CMD 0x7E
+#define BMI160_ACC_CONF 0x40
+#define BMI160_ACC_RANGE 0x41
+#define BMI160_GYR_CONF 0x42
+#define BMI160_GYR_RANGE 0x43
+
+int16_t accX, accZ, gyrY;
+float pitch_angle = 0;
+float pitch_rate = 0;
+float pitch_offset = 0;
+
+uint32_t i2c_errors = 0;
+uint32_t i2c_reads = 0;
+bool imu_ok = true;
+
+#define GYRO_WEIGHT 0.98
+
+// ==================== LQR CONTROL ====================
+// u = K1*(-angle) + K2*(-rate) + K3*velocity + K4*position
+// Negate angle/rate because our IMU: forward tilt = negative pitch_angle
+// All K values positive (matching remrc convention for same GM2804 motors)
+float K1 = 2.00;  // Pitch angle gain (deg → V)
+float K2 = 0.015; // Pitch rate gain (deg/s → V)
+float K3 = 1.00;  // Wheel velocity gain (rad/s → V)
+float K4 = 3.00;  // Wheel position gain (rad → V)
+
+float max_torque = 1.5; // Output voltage clamp
+
+// ==================== SWING-UP ====================
+// Energy-based swing-up: pump energy to bring robot upright
+enum RobotState
+{
+  STATE_FALLEN = 0,
+  STATE_SWING_UP = 1,
+  STATE_BALANCING = 2,
+  STATE_SOFT_LAND = 3, // Controlled landing after user disarm
+  STATE_FAKE_FALL = 4  // Intentional fall + swing-catch maneuver
+};
+RobotState robot_state = STATE_FALLEN;
+
+float k_swing = 7.5;          // Gravity over-compensation gain (voltage)
+float k_damping = 0.0;        // Damping on θ̇ (rad/s)
+float switch_angle = 15.0;    // Degrees — transition to LQR
+float blend_angle = 5.0;      // Degrees — blend zone width
+float swing_max_torque = 8.0; // Voltage limit during swing-up
+
+#define ROBOT_MASS 0.210f
+#define COM_HEIGHT 0.06f
+#define GRAVITY_CONST 9.81f
+
+// --- Steering ---
+float steering = 0;
+float steering_gain = 2.00;
+
+// --- Safety ---
+float fall_angle = 45.0;
+#define FADE_START_ANGLE 40.0
+bool is_balanced = false;
+bool armed = false;                // Must be armed via BLE before balancing
+bool swing_allow_disarmed = false; // If true, SWING UP auto-arms the robot
+
+// --- Fake fall maneuver ---
+float fake_catch_angle = 35.0f;      // Start swing-catch at this angle (deg)
+float fake_fail_angle = 50.0f;       // Abort catch if past this angle (deg)
+bool fake_catching = false;          // Latch: true once catch phase entered
+unsigned long fake_nudge_end_ms = 0; // End of initial direction nudge
+float fake_nudge_torque = 0.0f;      // Nudge torque (signed, sets fall direction)
+#define FAKE_NUDGE_MS 80             // Initial nudge duration (ms)
+
+// --- Disarm landing ---
+bool disarm_use_brake = false;           // false=immediate cut (default), true=free-fall+brake
+float disarm_brake_angle = 50.0f;        // Trigger brake when abs_pitch reaches this (deg)
+float disarm_brake_torque = 3.0f;        // Counter-torque magnitude during brake (V)
+float disarm_brake_ms = 150.0f;          // Brake pulse duration (ms)
+float soft_land_fall_dir = 1.0f;         // +1 or -1: fall direction (set at disarm)
+bool disarm_braking = false;             // true = in brake phase
+unsigned long soft_land_start_ms = 0;    // disarm timestamp (for safety timeout)
+unsigned long disarm_brake_start_ms = 0; // brake phase start timestamp
+#define SOFT_LAND_TIMEOUT_MS 4000        // Emergency cut if stuck in free-fall
+
+// ==================== TIMING ====================
+unsigned long lastControl = 0;
+int control_freq = 400;
+unsigned long control_period_us = 1000000UL / control_freq;
+float dt = 1.0f / control_freq;
+#define PRINT_INTERVAL 100
+
+// ==================== TORQUE ====================
+float torque_cmd = 0;
+float torque_raw = 0;
+float torque_slew = 500.0;
+float steering_torque = 0;
+float avg_velocity = 0;
+float vel_lpf_tf = 0.03; // Additional software LPF on avg_velocity (s)
+
+float motor1_voltage = 0;
+float motor2_voltage = 0;
+
+// BLE command timeout
+unsigned long ble_cmd_time = 0;
+bool ble_cmd_active = false;
+
+// ==================== POSITION ====================
+float wheel_position = 0;
+float move_speed = 0;
+float move_speed_max = 500.0;
+#define POS_LIMIT 2.0 // Anti-windup (rad)
+#define BLE_CMD_TIMEOUT 500
+
+// ==================== POWER ====================
+// NOTE: Hardware boost converter currently set to ~9V output.
+// SUPPLY_VOLTAGE intentionally kept at 12.0 so FOC voltage scaling
+// matches the tuned K values above (which were found at 9V actual).
+// Changing SUPPLY_VOLTAGE would rescale motor output and break the tune.
+#define SUPPLY_VOLTAGE 12.0
+
+// ==================== BLE ====================
+#define SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+#define CHAR_CMD_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+#define CHAR_STATUS_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a9"
+#define CHAR_DATA_UUID "beb5483e-36e1-4688-b7f5-ea07361b26aa"
+
+// ==================== BLE OTA ====================
+#define OTA_SERVICE_UUID "fb1e4001-54ae-4a28-9f74-dfccb248601d"
+#define OTA_CONTROL_CHAR_UUID "fb1e4002-54ae-4a28-9f74-dfccb248601d"
+#define OTA_DATA_CHAR_UUID "fb1e4003-54ae-4a28-9f74-dfccb248601d"
+
+#define OTA_CMD_BEGIN 0x01 // Uncompressed: [0x01, size[4]]
+#define OTA_CMD_END 0x02
+#define OTA_CMD_ABORT 0x03
+#define OTA_CMD_BEGIN_Z 0x05 // zlib compressed: [0x05, csize[4]]
+#define OTA_STATUS_OK 0x01
+#define OTA_STATUS_ERROR 0x03
+#define OTA_STATUS_PROGRESS 0x04
+
+NimBLEServer *pServer = nullptr;
+NimBLECharacteristic *pCmdChar = nullptr;
+NimBLECharacteristic *pStatusChar = nullptr;
+NimBLECharacteristic *pDataChar = nullptr;
+NimBLECharacteristic *pOtaControlChar = nullptr;
+NimBLECharacteristic *pOtaDataChar = nullptr;
+bool ble_connected = false;
+bool ble_status_notify_pending = false;
+
+bool otaInProgress = false;
+bool otaCompressed = false;
+bool otaEndPending = false;
+uint32_t otaTotalSize = 0;        // compressed stream size (for last-chunk detection)
+uint32_t otaUncompressedSize = 0; // original firmware size (for diagnostic)
+uint32_t otaReceived = 0;
+uint32_t lastProgressNotify = 0;
+
+// ==================== TELEMETRY ====================
+struct __attribute__((packed)) Telemetry
+{
+  int16_t pitch;
+  int16_t pitch_rate;
+  int16_t wheel_vel;
+  int16_t wheel_pos;
+  int16_t torque_cmd;
+  uint16_t dt_us;
+  uint8_t flags; // bit0=saturated, bit1=armed, bit2-3=state
+};
+
+uint16_t actual_dt_us = 0;
+
+bool teleplot_enabled = false;      // Off by default (serial broken)
+bool ble_telemetry_enabled = false; // BLE chart data on/off ('L' command) — off by default
+unsigned long lastTeleplot = 0;
+#define TELEPLOT_INTERVAL 100
+
+float imu_temperature = 0.0f;
+unsigned long lastTempRead = 0;
+#define TEMP_READ_INTERVAL 15000
+
+// ==================== IMU FUNCTIONS ====================
+uint8_t imu_readReg(uint8_t reg)
+{
+  I2Cimu.beginTransmission(BMI160_ADDR);
+  I2Cimu.write(reg);
+  I2Cimu.endTransmission(false);
+  I2Cimu.requestFrom((uint8_t)BMI160_ADDR, (uint8_t)1);
+  return I2Cimu.read();
+}
+
+void imu_writeReg(uint8_t reg, uint8_t value)
+{
+  I2Cimu.beginTransmission(BMI160_ADDR);
+  I2Cimu.write(reg);
+  I2Cimu.write(value);
+  I2Cimu.endTransmission(true);
+}
+
+bool imu_init()
+{
+  DPRINTLN("[BMI160] Initializing...");
+
+  uint8_t chipId = imu_readReg(BMI160_CHIP_ID);
+  DPRINTF("[BMI160] Chip ID: 0x%02X\n", chipId);
+  if (chipId != 0xD1)
+    return false;
+
+  imu_writeReg(BMI160_CMD, 0xB6);
+  delay(100);
+  imu_writeReg(BMI160_CMD, 0x11);
+  delay(50);
+  imu_writeReg(BMI160_CMD, 0x15);
+  delay(80);
+
+  imu_writeReg(BMI160_ACC_CONF, 0x2A);
+  imu_writeReg(BMI160_ACC_RANGE, 0x03);
+  imu_writeReg(BMI160_GYR_CONF, 0x2A);
+  imu_writeReg(BMI160_GYR_RANGE, 0x01);
+  delay(50);
+
+  DPRINTLN("[BMI160] OK");
+  return true;
+}
+
+float pitch_estimate = 0;
+
+bool imu_read()
+{
+  uint8_t data[12];
+  i2c_reads++;
+
+  I2Cimu.beginTransmission(BMI160_ADDR);
+  I2Cimu.write(0x0C);
+  uint8_t err = I2Cimu.endTransmission(false);
+  if (err != 0)
+  {
+    i2c_errors++;
+    imu_ok = false;
+    pitch_estimate = pitch_estimate + pitch_rate * dt;
+    pitch_angle = pitch_estimate - pitch_offset;
+    return false;
+  }
+
+  uint8_t received = I2Cimu.requestFrom((uint8_t)BMI160_ADDR, (uint8_t)12);
+  if (received != 12)
+  {
+    i2c_errors++;
+    imu_ok = false;
+    pitch_estimate = pitch_estimate + pitch_rate * dt;
+    pitch_angle = pitch_estimate - pitch_offset;
+    return false;
+  }
+
+  for (int i = 0; i < 12; i++)
+    data[i] = I2Cimu.read();
+
+  imu_ok = true;
+
+  gyrY = (int16_t)(data[2] | (data[3] << 8));
+  accX = (int16_t)(data[6] | (data[7] << 8));
+  accZ = (int16_t)(data[10] | (data[11] << 8));
+
+  float acc_pitch = atan2(-accX, accZ) * 57.2958;
+  pitch_rate = gyrY / 32.8;
+
+  pitch_estimate = GYRO_WEIGHT * (pitch_estimate + pitch_rate * dt) + (1 - GYRO_WEIGHT) * acc_pitch;
+  pitch_angle = pitch_estimate - pitch_offset;
+  return true;
+}
+
+// BMI160 temperature: registers 0x20 (LSB), 0x21 (MSB)
+// Formula: T(°C) = 23 + raw_int16 / 512.0
+float imu_read_temperature()
+{
+  uint8_t lsb = imu_readReg(0x20);
+  uint8_t msb = imu_readReg(0x21);
+  int16_t raw = (int16_t)((uint16_t)msb << 8 | lsb);
+  return 23.0f + raw / 512.0f;
+}
+
+// ==================== LQR CONTROLLER ====================
+// Single linear state feedback — no cascading
+float lqr_control()
+{
+  // Negate angle and rate: our IMU convention is forward tilt = negative angle
+  // LQR convention (remrc): forward tilt = positive → positive torque → wheels forward
+  float u = K1 * (-pitch_angle) + K2 * (-pitch_rate) + K3 * avg_velocity + K4 * wheel_position;
+  return constrain(u, -max_torque, max_torque);
+}
+
+// ==================== SWING-UP CONTROLLER ====================
+// Gravity over-compensation + PD: works for lightweight robots where motor torque >> mgl
+// sin(θ) gives max torque at 90° (where needed most), naturally fades near upright
+float swing_up_control()
+{
+  float theta = pitch_angle * DEG_TO_RAD;
+  float theta_dot = pitch_rate * DEG_TO_RAD;
+
+  // Gain scheduling: boost at large angles, soften near upright
+  float gain = 1.0f + 0.5f * fabsf(sinf(theta));
+
+  float u = -k_swing * gain * sinf(theta) // Gravity over-compensation
+            - k_damping * theta_dot;      // Damping
+
+  return constrain(u, -swing_max_torque, swing_max_torque);
+}
+
+// ==================== DISARM SEQUENCER ====================
+// Initiates a soft landing when currently balancing; immediate cut otherwise.
+// Second call while soft-landing = emergency cut.
+void initiate_disarm()
+{
+  if (robot_state == STATE_BALANCING)
+  {
+    move_speed = 0;
+    steering = 0;
+    wheel_position = 0;
+    ble_cmd_active = false;
+    if (disarm_use_brake)
+    {
+      // Free-fall → one-shot brake → cut
+      robot_state = STATE_SOFT_LAND;
+      soft_land_start_ms = millis();
+      soft_land_fall_dir = (pitch_angle >= 0.0f) ? 1.0f : -1.0f;
+      disarm_braking = false;
+    }
+    else
+    {
+      // Immediate cut (default)
+      armed = false;
+      torque_cmd = 0;
+      torque_raw = 0;
+      robot_state = STATE_FALLEN;
+    }
+  }
+  else if (robot_state == STATE_SOFT_LAND)
+  {
+    // Second press = emergency cut
+    armed = false;
+    torque_cmd = 0;
+    torque_raw = 0;
+    robot_state = STATE_FALLEN;
+    wheel_position = 0;
+  }
+  else
+  {
+    // STATE_FALLEN or STATE_SWING_UP: immediate disarm
+    armed = false;
+    torque_cmd = 0;
+    wheel_position = 0;
+    robot_state = STATE_FALLEN;
+  }
+}
+
+// Forward declaration
+void ble_update_status(bool notify = false);
+
+// ==================== BLE CALLBACKS ====================
+class ServerCallbacks : public NimBLEServerCallbacks
+{
+  void onConnect(NimBLEServer *pServer) override
+  {
+    ble_connected = true;
+    DPRINTLN("[BLE] Connected");
+    ble_update_status();
+    ble_status_notify_pending = true; // push full status to client after CCCD subscribed
+  }
+
+  void onDisconnect(NimBLEServer *pServer) override
+  {
+    ble_connected = false;
+    DPRINTLN("[BLE] Disconnected");
+
+    if (otaInProgress)
+    {
+      if (otaCompressed)
+        FlashZ::getInstance().abortz();
+      else
+        Update.abort();
+      otaInProgress = false;
+    }
+
+    // Explicitly restart advertising — ESP32-S3 NimBLE does not always
+    // auto-restart, causing the device to disappear from macOS/iOS scans
+    NimBLEDevice::startAdvertising();
+  }
+};
+
+// ==================== MICROBLUE PROTOCOL ====================
+#define MB_DPAD_DEADZONE 100
+#define MB_MOVE_SCALE 18.0
+#define MB_STEER_SCALE 1.5
+
+void process_microblue(const uint8_t *data, size_t len)
+{
+  int sep = -1;
+  for (size_t i = 1; i < len; i++)
+  {
+    if (data[i] == 0x02)
+    {
+      sep = i;
+      break;
+    }
+  }
+  if (sep < 0)
+    return;
+
+  String id = "";
+  for (int i = 1; i < sep; i++)
+    id += (char)data[i];
+
+  String val = "";
+  for (size_t i = sep + 1; i < len; i++)
+  {
+    if (data[i] == 0x03)
+      break;
+    val += (char)data[i];
+  }
+  val.toLowerCase();
+  val.replace(" ", "");
+
+  if (id == "d1" || id == "j1")
+  {
+    int steer_raw = 512, throttle_raw = 512;
+    sscanf(val.c_str(), "%d,%d", &steer_raw, &throttle_raw);
+
+    float sx = (steer_raw - 512) / 512.0;
+    float sy = (throttle_raw - 512) / 512.0;
+
+    float dz = MB_DPAD_DEADZONE / 512.0;
+    if (fabs(sx) < dz)
+      sx = 0;
+    if (fabs(sy) < dz)
+      sy = 0;
+
+    move_speed = sy * MB_MOVE_SCALE;
+    steering = sx * MB_STEER_SCALE;
+
+    if (move_speed != 0 || steering != 0)
+    {
+      ble_cmd_active = true;
+      ble_cmd_time = millis();
+    }
+    else
+    {
+      ble_cmd_active = false;
+      wheel_position = 0;
+    }
+  }
+  else if (id.startsWith("b"))
+  {
+    int btn_num = id.substring(1).toInt();
+    bool pressed = (val == "1");
+
+    switch (btn_num)
+    {
+    case 0:
+      if (pressed)
+      {
+        pitch_offset = pitch_estimate;
+        wheel_position = 0;
+      }
+      break;
+    case 1:
+      if (pressed)
+      {
+        if (armed)
+          initiate_disarm();
+        else
+          armed = true;
+      }
+      break;
+    case 2: // Swing-up trigger
+      if (pressed && armed && robot_state == STATE_FALLEN)
+        robot_state = STATE_SWING_UP;
+      break;
+    }
+  }
+}
+
+// ==================== BLE TUNING COMMANDS ====================
+class TuneCallbacks : public NimBLECharacteristicCallbacks
+{
+  void onWrite(NimBLECharacteristic *pChar) override
+  {
+    NimBLEAttValue raw = pChar->getValue();
+    if (raw.length() > 0 && raw.data()[0] == 0x01)
+    {
+      process_microblue(raw.data(), raw.length());
+      return;
+    }
+
+    String value = String((const char *)raw.data(), raw.length());
+    if (value.length() < 1)
+      return;
+
+    if (value.startsWith("Speed_"))
+    {
+      float spd = value.substring(6).toFloat();
+      // move_speed = constrain(spd, -20, 20);
+      move_speed = constrain(spd, -move_speed_max, move_speed_max);
+      ble_cmd_active = true;
+      ble_cmd_time = millis();
+      return;
+    }
+
+    char cmd = value[0];
+    float val = value.length() > 1 ? value.substring(1).toFloat() : 0;
+
+    switch (cmd)
+    {
+    // LQR gains
+    case 'A':
+      K1 = val;
+      break;
+    case 'B':
+      K2 = val;
+      break;
+    case 'V':
+      K3 = val;
+      break;
+    case 'W':
+      K4 = val;
+      break;
+
+    // System
+    case 'T':
+      max_torque = val;
+      break;
+    case 'S':
+      torque_slew = val;
+      break;
+    case 'G':
+      steering_gain = val;
+      break;
+    case 'M':
+      move_speed_max = val;
+      break;
+    case 'C':
+      control_freq = constrain((int)val, 50, 1000);
+      control_period_us = 1000000UL / control_freq;
+      break;
+
+    // Pitch offset — set directly (slider) + persist to NVS
+    case 'O':
+      pitch_offset = val;
+      prefs.begin("balbot", false);
+      prefs.putFloat("pitch_off", pitch_offset);
+      prefs.end();
+      ble_update_status();
+      ble_status_notify_pending = true;
+      break;
+
+    // Zero calibration — set offset from current reading + persist to NVS
+    case 'z':
+      pitch_offset = pitch_estimate;
+      wheel_position = 0;
+      prefs.begin("balbot", false);
+      prefs.putFloat("pitch_off", pitch_offset);
+      prefs.end();
+      ble_update_status();
+      ble_status_notify_pending = true;
+      break;
+
+    // Arm/disarm
+    case 'E':
+      if (val > 0.5f)
+        armed = true;
+      else
+        initiate_disarm();
+      ble_update_status();
+      ble_status_notify_pending = true;
+      break;
+
+    // Swing-up
+    case 'U': // Trigger swing-up (auto-arms if swing_allow_disarmed)
+      if (robot_state == STATE_FALLEN)
+      {
+        if (!armed && swing_allow_disarmed)
+          armed = true;
+        if (armed)
+          robot_state = STATE_SWING_UP;
+      }
+      ble_update_status();
+      ble_status_notify_pending = true;
+      break;
+    case 'Y': // Allow swing-up while disarmed
+      swing_allow_disarmed = (val > 0.5);
+      ble_update_status();
+      ble_status_notify_pending = true;
+      break;
+    case 'J':
+      k_swing = val;
+      break;
+    case 'K':
+      k_damping = val;
+      break;
+    case 'H': // swing max torque
+      swing_max_torque = val;
+      motor1.voltage_limit = swing_max_torque;
+      motor2.voltage_limit = swing_max_torque;
+      break;
+    case 'F': // Disarm brake torque (V)
+      disarm_brake_torque = val;
+      break;
+    case 'D': // Disarm brake angle (deg) — free-fall until this angle
+      disarm_brake_angle = val;
+      break;
+    case 'R': // Disarm brake duration (ms)
+      disarm_brake_ms = val;
+      break;
+    case 'P': // Disarm mode: 0=immediate cut, 1=free-fall+brake
+      disarm_use_brake = (val > 0.5f);
+      break;
+
+    // Fake fall maneuver
+    case 'Z': // Trigger fake fall — val: 1=pos dir, -1=neg dir, 0=auto (lean direction)
+      if (robot_state == STATE_BALANCING)
+      {
+        float dir = (val == 0.0f) ? (pitch_angle >= 0.0f ? 1.0f : -1.0f)
+                                  : (val > 0 ? 1.0f : -1.0f);
+        fake_nudge_torque = dir * 1.5f;
+        fake_nudge_end_ms = millis() + FAKE_NUDGE_MS;
+        fake_catching = false;
+        robot_state = STATE_FAKE_FALL;
+        wheel_position = 0;
+        move_speed = 0;
+        steering = 0;
+        ble_cmd_active = false;
+        ble_status_notify_pending = true;
+      }
+      break;
+    case 'N': // Fake catch angle (deg)
+      fake_catch_angle = constrain(val, 20.0f, 60.0f);
+      break;
+
+    // Teleplot toggle (for when serial is fixed)
+    case 't':
+      teleplot_enabled = !teleplot_enabled;
+      break;
+
+    // BLE telemetry on/off (reduce BLE traffic for smoother control)
+    case 'L':
+      ble_telemetry_enabled = !ble_telemetry_enabled;
+      break;
+
+    // Movement
+    case 'f':
+      move_speed = val > 0 ? val : move_speed_max;
+      ble_cmd_active = true;
+      ble_cmd_time = millis();
+      break;
+    case 'b':
+      move_speed = val > 0 ? -val : -move_speed_max;
+      ble_cmd_active = true;
+      ble_cmd_time = millis();
+      break;
+    case 'l':
+      steering = val > 0 ? -val : -1.0;
+      ble_cmd_active = true;
+      ble_cmd_time = millis();
+      break;
+    case 'r':
+      steering = val > 0 ? val : 1.0;
+      ble_cmd_active = true;
+      ble_cmd_time = millis();
+      break;
+    case 'x':
+      move_speed = 0;
+      steering = 0;
+      wheel_position = 0;
+      ble_cmd_active = false;
+      break;
+    }
+  }
+};
+
+// ==================== BLE OTA CALLBACKS ====================
+void ota_notifyStatus(uint8_t status)
+{
+  uint8_t data[1] = {status};
+  pOtaControlChar->setValue(data, 1);
+  pOtaControlChar->notify();
+}
+
+void ota_notifyProgress(uint8_t percent)
+{
+  uint8_t data[2] = {OTA_STATUS_PROGRESS, percent};
+  pOtaControlChar->setValue(data, 2);
+  pOtaControlChar->notify();
+}
+
+class OtaControlCallbacks : public NimBLECharacteristicCallbacks
+{
+  void onWrite(NimBLECharacteristic *pChar) override
+  {
+    NimBLEAttValue val = pChar->getValue();
+    const uint8_t *data = val.data();
+    size_t len = val.length();
+    if (len < 1)
+      return;
+
+    switch (data[0])
+    {
+    case OTA_CMD_BEGIN:
+    {
+      if (len < 5)
+      {
+        ota_notifyStatus(OTA_STATUS_ERROR);
+        return;
+      }
+      otaTotalSize = data[1] | (data[2] << 8) | (data[3] << 16) | (data[4] << 24);
+      otaUncompressedSize = otaTotalSize;
+      otaCompressed = false;
+      DPRINTF("[OTA] BEGIN: %u bytes\n", otaTotalSize);
+
+      if (!Update.begin(otaTotalSize))
+      {
+        ota_notifyStatus(OTA_STATUS_ERROR);
+        return;
+      }
+
+      armed = false;
+      torque_cmd = 0;
+      otaInProgress = true;
+      otaReceived = 0;
+      lastProgressNotify = 0;
+      ota_notifyStatus(OTA_STATUS_OK);
+      break;
+    }
+    case OTA_CMD_BEGIN_Z:
+    {
+      // 9-byte payload: [cmd][usize:4][csize:4]
+      // usize = uncompressed firmware size (for FlashZ/Update)
+      // csize = compressed stream size (for progress + last-chunk detection)
+      if (len < 9)
+      {
+        ota_notifyStatus(OTA_STATUS_ERROR);
+        return;
+      }
+      otaUncompressedSize = data[1] | (data[2] << 8) | (data[3] << 16) | (data[4] << 24);
+      otaTotalSize = data[5] | (data[6] << 8) | (data[7] << 16) | (data[8] << 24);
+      otaCompressed = true;
+      DPRINTF("[OTA] BEGIN_Z: usize=%u csize=%u\n", otaUncompressedSize, otaTotalSize);
+
+      if (!FlashZ::getInstance().beginz(otaUncompressedSize))
+      {
+        ota_notifyStatus(OTA_STATUS_ERROR);
+        return;
+      }
+
+      armed = false;
+      torque_cmd = 0;
+      otaInProgress = true;
+      otaReceived = 0;
+      lastProgressNotify = 0;
+      ota_notifyStatus(OTA_STATUS_OK);
+      break;
+    }
+    case OTA_CMD_END:
+    {
+      if (!otaInProgress)
+      {
+        ota_notifyStatus(OTA_STATUS_ERROR);
+        return;
+      }
+      // Defer endz()/Update.end() to main loop — avoids stack overflow/hang in BLE callback
+      otaEndPending = true;
+      break;
+    }
+    case OTA_CMD_ABORT:
+    {
+      if (otaInProgress)
+      {
+        if (otaCompressed)
+          FlashZ::getInstance().abortz();
+        else
+          Update.abort();
+        otaInProgress = false;
+        otaReceived = 0;
+      }
+      ota_notifyStatus(OTA_STATUS_OK);
+      break;
+    }
+    }
+  }
+};
+
+class OtaDataCallbacks : public NimBLECharacteristicCallbacks
+{
+  void onWrite(NimBLECharacteristic *pChar) override
+  {
+    if (!otaInProgress)
+      return;
+
+    NimBLEAttValue val = pChar->getValue();
+    const uint8_t *data = val.data();
+    size_t len = val.length();
+
+    // For compressed OTA, pass final=true on the last compressed chunk so that
+    // tinfl flushes its 32KB dict buffer to Update. Without this, the last
+    // partial 32KB chunk of decompressed data is never written to flash.
+    bool isLastChunk = otaCompressed && (otaReceived + len >= otaTotalSize);
+
+    size_t written;
+    if (otaCompressed)
+    {
+      written = FlashZ::getInstance().writez(data, len, isLastChunk);
+    }
+    else
+    {
+      written = Update.write(const_cast<uint8_t *>(data), len);
+    }
+
+    if (written == 0)
+    {
+      if (otaCompressed)
+        FlashZ::getInstance().abortz();
+      else
+        Update.abort();
+      otaInProgress = false;
+      ota_notifyStatus(OTA_STATUS_ERROR);
+      return;
+    }
+
+    otaReceived += len;
+
+    if (otaReceived - lastProgressNotify >= 4096)
+    {
+      lastProgressNotify = otaReceived;
+      uint8_t percent = (uint8_t)((otaReceived * 100) / otaTotalSize);
+      ota_notifyProgress(percent);
+    }
+  }
+};
+
+void ble_init()
+{
+  NimBLEDevice::init("BBS3");
+  // NimBLEDevice::setPower(ESP_PWR_LVL_P9); // default power
+  NimBLEDevice::setMTU(517);
+
+  pServer = NimBLEDevice::createServer();
+  pServer->setCallbacks(new ServerCallbacks());
+
+  NimBLEService *pService = pServer->createService(SERVICE_UUID);
+
+  pCmdChar = pService->createCharacteristic(
+      CHAR_CMD_UUID, NIMBLE_PROPERTY::WRITE);
+  pCmdChar->setCallbacks(new TuneCallbacks());
+
+  pStatusChar = pService->createCharacteristic(
+      CHAR_STATUS_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
+
+  pDataChar = pService->createCharacteristic(
+      CHAR_DATA_UUID, NIMBLE_PROPERTY::NOTIFY);
+
+  pService->start();
+
+  NimBLEService *pOtaService = pServer->createService(OTA_SERVICE_UUID);
+
+  pOtaControlChar = pOtaService->createCharacteristic(
+      OTA_CONTROL_CHAR_UUID,
+      NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::NOTIFY);
+  pOtaControlChar->setCallbacks(new OtaControlCallbacks());
+
+  pOtaDataChar = pOtaService->createCharacteristic(
+      OTA_DATA_CHAR_UUID, NIMBLE_PROPERTY::WRITE);
+  pOtaDataChar->setCallbacks(new OtaDataCallbacks());
+
+  pOtaService->start();
+
+  NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
+  pAdvertising->addServiceUUID(SERVICE_UUID);
+  pAdvertising->addServiceUUID(OTA_SERVICE_UUID);
+  pAdvertising->setScanResponse(true);
+  pAdvertising->start();
+
+  DPRINTF("[BLE] Ready — MAC: %s\n", NimBLEDevice::getAddress().toString().c_str());
+}
+
+// ==================== BLE STATUS ====================
+void ble_update_status(bool notify)
+{
+  char buf[400];
+  int len = snprintf(buf, sizeof(buf),
+                     "{\"A\":%.3f,\"B\":%.4f,\"V\":%.3f,\"W\":%.3f,"
+                     "\"T\":%.1f,\"S\":%.0f,\"G\":%.2f,\"M\":%.1f,\"C\":%d,"
+                     "\"J\":%.2f,\"K\":%.3f,\"H\":%.1f,\"F\":%.2f,\"D\":%.1f,\"R\":%.0f,\"P\":%d,\"N\":%.1f,"
+                     "\"armed\":%d,\"bal\":%d,\"st\":%d,\"pitch\":%.2f,\"offset\":%.2f,\"O\":%.2f,"
+                     "\"temp\":%.1f,\"Y\":%d,\"fw\":\"" __DATE__ " " __TIME__ "\"}",
+                     K1, K2, K3, K4,
+                     max_torque, torque_slew, steering_gain, move_speed_max, control_freq,
+                     k_swing, k_damping, swing_max_torque, disarm_brake_torque, disarm_brake_angle, disarm_brake_ms, disarm_use_brake ? 1 : 0, fake_catch_angle,
+                     armed ? 1 : 0, is_balanced ? 1 : 0, (int)robot_state,
+                     pitch_angle, pitch_offset, pitch_offset,
+                     imu_temperature, swing_allow_disarmed ? 1 : 0);
+  pStatusChar->setValue((uint8_t *)buf, len);
+  if (notify && ble_connected)
+    pStatusChar->notify();
+}
+
+// ==================== TELEPLOT ====================
+void teleplot_send()
+{
+  if (!teleplot_enabled)
+    return;
+
+  DPRINTF(">pitch:%.2f\n", pitch_angle);
+  DPRINTF(">rate:%.1f\n", pitch_rate);
+  DPRINTF(">torque:%.2f\n", torque_cmd);
+  DPRINTF(">velocity:%.2f\n", avg_velocity);
+  DPRINTF(">wheel_pos:%.2f\n", wheel_position);
+  DPRINTF(">move_speed:%.1f\n", move_speed);
+  DPRINTF(">state:%d\n", (int)robot_state);
+}
+
+// ==================== SETUP ====================
+bool hw_ready = false;
+
+void setup()
+{
+  DSERIAL_BEGIN(115200);
+#ifndef PROD_BUILD
+  // Wait for USB CDC to be ready (ESP32-S3 native USB needs host to connect)
+  {
+    uint32_t t0 = millis();
+    while (!Serial && millis() - t0 < 3000)
+      ;
+  }
+#endif
+
+  DPRINTLN("\n==========================================");
+  DPRINTLN("ESP32-S3 Nano | LQR Balance + BLE OTA");
+  DPRINTLN("u = K1*angle + K2*rate + K3*vel + K4*pos");
+  DPRINTLN("==========================================");
+
+  // [0/6] NVS — load persistent calibration
+  prefs.begin("balbot", true); // read-only
+  pitch_offset = prefs.getFloat("pitch_off", 0.0f);
+  prefs.end();
+  DPRINTF("[0/6] NVS: pitch_offset = %.3f deg\n", pitch_offset);
+
+  // [1/6] BLE
+  DPRINTLN("[1/6] BLE init...");
+  ble_init();
+
+  // [2/6] I2C
+  DPRINTLN("[2/6] I2C init...");
+  I2Cone.begin(40, 41, 400000UL); // SDA=40, SCL=41 — LEFT  side
+  I2Ctwo.begin(8, 9, 400000UL);   // SDA=8,  SCL=9  — RIGHT side
+  DPRINTLN("  I2C0: SDA=40, SCL=41 (Motor1 LEFT  + AS5600_1)");
+  DPRINTLN("  I2C1: SDA=8,  SCL=9  (Motor2 RIGHT + AS5600_2 + BMI160)");
+
+  // [3/6] AS5600
+  DPRINTLN("[3/6] AS5600 init...");
+  sensor1.init(&I2Cone);
+  sensor2.init(&I2Ctwo);
+  motor1.linkSensor(&sensor1);
+  motor2.linkSensor(&sensor2);
+  // Quick readback to confirm sensors respond
+  sensor1.update();
+  sensor2.update();
+  DPRINTF("  AS5600 LEFT  (I2C0 GPIO40/41): angle=%.2f deg\n", sensor1.getAngle() * RAD_TO_DEG);
+  DPRINTF("  AS5600 RIGHT (I2C1 GPIO8/9):   angle=%.2f deg\n", sensor2.getAngle() * RAD_TO_DEG);
+
+  // [4/6] BMI160
+  DPRINTLN("[4/6] BMI160 init (I2C1 GPIO8/9)...");
+  if (!imu_init())
+  {
+    DPRINTLN("  BMI160 FAILED! Check SDA=8/SCL=9 wiring. BLE OTA still active.");
+    return;
+  }
+  imu_read();
+  DPRINTF("  BMI160 OK — pitch=%.2f deg, rate=%.2f deg/s\n", pitch_angle, pitch_rate);
+
+  // [5/6] Motors
+  DPRINTLN("[5/6] Motor init...");
+  DPRINTLN("  Motor1 LEFT  driver: IN1=GPIO15, IN2=GPIO16, IN3=GPIO17, EN=GPIO18");
+  driver1.voltage_power_supply = SUPPLY_VOLTAGE;
+  driver1.init();
+  motor1.linkDriver(&driver1);
+
+  DPRINTLN("  Motor2 RIGHT driver: IN1=GPIO11, IN2=GPIO12, IN3=GPIO13, EN=GPIO14");
+  driver2.voltage_power_supply = SUPPLY_VOLTAGE;
+  driver2.init();
+  motor2.linkDriver(&driver2);
+
+  motor1.foc_modulation = FOCModulationType::SpaceVectorPWM;
+  motor2.foc_modulation = FOCModulationType::SpaceVectorPWM;
+  motor1.controller = MotionControlType::torque;
+  motor2.controller = MotionControlType::torque;
+  motor1.torque_controller = TorqueControlType::voltage;
+  motor2.torque_controller = TorqueControlType::voltage;
+
+  // Velocity LPF — smooth out AS5600 quantization noise at low speed
+  // Default SimpleFOC Tf ≈ 0.005s is too fast; 0.02s reduces spiking noticeably
+  motor1.LPF_velocity.Tf = 0.02;
+  motor2.LPF_velocity.Tf = 0.02;
+
+  motor1.voltage_limit = 3.0;
+  motor2.voltage_limit = 3.0;
+
+#ifndef PROD_BUILD
+  motor1.useMonitoring(Serial);
+  motor2.useMonitoring(Serial);
+#endif
+
+  DPRINTLN("  Motor1 LEFT  (initFOC)...");
+  motor1.init();
+  motor1.initFOC();
+  DPRINTLN("  Motor2 RIGHT (initFOC)...");
+  motor2.init();
+  motor2.initFOC();
+
+  // Set to swing_max_torque so swing-up has headroom; actual clamping done in control loop
+  motor1.voltage_limit = swing_max_torque;
+  motor2.voltage_limit = swing_max_torque;
+
+  DPRINTLN("[6/6] All hardware OK!");
+  hw_ready = true;
+
+  DPRINTLN("==========================================");
+  DPRINTLN("DISARMED — connect BLE and press ARM");
+  DPRINTLN("==========================================\n");
+
+  delay(500);
+  lastControl = micros();
+  lastTeleplot = millis();
+}
+
+// ==================== LOOP ====================
+void loop()
+{
+  if (otaEndPending)
+  {
+    otaEndPending = false;
+    // writez(last=true) on final chunk already flushed the 32KB dict tail to Update.
+    // endz() = deco.end() (free inflator) + Update.end() (commit partition).
+    // NEVER call Update.end() directly here — endz() must clean up the inflator.
+    DPRINTF("[OTA] Finalizing: progress=%u expected=%u\n",
+            Update.progress(), otaUncompressedSize);
+    bool success = otaCompressed
+                       ? FlashZ::getInstance().endz(true)
+                       : Update.end(true);
+    DPRINTF("[OTA] endz/end result: %d\n", success);
+    if (success)
+    {
+      DPRINTLN("[OTA] Success, rebooting...");
+      otaInProgress = false;
+      ota_notifyStatus(OTA_STATUS_OK);
+      delay(1000);
+      ESP.restart();
+    }
+    else
+    {
+#ifndef PROD_BUILD
+      Update.printError(Serial);
+#endif
+      DPRINTF("[OTA] FAIL: progress=%u expected=%u\n",
+              Update.progress(), otaUncompressedSize);
+      otaInProgress = false;
+      ota_notifyStatus(OTA_STATUS_ERROR);
+    }
+    return;
+  }
+
+  if (otaInProgress || !hw_ready)
+  {
+    delay(10);
+    return;
+  }
+
+  if (ble_status_notify_pending && ble_connected)
+  {
+    ble_status_notify_pending = false;
+    ble_update_status(true);
+  }
+
+  // === FOC LOOP (as fast as possible) ===
+  motor1.loopFOC();
+  motor2.loopFOC();
+
+  // Apply motor voltages
+  // S3 layout: motor1 (LEFT) mounted mirrored — negate vs motor2
+  motor1_voltage = -(torque_cmd + steering_torque);
+  motor2_voltage = (torque_cmd - steering_torque);
+  motor1.move(motor1_voltage);
+  motor2.move(motor2_voltage);
+
+  // === CONTROL LOOP (fixed rate) ===
+  unsigned long now = micros();
+  if (now - lastControl >= control_period_us)
+  {
+    actual_dt_us = (uint16_t)(now - lastControl);
+    lastControl = now;
+    dt = actual_dt_us * 1e-6f;
+
+    imu_read();
+
+    // Average velocity — swap m2-m1 because AS5600 mounted reversed vs MKS robot
+    // Apply software LPF on top of SimpleFOC's internal LPF to reduce AS5600 quantization noise
+    {
+      float raw_vel = (motor2.shaft_velocity - motor1.shaft_velocity) * 0.5;
+      float alpha = dt / (vel_lpf_tf + dt);
+      avg_velocity = avg_velocity + alpha * (raw_vel - avg_velocity);
+    }
+
+    // === STATE MACHINE ===
+    float abs_pitch = fabsf(pitch_angle);
+
+    if (!armed)
+    {
+      // Disarmed: everything off
+      robot_state = STATE_FALLEN;
+      torque_cmd = 0;
+      torque_raw = 0;
+      steering_torque = 0;
+      wheel_position = 0;
+      is_balanced = false;
+    }
+    else
+    {
+      switch (robot_state)
+      {
+      case STATE_FALLEN:
+        torque_cmd = 0;
+        torque_raw = 0;
+        steering_torque = 0;
+        is_balanced = false;
+        // Auto-transition to balancing if already upright
+        if (abs_pitch < switch_angle)
+        {
+          robot_state = STATE_BALANCING;
+          wheel_position = 0;
+        }
+        break;
+
+      case STATE_SWING_UP:
+      {
+        is_balanced = false;
+
+        float swing_u = swing_up_control();
+
+        // Check if close enough to transition to LQR
+        if (abs_pitch < switch_angle)
+        {
+          // Fully inside LQR zone — switch
+          robot_state = STATE_BALANCING;
+          wheel_position = 0;
+          torque_raw = lqr_control();
+          ble_status_notify_pending = true;
+        }
+        else if (abs_pitch < (switch_angle + blend_angle))
+        {
+          // Blend zone: smooth transition from swing-up to LQR
+          float alpha = (abs_pitch - switch_angle) / blend_angle; // 1 at outer edge, 0 at switch
+          float lqr_u = lqr_control();
+          torque_raw = alpha * swing_u + (1.0f - alpha) * lqr_u;
+        }
+        else
+        {
+          torque_raw = swing_u;
+        }
+
+        // Steering off during swing-up
+        steering_torque = 0;
+        break;
+      }
+
+      case STATE_BALANCING:
+        // Fall detection
+        if (abs_pitch > fall_angle)
+        {
+          robot_state = STATE_FALLEN;
+          torque_cmd = 0;
+          torque_raw = 0;
+          steering_torque = 0;
+          ble_status_notify_pending = true;
+          wheel_position = 0;
+          is_balanced = false;
+          break;
+        }
+
+        is_balanced = true;
+
+        // Position integrator (with movement offset)
+        wheel_position += (avg_velocity - move_speed) * dt;
+        wheel_position = constrain(wheel_position, -POS_LIMIT, POS_LIMIT);
+
+        // LQR state feedback
+        torque_raw = lqr_control();
+
+        // Steering
+        steering_torque = steering * steering_gain;
+
+        // Torque fade near fall angle
+        if (abs_pitch > FADE_START_ANGLE)
+        {
+          float fade = (fall_angle - abs_pitch) / (fall_angle - FADE_START_ANGLE);
+          fade = constrain(fade, 0.0f, 1.0f);
+          torque_raw *= fade;
+        }
+        break;
+
+      case STATE_SOFT_LAND:
+      {
+        steering_torque = 0;
+        is_balanced = false;
+
+        if (!disarm_braking)
+        {
+          // Phase 1: Free fall — zero torque until brake angle reached
+          torque_raw = 0;
+          if (abs_pitch >= disarm_brake_angle)
+          {
+            disarm_braking = true;
+            disarm_brake_start_ms = millis();
+          }
+          // Safety: timeout if brake angle never reached (e.g. caught by hand)
+          if (millis() - soft_land_start_ms > SOFT_LAND_TIMEOUT_MS)
+          {
+            armed = false;
+            robot_state = STATE_FALLEN;
+            torque_cmd = 0;
+            torque_raw = 0;
+            ble_status_notify_pending = true;
+          }
+        }
+        else
+        {
+          // Phase 2: One-shot brake — counter-torque opposing fall direction
+          torque_raw = constrain(-disarm_brake_torque * soft_land_fall_dir,
+                                 -max_torque, max_torque);
+          if (millis() - disarm_brake_start_ms >= (unsigned long)disarm_brake_ms)
+          {
+            armed = false;
+            robot_state = STATE_FALLEN;
+            torque_cmd = 0;
+            torque_raw = 0;
+            ble_status_notify_pending = true;
+          }
+        }
+        break;
+      }
+
+      case STATE_FAKE_FALL:
+      {
+        steering_torque = 0;
+        is_balanced = false;
+
+        // Phase 1: Brief open-loop nudge to commit fall direction (~80ms)
+        if (millis() < fake_nudge_end_ms)
+        {
+          torque_raw = fake_nudge_torque;
+          break;
+        }
+
+        // Phase 2: Free fall — zero torque until catch angle
+        if (!fake_catching)
+        {
+          if (abs_pitch >= fake_catch_angle)
+            fake_catching = true;
+          else
+          {
+            torque_raw = 0;
+            break;
+          }
+        }
+
+        // Phase 3: Swing-catch — reuse swing_up_control (sign handles any direction)
+        torque_raw = swing_up_control();
+
+        // Success: recovered to near-upright → back to balancing
+        if (abs_pitch < switch_angle)
+        {
+          robot_state = STATE_BALANCING;
+          wheel_position = 0;
+          fake_catching = false;
+          ble_status_notify_pending = true;
+          break;
+        }
+
+        // Fail: past recovery point → complete disarm
+        if (abs_pitch > fake_fail_angle)
+        {
+          armed = false;
+          robot_state = STATE_FALLEN;
+          torque_cmd = 0;
+          torque_raw = 0;
+          fake_catching = false;
+          ble_status_notify_pending = true;
+        }
+        break;
+      }
+      }
+
+      // Slew rate limiting (balancing only — swing-up and soft-land need direct response)
+      if (robot_state == STATE_BALANCING)
+      {
+        float max_step = torque_slew * dt;
+        float delta = torque_raw - torque_cmd;
+        delta = constrain(delta, -max_step, max_step);
+        torque_cmd += delta;
+      }
+      else if (robot_state == STATE_SWING_UP || robot_state == STATE_SOFT_LAND || robot_state == STATE_FAKE_FALL)
+      {
+        torque_cmd = torque_raw; // Direct — no slew lag
+      }
+    }
+
+    // BLE command timeout
+    if (ble_cmd_active && millis() - ble_cmd_time > BLE_CMD_TIMEOUT)
+    {
+      move_speed = 0;
+      steering = 0;
+      wheel_position = 0;
+      ble_cmd_active = false;
+    }
+  }
+
+  // === TELEMETRY (10Hz) ===
+  if (millis() - lastTeleplot >= TELEPLOT_INTERVAL)
+  {
+    teleplot_send();
+    ble_update_status();
+
+    if (ble_connected && pDataChar && ble_telemetry_enabled)
+    {
+      Telemetry t;
+      t.pitch = (int16_t)(pitch_angle * 100);
+      t.pitch_rate = (int16_t)(pitch_rate * 10);
+      t.wheel_vel = (int16_t)(avg_velocity * 10);
+      t.wheel_pos = (int16_t)(wheel_position * 100);
+      t.torque_cmd = (int16_t)(torque_cmd * 100);
+      t.dt_us = actual_dt_us;
+      float sat_limit = (robot_state == STATE_SWING_UP) ? swing_max_torque : max_torque;
+      t.flags = ((fabs(torque_raw) >= sat_limit) ? 1 : 0) | (armed ? 2 : 0) | ((robot_state & 0x03) << 2);
+      pDataChar->setValue((uint8_t *)&t, sizeof(t));
+      pDataChar->notify();
+    }
+
+    lastTeleplot = millis();
+  }
+
+  // === TEMPERATURE READ (every 15 s) ===
+  if (millis() - lastTempRead >= TEMP_READ_INTERVAL)
+  {
+    lastTempRead = millis();
+    if (imu_ok)
+      imu_temperature = imu_read_temperature();
+    ble_status_notify_pending = true;
+  }
+}
