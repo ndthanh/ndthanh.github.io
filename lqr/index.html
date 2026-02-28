@@ -1811,11 +1811,18 @@
                         <span style="font-size:11px;color:rgba(255,255,255,0.35)">or</span>
                         <div style="flex:1;height:1px;background:rgba(255,255,255,0.1)"></div>
                     </div>
-                    <button
-                        id="otaFetchLatestBtn"
-                        class="tbtn"
-                        style="width:100%;background:rgba(79,195,247,0.12);color:#4fc3f7;border:1px solid rgba(79,195,247,0.3);margin-bottom:4px;font-size:13px;"
-                    >&#8659; Download Latest LQR Firmware</button>
+                    <div style="display:flex;gap:6px;margin-bottom:4px;">
+                        <button
+                            id="otaFetchLatestBtn"
+                            class="tbtn"
+                            style="flex:1;background:rgba(79,195,247,0.12);color:#4fc3f7;border:1px solid rgba(79,195,247,0.3);font-size:12px;"
+                        >&#8659; Latest</button>
+                        <button
+                            id="otaFetchStableBtn"
+                            class="tbtn"
+                            style="flex:1;background:rgba(82,196,26,0.12);color:#52c41a;border:1px solid rgba(82,196,26,0.3);font-size:12px;"
+                        >&#8659; Stable</button>
+                    </div>
                     <div id="otaFetchStatus" style="font-size:11px;color:rgba(255,255,255,0.45);min-height:16px;text-align:center;margin-bottom:6px;"></div>
 
                     <div
@@ -2563,20 +2570,23 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Download latest firmware from GitHub
-        const LATEST_FIRMWARE_URL_LQR = 'https://raw.githubusercontent.com/ndthanh/ndthanh.github.io/master/lqr/firmware.bin';
+        // Download firmware from GitHub
+        const FW_URLS = {
+            latest: 'https://raw.githubusercontent.com/ndthanh/ndthanh.github.io/master/lqr/firmware.bin',
+            stable: 'https://raw.githubusercontent.com/ndthanh/ndthanh.github.io/master/lqr/stable.bin'
+        };
 
         const otaFetchLatestBtn = document.getElementById('otaFetchLatestBtn');
-        const otaFetchStatus = document.getElementById('otaFetchStatus');
+        const otaFetchStableBtn = document.getElementById('otaFetchStableBtn');
+        const otaFetchStatus   = document.getElementById('otaFetchStatus');
 
-        otaFetchLatestBtn.addEventListener('click', async () => {
-            otaFetchLatestBtn.disabled = true;
+        async function fetchFirmware(url, label, statusColor, btn) {
+            btn.disabled = true;
             otaFetchStatus.textContent = 'Downloading...';
             otaFetchStatus.style.color = 'rgba(255,255,255,0.55)';
             try {
-                const resp = await fetch(LATEST_FIRMWARE_URL_LQR);
+                const resp = await fetch(url);
                 if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
-
                 const contentLength = resp.headers.get('Content-Length');
                 let data;
                 if (contentLength && resp.body) {
@@ -2595,16 +2605,13 @@
                     let pos = 0;
                     for (const c of chunks) { data.set(c, pos); pos += c.length; }
                 } else {
-                    const buf = await resp.arrayBuffer();
-                    data = new Uint8Array(buf);
+                    data = new Uint8Array(await resp.arrayBuffer());
                 }
-
                 otaFirmwareData = data;
-                const label = 'firmware.bin (latest LQR)';
                 otaFileText.textContent = label;
                 otaFileName.textContent = (data.length / 1024).toFixed(1) + ' KB';
                 otaFileDrop.classList.add('has-file');
-                otaFetchStatus.style.color = '#4fc3f7';
+                otaFetchStatus.style.color = statusColor;
                 otaFetchStatus.textContent = `✓ Ready — ${(data.length/1024).toFixed(1)} KB`;
                 otaLog(`Downloaded: ${label} (${data.length} bytes)`, 'success');
                 updateOtaUI();
@@ -2613,9 +2620,15 @@
                 otaFetchStatus.textContent = `Error: ${e.message}`;
                 otaLog(`Firmware download failed: ${e.message}`, 'error');
             } finally {
-                otaFetchLatestBtn.disabled = false;
+                btn.disabled = false;
             }
-        });
+        }
+
+        otaFetchLatestBtn.addEventListener('click', () =>
+            fetchFirmware(FW_URLS.latest, 'firmware.bin (latest LQR)', '#4fc3f7', otaFetchLatestBtn));
+
+        otaFetchStableBtn.addEventListener('click', () =>
+            fetchFirmware(FW_URLS.stable, 'stable.bin (stable LQR)', '#52c41a', otaFetchStableBtn));
 
         otaUploadBtn.addEventListener('click', startOta);
 
