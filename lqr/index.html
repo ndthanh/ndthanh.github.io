@@ -2709,8 +2709,8 @@
                 const speedScale = 1 - 0.35 * ax * ax;
 
                 const spd = parseFloat(sliders.moveSpeed.el.value) || 500;
-                sendCmd('Speed_' + Math.round(ayE * speedScale * spd));
-                sendCmd('s' + ax.toFixed(3));
+                // Single BLE write — avoids _gattBusy drop of second command
+                sendCmd('Joy' + Math.round(ayE * speedScale * spd) + ',' + ax.toFixed(3));
             }
 
             // ---- pointer handling ----
