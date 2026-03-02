@@ -1573,6 +1573,22 @@
                                 disabled
                             >
                         </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>BLE Timeout ms (y)</span><span
+                                    id="bleCmdTimeoutVal"
+                                    class="pg-val"
+                                >500</span></div>
+                            <input
+                                type="range"
+                                id="bleCmdTimeout"
+                                class="slider"
+                                min="100"
+                                max="500"
+                                step="50"
+                                value="500"
+                                disabled
+                            >
+                        </div>
                     </div>
 
                     <div class="sec">
@@ -2111,7 +2127,8 @@
             crawlVelGain:   { el: document.getElementById('crawlVelGain'),   val: document.getElementById('crawlVelGainVal'),   cmd: 'c', fmt: 3 },
             crawlMaxTorque: { el: document.getElementById('crawlMaxTorque'), val: document.getElementById('crawlMaxTorqueVal'), cmd: 'o', fmt: 2 },
             standUpTorque:  { el: document.getElementById('standUpTorque'),  val: document.getElementById('standUpTorqueVal'),  cmd: 'e', fmt: 2 },
-            standUpMs:      { el: document.getElementById('standUpMs'),      val: document.getElementById('standUpMsVal'),      cmd: 'n', fmt: 0, suffix: 'ms' }
+            standUpMs:      { el: document.getElementById('standUpMs'),      val: document.getElementById('standUpMsVal'),      cmd: 'n', fmt: 0, suffix: 'ms' },
+            bleCmdTimeout:  { el: document.getElementById('bleCmdTimeout'),  val: document.getElementById('bleCmdTimeoutVal'),  cmd: 'y', fmt: 0, suffix: 'ms' }
         };
 
         if (!navigator.bluetooth) {
@@ -2365,6 +2382,7 @@
             if (data.o !== undefined) { sliders.crawlMaxTorque.el.value = data.o; sliders.crawlMaxTorque.val.textContent = data.o.toFixed(2); }
             if (data.e !== undefined) { sliders.standUpTorque.el.value = data.e; sliders.standUpTorque.val.textContent = data.e.toFixed(2); }
             if (data.n !== undefined) { sliders.standUpMs.el.value = data.n; sliders.standUpMs.val.textContent = data.n.toFixed(0) + 'ms'; }
+            if (data.bt !== undefined) { sliders.bleCmdTimeout.el.value = data.bt; sliders.bleCmdTimeout.val.textContent = data.bt + 'ms'; }
             if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(2); }
             if (data.p !== undefined) { sliders.movePitchGain.el.value = data.p; sliders.movePitchGain.val.textContent = data.p.toFixed(1); }
             if (data.armed !== undefined) {
