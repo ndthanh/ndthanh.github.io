@@ -2701,16 +2701,16 @@
                     return;
                 }
 
-                // Expo (α=0.6): smooth precision near center
-                const axE = expo(ax, 0.6);
+                // Expo only on Y (speed): α=0.6 — precision near center
+                // X (steering) stays linear — expo would make it too weak
                 const ayE = expo(ay, 0.6);
 
                 // Speed taper when steering hard: max -35% at full steer
-                const speedScale = 1 - 0.35 * axE * axE;
+                const speedScale = 1 - 0.35 * ax * ax;
 
                 const spd = parseFloat(sliders.moveSpeed.el.value) || 500;
                 sendCmd('Speed_' + Math.round(ayE * speedScale * spd));
-                sendCmd('s' + axE.toFixed(3));
+                sendCmd('s' + ax.toFixed(3));
             }
 
             // ---- pointer handling ----
