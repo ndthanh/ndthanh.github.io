@@ -2829,9 +2829,14 @@
                 charData.addEventListener('characteristicvaluechanged', onTelemetry);
                 await charStatus.startNotifications();
                 charStatus.addEventListener('characteristicvaluechanged', onStatusNotify);
-                charLog = await service.getCharacteristic(CHAR_LOG_UUID);
-                await charLog.startNotifications();
-                charLog.addEventListener('characteristicvaluechanged', onLogNotify);
+                // Log characteristic (optional — only present in firmware with BLE log support)
+                try {
+                    charLog = await service.getCharacteristic(CHAR_LOG_UUID);
+                    await charLog.startNotifications();
+                    charLog.addEventListener('characteristicvaluechanged', onLogNotify);
+                } catch (e) {
+                    charLog = null; // older firmware without log characteristic
+                }
 
                 // OTA service (optional)
                 otaHasService = false;
@@ -2854,7 +2859,7 @@
                 enableControls(true);
                 updateOtaUI();
             } catch (e) {
-                showError('Connection failed: ' + e.message);
+                showError('Connection failed: ' + (e.message || String(e)));
                 updateStatus('OFFLINE', false);
                 connectBtn.textContent = 'Connect';
             }
