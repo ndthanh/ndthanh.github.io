@@ -786,6 +786,26 @@
             animation: swing-pulse 0.8s ease-in-out infinite;
         }
 
+        /* Soft-land button */
+        .tbtn-softland {
+            background: rgba(0, 188, 212, 0.12);
+            border: 2px solid rgba(0, 188, 212, 0.45);
+            color: #4dd0e1;
+            font-size: 9px;
+            padding: 5px 12px;
+            transition: all 0.3s;
+        }
+        .tbtn-softland:disabled { opacity: 0.3; }
+        .tbtn-softland.active {
+            background: rgba(0, 188, 212, 0.28);
+            border-color: rgba(0, 188, 212, 0.9);
+            color: #80deea;
+            box-shadow: 0 0 12px rgba(0, 188, 212, 0.45);
+            animation: swing-pulse 0.8s ease-in-out infinite;
+        }
+        .ctrl-card.state-softland { border-color: rgba(0,188,212,0.5); background: rgba(0,188,212,0.1); }
+        .ctrl-card.state-softland .ctrl-card-val { color: #4dd0e1; }
+
 
         @keyframes swing-pulse {
 
@@ -1603,6 +1623,58 @@
                     </div>
 
                     <div class="sec">
+                        <div class="sec-title">Soft Land (Balance → controlled fall)</div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Trigger Angle ° (g)</span><span
+                                    id="softLandAngleVal"
+                                    class="pg-val"
+                                >60.0°</span></div>
+                            <input
+                                type="range"
+                                id="softLandAngle"
+                                class="slider"
+                                min="20"
+                                max="85"
+                                step="1"
+                                value="60"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Brake Torque V (h)</span><span
+                                    id="softLandTorqueVal"
+                                    class="pg-val"
+                                >4.50</span></div>
+                            <input
+                                type="range"
+                                id="softLandTorque"
+                                class="slider"
+                                min="0"
+                                max="9"
+                                step="0.1"
+                                value="4.5"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Brake Duration ms (k)</span><span
+                                    id="softLandMsVal"
+                                    class="pg-val"
+                                >120ms</span></div>
+                            <input
+                                type="range"
+                                id="softLandMs"
+                                class="slider"
+                                min="10"
+                                max="500"
+                                step="10"
+                                value="120"
+                                disabled
+                            >
+                        </div>
+                    </div>
+
+                    <div class="sec">
                         <div class="sec-title">Swing-Up (Gravity PD)</div>
                         <div class="pg">
                             <div class="pg-label"><span>K_swing</span><span
@@ -1822,6 +1894,7 @@
                     <button id="armBtn" class="tbtn tbtn-arm ctrl-big-btn" disabled>DISARMED</button>
                     <button id="swingBtn" class="tbtn tbtn-swing ctrl-big-btn" disabled>SWING UP</button>
                     <button id="standUpBtn" class="tbtn ctrl-big-btn" style="background:rgba(156,39,176,0.15);color:#ce93d8;border:1px solid rgba(156,39,176,0.4);" disabled>STAND UP</button>
+                    <button id="softLandBtn" class="tbtn tbtn-softland ctrl-big-btn" disabled>SOFT LAND</button>
                     <button id="zeroBtn" class="tbtn tbtn-zero ctrl-big-btn" disabled>Zero</button>
                 </div>
 
@@ -2061,6 +2134,7 @@
         const armBtn = document.getElementById('armBtn');
         const swingBtn = document.getElementById('swingBtn');
         const standUpBtn = document.getElementById('standUpBtn');
+        const softLandBtn = document.getElementById('softLandBtn');
         const zeroBtn = document.getElementById('zeroBtn');
         // Controller tab status cards
         const ctrlConnCard = document.getElementById('ctrlConnCard');
@@ -2101,7 +2175,10 @@
             crawlVelGain:   { el: document.getElementById('crawlVelGain'),   val: document.getElementById('crawlVelGainVal'),   cmd: 'c', fmt: 3 },
             crawlMaxTorque: { el: document.getElementById('crawlMaxTorque'), val: document.getElementById('crawlMaxTorqueVal'), cmd: 'o', fmt: 2 },
             standUpTorque:  { el: document.getElementById('standUpTorque'),  val: document.getElementById('standUpTorqueVal'),  cmd: 'e', fmt: 2 },
-            standUpMs:      { el: document.getElementById('standUpMs'),      val: document.getElementById('standUpMsVal'),      cmd: 'n', fmt: 0, suffix: 'ms' }
+            standUpMs:      { el: document.getElementById('standUpMs'),      val: document.getElementById('standUpMsVal'),      cmd: 'n', fmt: 0, suffix: 'ms' },
+            softLandAngle:  { el: document.getElementById('softLandAngle'),  val: document.getElementById('softLandAngleVal'),  cmd: 'g', fmt: 1, suffix: '°' },
+            softLandTorque: { el: document.getElementById('softLandTorque'), val: document.getElementById('softLandTorqueVal'), cmd: 'h', fmt: 2 },
+            softLandMs:     { el: document.getElementById('softLandMs'),     val: document.getElementById('softLandMsVal'),     cmd: 'k', fmt: 0, suffix: 'ms' }
         };
 
         if (!navigator.bluetooth) {
@@ -2151,6 +2228,7 @@
             armBtn.disabled = !enabled;
             swingBtn.disabled = !enabled;
             standUpBtn.disabled = !enabled;
+            softLandBtn.disabled = !enabled;
             btnFwd.disabled = !enabled;
             btnBack.disabled = !enabled;
             btnLeft.disabled = !enabled;
@@ -2168,13 +2246,14 @@
             ctrlArmCard.classList.toggle('armed', isArmed);
         }
 
-        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'STAND UP'];
-        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-swing'];
+        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'STAND UP', 'SOFT LAND'];
+        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-swing', 'state-softland'];
 
         function updateStateUI() {
             const s = Math.min(robotState, STATE_NAMES.length - 1);
             swingBtn.classList.toggle('active', robotState === 1);
             standUpBtn.classList.toggle('active', robotState === 3);
+            softLandBtn.classList.toggle('active', robotState === 4);
             ctrlStateVal.textContent = STATE_NAMES[s] || String(robotState);
             ctrlStateCard.className = 'ctrl-card ' + (STATE_CSS[s] || '');
         }
@@ -2345,6 +2424,9 @@
             if (data.o !== undefined) { sliders.crawlMaxTorque.el.value = data.o; sliders.crawlMaxTorque.val.textContent = data.o.toFixed(2); }
             if (data.e !== undefined) { sliders.standUpTorque.el.value = data.e; sliders.standUpTorque.val.textContent = data.e.toFixed(2); }
             if (data.n !== undefined) { sliders.standUpMs.el.value = data.n; sliders.standUpMs.val.textContent = data.n.toFixed(0) + 'ms'; }
+            if (data.g !== undefined) { sliders.softLandAngle.el.value = data.g; sliders.softLandAngle.val.textContent = data.g.toFixed(1) + '°'; }
+            if (data.h !== undefined) { sliders.softLandTorque.el.value = data.h; sliders.softLandTorque.val.textContent = data.h.toFixed(2); }
+            if (data.k !== undefined) { sliders.softLandMs.el.value = data.k; sliders.softLandMs.val.textContent = data.k.toFixed(0) + 'ms'; }
             if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(2); }
             if (data.p !== undefined) { sliders.movePitchGain.el.value = data.p; sliders.movePitchGain.val.textContent = data.p.toFixed(1); }
             if (data.armed !== undefined) {
@@ -2436,6 +2518,10 @@
 
         standUpBtn.addEventListener('click', async () => {
             await sendCmd('u0');
+        });
+
+        softLandBtn.addEventListener('click', async () => {
+            await sendCmd('F0');
         });
 
         // Zero button
