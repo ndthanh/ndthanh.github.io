@@ -917,6 +917,34 @@
         .ctrl-dpad .mbtn { font-size: 26px; border-radius: 12px; }
         .ctrl-dpad .mbtn.stp { font-size: 20px; }
 
+        /* ===== JOYSTICK ===== */
+        .ctrl-mode-toggle {
+            display: flex; gap: 0; border-radius: 8px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.15); margin-bottom: 12px;
+            align-self: center;
+        }
+        .ctrl-mode-toggle button {
+            flex: 1; padding: 6px 18px; font-size: 11px; font-weight: 600;
+            background: transparent; color: rgba(255,255,255,0.45);
+            border: none; cursor: pointer; letter-spacing: 0.5px;
+            transition: background 0.15s, color 0.15s;
+        }
+        .ctrl-mode-toggle button.active {
+            background: rgba(79,195,247,0.18); color: #4fc3f7;
+        }
+        .joystick-wrap {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        #joystickCanvas {
+            border-radius: 50%; cursor: grab; touch-action: none;
+            display: block;
+        }
+        #joystickCanvas:active { cursor: grabbing; }
+        .joystick-xy {
+            font-size: 10px; color: rgba(255,255,255,0.4);
+            font-family: monospace; letter-spacing: 0.5px;
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             body {
@@ -1859,8 +1887,20 @@
                     <button id="zeroBtn" class="tbtn tbtn-zero ctrl-big-btn" disabled>Zero</button>
                 </div>
 
+                <!-- Control mode toggle -->
+                <div class="ctrl-mode-toggle">
+                    <button id="modeDpad" class="active">D-PAD</button>
+                    <button id="modeJoy">JOYSTICK</button>
+                </div>
+
+                <!-- Joystick (hidden by default) -->
+                <div class="joystick-wrap" id="joystickWrap" style="display:none;">
+                    <canvas id="joystickCanvas" width="240" height="240"></canvas>
+                    <div class="joystick-xy" id="joystickXY">X: 0.00 | Y: 0.00</div>
+                </div>
+
                 <!-- D-pad -->
-                <div class="ctrl-dpad">
+                <div class="ctrl-dpad" id="dpadWrap">
                     <div class="empty"></div>
                     <button id="btnFwd" class="mbtn dir" disabled>&#9650;</button>
                     <div class="empty"></div>
@@ -2565,6 +2605,168 @@
             m.btn.classList.remove('active');
             if (!Object.values(keyHeld).some(v => v)) { macroOnCmdChange('x'); sendCmd('x'); }
         });
+
+        // ==================== JOYSTICK ====================
+        (function() {
+            const canvas = document.getElementById('joystickCanvas');
+            const ctx = canvas.getContext('2d');
+            const xyLabel = document.getElementById('joystickXY');
+            const joystickWrap = document.getElementById('joystickWrap');
+            const dpadWrap = document.getElementById('dpadWrap');
+            const modeDpadBtn = document.getElementById('modeDpad');
+            const modeJoyBtn = document.getElementById('modeJoy');
+
+            const W = canvas.width, H = canvas.height;
+            const cx = W / 2, cy = H / 2;
+            const outerR = W / 2 - 6;   // outer ring radius
+            const dotR = 22;             // draggable dot radius
+            const maxTravel = outerR - dotR;
+            const deadzone = 0.12;       // normalized deadzone radius
+
+            let joyX = 0, joyY = 0;     // normalized -1..1
+            let dragging = false;
+            let joyInterval = null;
+
+            // ---- draw ----
+            function draw() {
+                ctx.clearRect(0, 0, W, H);
+
+                // outer ring
+                ctx.beginPath();
+                ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(79,195,247,0.25)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = 'rgba(255,255,255,0.03)';
+                ctx.fill();
+
+                // crosshair
+                ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+                ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(cx, cy - outerR); ctx.lineTo(cx, cy + outerR); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx - outerR, cy); ctx.lineTo(cx + outerR, cy); ctx.stroke();
+
+                // deadzone circle
+                ctx.beginPath();
+                ctx.arc(cx, cy, maxTravel * deadzone, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // dot position
+                const dx = cx + joyX * maxTravel;
+                const dy = cy - joyY * maxTravel; // canvas Y inverted
+
+                // dot glow
+                const grad = ctx.createRadialGradient(dx, dy, 0, dx, dy, dotR * 1.8);
+                grad.addColorStop(0, 'rgba(79,195,247,0.35)');
+                grad.addColorStop(1, 'rgba(79,195,247,0)');
+                ctx.beginPath(); ctx.arc(dx, dy, dotR * 1.8, 0, Math.PI * 2);
+                ctx.fillStyle = grad; ctx.fill();
+
+                // dot
+                ctx.beginPath();
+                ctx.arc(dx, dy, dotR, 0, Math.PI * 2);
+                const active = dragging || (Math.abs(joyX) > deadzone || Math.abs(joyY) > deadzone);
+                ctx.fillStyle = active ? '#4fc3f7' : 'rgba(79,195,247,0.5)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            // ---- send BLE ----
+            function joySend() {
+                const ax = invertSteerEl.checked ? -joyX : joyX;
+                const ay = invertDriveEl.checked ? -joyY : joyY;
+                const spd = parseFloat(sliders.moveSpeed.el.value) || 500;
+                if (Math.abs(ax) < deadzone && Math.abs(ay) < deadzone) {
+                    sendCmd('x');
+                    return;
+                }
+                // proportional speed (signed, Speed_ handles both +/-)
+                const speedVal = Math.round(ay * spd);
+                sendCmd('Speed_' + speedVal);
+                // proportional steering via new 's' command
+                const steerVal = ax.toFixed(3);
+                sendCmd('s' + steerVal);
+            }
+
+            // ---- pointer handling ----
+            function setFromEvent(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = W / rect.width, scaleY = H / rect.height;
+                const touch = e.touches ? e.touches[0] : e;
+                let px = (touch.clientX - rect.left) * scaleX - cx;
+                let py = -((touch.clientY - rect.top) * scaleY - cy); // invert Y
+                const dist = Math.sqrt(px*px + py*py);
+                if (dist > maxTravel) { px *= maxTravel/dist; py *= maxTravel/dist; }
+                joyX = px / maxTravel;
+                joyY = py / maxTravel;
+                xyLabel.textContent = 'X: ' + joyX.toFixed(2) + ' | Y: ' + joyY.toFixed(2);
+                draw();
+            }
+
+            function startDrag(e) {
+                if (canvas.style.opacity === '0.4') return; // disabled
+                e.preventDefault();
+                dragging = true;
+                setFromEvent(e);
+                if (joyInterval) clearInterval(joyInterval);
+                joyInterval = setInterval(joySend, 100);
+            }
+            function moveDrag(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                setFromEvent(e);
+            }
+            function endDrag(e) {
+                if (!dragging) return;
+                dragging = false;
+                joyX = 0; joyY = 0;
+                xyLabel.textContent = 'X: 0.00 | Y: 0.00';
+                if (joyInterval) { clearInterval(joyInterval); joyInterval = null; }
+                sendCmd('x');
+                draw();
+            }
+
+            canvas.addEventListener('mousedown', startDrag);
+            canvas.addEventListener('mousemove', moveDrag);
+            canvas.addEventListener('mouseup', endDrag);
+            canvas.addEventListener('mouseleave', endDrag);
+            canvas.addEventListener('touchstart', startDrag, { passive: false });
+            canvas.addEventListener('touchmove', moveDrag, { passive: false });
+            canvas.addEventListener('touchend', endDrag);
+
+            // ---- mode toggle ----
+            let joyMode = false;
+            function setMode(joy) {
+                joyMode = joy;
+                modeDpadBtn.classList.toggle('active', !joy);
+                modeJoyBtn.classList.toggle('active', joy);
+                dpadWrap.style.display = joy ? 'none' : '';
+                joystickWrap.style.display = joy ? 'flex' : 'none';
+                localStorage.setItem('ctrlMode', joy ? 'joy' : 'dpad');
+                if (!joy && joyInterval) { clearInterval(joyInterval); joyInterval = null; sendCmd('x'); }
+            }
+            modeDpadBtn.addEventListener('click', () => setMode(false));
+            modeJoyBtn.addEventListener('click', () => setMode(true));
+
+            // restore saved mode
+            if (localStorage.getItem('ctrlMode') === 'joy') setMode(true);
+
+            // ---- disabled state (mirror enableControls) ----
+            // patch into enableControls via MutationObserver on btnFwd.disabled
+            const fwdBtn = document.getElementById('btnFwd');
+            new MutationObserver(() => {
+                const dis = fwdBtn.disabled;
+                canvas.style.opacity = dis ? '0.4' : '1';
+                canvas.style.cursor = dis ? 'not-allowed' : 'grab';
+                if (dis && joyInterval) { clearInterval(joyInterval); joyInterval = null; joyX=0; joyY=0; draw(); }
+            }).observe(fwdBtn, { attributes: true, attributeFilter: ['disabled'] });
+
+            draw();
+        })();
 
         // ==================== BLE CONNECT ====================
         connectBtn.addEventListener('click', async () => {
