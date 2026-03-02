@@ -110,6 +110,30 @@
             min-height: 0;
         }
 
+        .hw-leds {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 6px 0 4px;
+        }
+        .hw-led-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .hw-led {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #333;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .hw-led.ok   { background: #51cf66; box-shadow: 0 0 6px #51cf66aa; }
+        .hw-led.fail { background: #ff6b6b; box-shadow: 0 0 6px #ff6b6baa; }
+        .hw-led-label { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 0.3px; }
+
         .tab-content.active {
             display: flex;
             flex-direction: column;
@@ -1879,6 +1903,14 @@
                     </div>
                 </div>
 
+                <!-- Hardware status LEDs -->
+                <div class="hw-leds">
+                    <div class="hw-led-item"><span class="hw-led" id="ledImu"></span><span class="hw-led-label">IMU</span></div>
+                    <div class="hw-led-item"><span class="hw-led" id="ledS1"></span><span class="hw-led-label">AS5600 L</span></div>
+                    <div class="hw-led-item"><span class="hw-led" id="ledS2"></span><span class="hw-led-label">AS5600 R</span></div>
+                    <div class="hw-led-item"><span class="hw-led" id="ledM"></span><span class="hw-led-label">Motors</span></div>
+                </div>
+
                 <!-- Control buttons -->
                 <div class="ctrl-btns">
                     <button id="armBtn" class="tbtn tbtn-arm ctrl-big-btn" disabled>DISARMED</button>
@@ -2446,6 +2478,18 @@
                 const chip = document.getElementById('fwChip');
                 if (chip) { chip.textContent = 'FW ' + data.fw; chip.style.display = 'block'; }
             }
+            // Hardware status LEDs
+            function setLed(id, val) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.remove('ok', 'fail');
+                if (val === 1) el.classList.add('ok');
+                else if (val === 0) el.classList.add('fail');
+            }
+            if (data.himu !== undefined) setLed('ledImu', data.himu);
+            if (data.hs1  !== undefined) setLed('ledS1',  data.hs1);
+            if (data.hs2  !== undefined) setLed('ledS2',  data.hs2);
+            if (data.hm   !== undefined) setLed('ledM',   data.hm);
         }
 
         function onStatusNotify(event) {
@@ -2876,6 +2920,10 @@
             updateStateUI();
             device = null; charCmd = null; charStatus = null; charData = null; charLog = null;
             otaControlChar = null; otaDataChar = null; otaHasService = false;
+            ['ledImu','ledS1','ledS2','ledM'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('ok','fail');
+            });
             const fwChip = document.getElementById('fwChip');
             if (fwChip) fwChip.style.display = 'none';
             otaUploading = false;
