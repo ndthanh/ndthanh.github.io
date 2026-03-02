@@ -2675,21 +2675,42 @@
                 ctx.stroke();
             }
 
+            // ---- curve helpers ----
+            // Per-axis deadzone: remap dz..1 → 0..1 (no jump)
+            function applyDz(v) {
+                if (Math.abs(v) < deadzone) return 0;
+                return Math.sign(v) * (Math.abs(v) - deadzone) / (1 - deadzone);
+            }
+            // Expo curve: alpha*v³ + (1-alpha)*v
+            // alpha=0.6 → vùng giữa nhạy hơn ~50%, full power ở rìa không đổi
+            function expo(v, alpha) {
+                return alpha * v * v * v + (1 - alpha) * v;
+            }
+
             // ---- send BLE ----
             function joySend() {
-                const ax = invertSteerEl.checked ? -joyX : joyX;
-                const ay = invertDriveEl.checked ? -joyY : joyY;
-                const spd = parseFloat(sliders.moveSpeed.el.value) || 500;
-                if (Math.abs(ax) < deadzone && Math.abs(ay) < deadzone) {
+                let ax = invertSteerEl.checked ? -joyX : joyX;
+                let ay = invertDriveEl.checked ? -joyY : joyY;
+
+                // Per-axis deadzone + rescale
+                ax = applyDz(ax);
+                ay = applyDz(ay);
+
+                if (Math.abs(ax) < 0.001 && Math.abs(ay) < 0.001) {
                     sendCmd('x');
                     return;
                 }
-                // proportional speed (signed, Speed_ handles both +/-)
-                const speedVal = Math.round(ay * spd);
-                sendCmd('Speed_' + speedVal);
-                // proportional steering via new 's' command
-                const steerVal = ax.toFixed(3);
-                sendCmd('s' + steerVal);
+
+                // Expo (α=0.6): smooth precision near center
+                const axE = expo(ax, 0.6);
+                const ayE = expo(ay, 0.6);
+
+                // Speed taper when steering hard: max -35% at full steer
+                const speedScale = 1 - 0.35 * axE * axE;
+
+                const spd = parseFloat(sliders.moveSpeed.el.value) || 500;
+                sendCmd('Speed_' + Math.round(ayE * speedScale * spd));
+                sendCmd('s' + axE.toFixed(3));
             }
 
             // ---- pointer handling ----
