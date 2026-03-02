@@ -1251,6 +1251,7 @@
             <button class="tab-btn" data-tab="controller">Controller</button>
             <button class="tab-btn" data-tab="ota">OTA</button>
             <button class="tab-btn" data-tab="macro">Macro</button>
+            <button class="tab-btn" data-tab="log">Log</button>
             <div id="statusBadge" class="status-badge"><span id="statusText">OFFLINE</span></div>
             <button id="connectBtn" class="tbtn tbtn-connect">Connect</button>
         </div>
@@ -2047,6 +2048,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- TAB: LOG -->
+        <div id="tabLog" class="tab-content">
+            <div style="display:flex;flex-direction:column;height:100%;padding:12px;gap:10px;box-sizing:border-box;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:0.5px;">BLE LOG</span>
+                    <span id="logCount" style="font-size:10px;color:rgba(255,255,255,0.35);">0 messages</span>
+                    <div style="flex:1"></div>
+                    <button id="logClearBtn" class="tbtn" style="background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);font-size:11px;padding:4px 10px;">&#10005; Clear</button>
+                    <button id="logDownloadBtn" class="tbtn" style="background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);font-size:11px;padding:4px 10px;">&#8659; Download</button>
+                </div>
+                <div id="logPanel" style="flex:1;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow-y:auto;padding:10px;font-family:'Courier New',monospace;font-size:11px;line-height:1.7;color:#ccc;white-space:pre-wrap;word-break:break-all;min-height:200px;">
+                    <span style="color:rgba(255,255,255,0.2);">Waiting for BLE log messages…</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div
@@ -2060,6 +2077,7 @@
         const CHAR_CMD_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
         const CHAR_STATUS_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a9';
         const CHAR_DATA_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26aa';
+        const CHAR_LOG_UUID  = 'beb5483e-36e1-4688-b7f5-ea07361b26ab';
 
         const OTA_SERVICE_UUID = 'fb1e4001-54ae-4a28-9f74-dfccb248601d';
         const OTA_CONTROL_CHAR_UUID = 'fb1e4002-54ae-4a28-9f74-dfccb248601d';
@@ -2093,7 +2111,7 @@
             return out;
         }
 
-        let device = null, charCmd = null, charStatus = null, charData = null;
+        let device = null, charCmd = null, charStatus = null, charData = null, charLog = null;
         let otaControlChar = null, otaDataChar = null;
         let otaHasService = false;
         let isArmed = false;
@@ -2233,7 +2251,7 @@
 
         // ==================== TABS ====================
         const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabMap = { tuner: 'tabTuner', controller: 'tabController', ota: 'tabOta', macro: 'tabMacro' };
+        const tabMap = { tuner: 'tabTuner', controller: 'tabController', ota: 'tabOta', macro: 'tabMacro', log: 'tabLog' };
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -2811,6 +2829,9 @@
                 charData.addEventListener('characteristicvaluechanged', onTelemetry);
                 await charStatus.startNotifications();
                 charStatus.addEventListener('characteristicvaluechanged', onStatusNotify);
+                charLog = await service.getCharacteristic(CHAR_LOG_UUID);
+                await charLog.startNotifications();
+                charLog.addEventListener('characteristicvaluechanged', onLogNotify);
 
                 // OTA service (optional)
                 otaHasService = false;
@@ -2848,7 +2869,7 @@
             robotState = 0;
             updateArmUI();
             updateStateUI();
-            device = null; charCmd = null; charStatus = null; charData = null;
+            device = null; charCmd = null; charStatus = null; charData = null; charLog = null;
             otaControlChar = null; otaDataChar = null; otaHasService = false;
             const fwChip = document.getElementById('fwChip');
             if (fwChip) fwChip.style.display = 'none';
@@ -3413,6 +3434,61 @@
         profNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') saveProfile(); });
 
         renderProfiles();
+
+        // ==================== BLE LOG ====================
+        const logPanel = document.getElementById('logPanel');
+        const logCount = document.getElementById('logCount');
+        const logClearBtn = document.getElementById('logClearBtn');
+        const logDownloadBtn = document.getElementById('logDownloadBtn');
+        const logMessages = []; // { ts, text }
+        let logInitialized = false;
+
+        function logAppend(text) {
+            if (!logInitialized) {
+                logPanel.innerHTML = '';
+                logInitialized = true;
+            }
+            const ts = new Date().toISOString().slice(11, 23); // HH:MM:SS.mmm
+            const msg = { ts, text };
+            logMessages.push(msg);
+
+            const color = text.startsWith('FALL') ? '#ff6b6b'
+                        : text.startsWith('PANIC') || text.includes('FAIL') ? '#ff9f43'
+                        : text.startsWith('BOOT') ? '#74b9ff'
+                        : text.startsWith('SWING') || text.startsWith('STAND_UP OK') ? '#55efc4'
+                        : '#ccc';
+
+            const line = document.createElement('div');
+            line.style.cssText = `color:${color};padding:1px 0;`;
+            line.textContent = `[${ts}] ${text}`;
+            logPanel.appendChild(line);
+            logPanel.scrollTop = logPanel.scrollHeight;
+            logCount.textContent = `${logMessages.length} message${logMessages.length !== 1 ? 's' : ''}`;
+        }
+
+        function onLogNotify(event) {
+            const text = new TextDecoder().decode(event.target.value);
+            logAppend(text.trim());
+        }
+
+        logClearBtn.addEventListener('click', () => {
+            logMessages.length = 0;
+            logInitialized = false;
+            logPanel.innerHTML = '<span style="color:rgba(255,255,255,0.2);">Cleared — waiting for BLE log messages…</span>';
+            logCount.textContent = '0 messages';
+        });
+
+        logDownloadBtn.addEventListener('click', () => {
+            if (logMessages.length === 0) return;
+            const lines = logMessages.map(m => `[${m.ts}] ${m.text}`).join('\n');
+            const blob = new Blob([lines], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const dt = new Date().toISOString().slice(0,19).replace(/[:T]/g, '-');
+            a.href = url; a.download = `balbot_log_${dt}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
     </script>
 </body>
 
