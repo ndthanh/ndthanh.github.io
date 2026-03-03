@@ -965,6 +965,17 @@
             animation: dpad-hint-pulse 1s ease-in-out infinite;
         }
 
+        /* State card: stale telemetry indicator */
+        .ctrl-card.state-stale {
+            border-color: rgba(255,152,0,0.5) !important;
+            opacity: 0.75;
+        }
+        .ctrl-card.state-stale .ctrl-val::after {
+            content: ' ?';
+            color: rgba(255,152,0,0.8);
+            font-size: 0.75em;
+        }
+
         /* ===== JOYSTICK ===== */
         .ctrl-mode-toggle {
             display: flex; gap: 0; border-radius: 8px; overflow: hidden;
@@ -1718,33 +1729,33 @@
                             <div class="pg-label"><span>Motor 1 Torque V (N)</span><span
                                     id="sideM1TorqueVal"
                                     class="pg-val"
-                                >5.50</span></div>
+                                >4.50</span></div>
                             <input type="range" id="sideM1Torque" class="slider"
-                                min="-9" max="9" step="0.5" value="5.5" disabled>
+                                min="-9" max="9" step="0.5" value="4.5" disabled>
                         </div>
                         <div class="pg">
                             <div class="pg-label"><span>Motor 1 Duration ms (P)</span><span
                                     id="sideM1MsVal"
                                     class="pg-val"
-                                >700ms</span></div>
+                                >500ms</span></div>
                             <input type="range" id="sideM1Ms" class="slider"
-                                min="100" max="5000" step="100" value="700" disabled>
+                                min="100" max="5000" step="100" value="500" disabled>
                         </div>
                         <div class="pg">
                             <div class="pg-label"><span>Motor 2 Torque V (D)</span><span
                                     id="sideM2TorqueVal"
                                     class="pg-val"
-                                >5.50</span></div>
+                                >4.50</span></div>
                             <input type="range" id="sideM2Torque" class="slider"
-                                min="-9" max="9" step="0.5" value="5.5" disabled>
+                                min="-9" max="9" step="0.5" value="4.5" disabled>
                         </div>
                         <div class="pg">
                             <div class="pg-label"><span>Motor 2 Duration ms (Z)</span><span
                                     id="sideM2MsVal"
                                     class="pg-val"
-                                >700ms</span></div>
+                                >500ms</span></div>
                             <input type="range" id="sideM2Ms" class="slider"
-                                min="100" max="5000" step="100" value="700" disabled>
+                                min="100" max="5000" step="100" value="500" disabled>
                         </div>
                     </div>
 
@@ -2433,6 +2444,9 @@
         function onTelemetry(event) {
             const dv = event.target.value;
             if (dv.byteLength < 13) return; // accept 13-byte (old fw) or 14-byte (new fw)
+            lastTelemetryMs = Date.now();
+            // Clear stale indicator when data resumes
+            ctrlStateCard.classList.remove('state-stale');
             const pitch = dv.getInt16(0, true) / 100;
             const pitchRate = dv.getInt16(2, true) / 10;
             const wheelVel = dv.getInt16(4, true) / 10;
@@ -2511,6 +2525,12 @@
         let lastPitch = null, lastOffset = null;
         let lastRollAngle = 0;
         let fallenDir = 0; // 0=unknown, 1=fwd, 2=bwd, 3=left, 4=right
+
+        // Telemetry watchdog — detects when binary telemetry stops flowing
+        let lastTelemetryMs = 0;
+        let telemetryWatchdogTimer = null;
+        const TELEMETRY_STALE_MS = 3000; // consider stale after 3s of silence
+        const WATCHDOG_INTERVAL_MS = 2000; // check every 2s
         let statusResolve = null;
 
         // Map BLE status JSON keys to slider definitions
@@ -2610,6 +2630,32 @@
             } catch (e) {
                 console.warn('readStatus failed:', e);
             }
+        }
+
+        // ==================== TELEMETRY WATCHDOG ====================
+        // Three-layer fallback for state updates:
+        //   Layer 1: Binary telemetry at 10Hz (CHAR_DATA notify) — fastest, can fail silently
+        //   Layer 2: Status JSON at 1Hz background (CHAR_STATUS notify) — firmware pushes periodically
+        //   Layer 3: This watchdog — GATT READ every 2s when no data for 3s (always reliable)
+        function startTelemetryWatchdog() {
+            if (telemetryWatchdogTimer) clearInterval(telemetryWatchdogTimer);
+            lastTelemetryMs = Date.now(); // reset on connect
+            telemetryWatchdogTimer = setInterval(async () => {
+                if (!charStatus) return;
+                const stale = Date.now() - lastTelemetryMs > TELEMETRY_STALE_MS;
+                ctrlStateCard.classList.toggle('state-stale', stale);
+                if (stale) {
+                    // Layer 3: GATT READ fallback — bypasses notify queue, always works.
+                    // readStatus updates robotState/fallenDir via updateSlidersFromData.
+                    // State card keeps "?" indicator until binary telemetry resumes (lastTelemetryMs).
+                    await readStatus();
+                }
+            }, WATCHDOG_INTERVAL_MS);
+        }
+
+        function stopTelemetryWatchdog() {
+            if (telemetryWatchdogTimer) { clearInterval(telemetryWatchdogTimer); telemetryWatchdogTimer = null; }
+            ctrlStateCard.classList.remove('state-stale');
         }
 
         // Slider input/change handlers
@@ -3044,6 +3090,10 @@
                 updateStatus('ONLINE', true);
                 connectBtn.textContent = 'Disconnect';
                 enableControls(true);
+                // Firmware defaults to ble_telemetry_enabled=true — sync toggle button
+                telemetryOn = true;
+                updateTelemetryToggleUI();
+                startTelemetryWatchdog();
                 updateOtaUI();
             } catch (e) {
                 showError('Connection failed: ' + (e.message || String(e)));
@@ -3053,6 +3103,7 @@
         });
 
         function onDisconnected() {
+            stopTelemetryWatchdog();
             if (otaDisconnectResolve) { otaDisconnectResolve(true); otaDisconnectResolve = null; }
             updateStatus('OFFLINE', false);
             connectBtn.textContent = 'Connect';
