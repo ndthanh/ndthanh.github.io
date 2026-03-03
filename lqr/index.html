@@ -2462,16 +2462,10 @@
                 document.getElementById('rollAngleVal').textContent = lastRollAngle.toFixed(0) + '°';
             }
 
-            // Update state from telemetry flags (bits 4-2 = state 0-7, bit1=armed)
+            // Update state + sub-state at 10Hz from telemetry flags (bits 4-2 = state 0-7)
             const telState = (flags >> 2) & 0x07;
-            const prevFallenDir = fallenDir;
-            if (telState !== robotState) {
-                robotState = telState;
-                updateStateUI();
-            } else if (robotState === 0) {
-                // Re-run updateStateUI at 10Hz when FALLEN to keep sub-state name fresh
-                updateStateUI();
-            }
+            robotState = telState;
+            updateStateUI(); // always refresh: sub-state name, d-pad hints, fallenDir
 
             const values = { pitch, torque, vel: wheelVel, wpos: wheelPos };
             Object.entries(charts).forEach(([key, c]) => {
@@ -2744,9 +2738,11 @@
             let interval = null;
             let wasSideRecover = false;
             function isSideRecover() {
-                if (robotState !== 0) return false;
-                if (pressCmd === 'l' && lastRollAngle > 60) return true;
-                if (pressCmd === 'r' && lastRollAngle < -60) return true;
+                // Use fallenDir (set by updateStateUI) rather than raw lastRollAngle.
+                // fallenDir is cleared to 0 whenever robotState leaves FALLEN,
+                // so this never mis-fires when the robot is balancing with stale roll data.
+                if (pressCmd === 'l') return fallenDir === 3; // FALLEN LEFT
+                if (pressCmd === 'r') return fallenDir === 4; // FALLEN RIGHT
                 return false;
             }
             function press() {
@@ -2791,14 +2787,12 @@
             const m = keyMap[k];
             if (!m || m.btn.disabled || keyHeld[k]) return;
             keyHeld[k] = true;
-            // Intercept a/d for side recover when fallen sideways
-            if ((k === 'a' || k === 'd') && robotState === 0) {
-                if ((k === 'a' && lastRollAngle > 60) || (k === 'd' && lastRollAngle < -60)) {
-                    sendCmd(m.cmd); // one-shot side recover trigger
-                    m.btn.classList.add('active');
-                    m._sideRecover = true;
-                    return;
-                }
+            // Intercept a/d for side recover when fallen sideways (use fallenDir, not raw roll)
+            if ((k === 'a' && fallenDir === 3) || (k === 'd' && fallenDir === 4)) {
+                sendCmd(m.cmd); // one-shot side recover trigger
+                m.btn.classList.add('active');
+                m._sideRecover = true;
+                return;
             }
             m._sideRecover = false;
             macroOnCmdChange(m.cmd);
