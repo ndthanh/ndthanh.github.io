@@ -954,6 +954,17 @@
         .ctrl-dpad .mbtn { font-size: 26px; border-radius: 12px; }
         .ctrl-dpad .mbtn.stp { font-size: 20px; }
 
+        /* D-pad hint: pulsing highlight for suggested action based on fall direction */
+        @keyframes dpad-hint-pulse {
+            0%, 100% { box-shadow: 0 0 4px rgba(255,152,0,0.3); }
+            50%       { box-shadow: 0 0 16px rgba(255,152,0,0.9); }
+        }
+        .mbtn.dpad-hint {
+            border-color: rgba(255,152,0,0.85) !important;
+            color: #ffa726 !important;
+            animation: dpad-hint-pulse 1s ease-in-out infinite;
+        }
+
         /* ===== JOYSTICK ===== */
         .ctrl-mode-toggle {
             display: flex; gap: 0; border-radius: 8px; overflow: hidden;
@@ -2321,12 +2332,40 @@
 
         function updateStateUI() {
             const s = Math.min(robotState, STATE_NAMES.length - 1);
+
+            // Compute fallen direction sub-state (uses latest pitch/roll data)
+            let stateName = STATE_NAMES[s] || String(robotState);
+            if (robotState === 0) {
+                const p = lastPitch || 0;
+                const r = lastRollAngle;
+                if (Math.abs(r) > 60) {
+                    fallenDir = r > 0 ? 3 : 4;
+                    stateName  = r > 0 ? 'FALLEN LEFT' : 'FALLEN RIGHT';
+                } else if (Math.abs(p) > 30) {
+                    fallenDir = p > 0 ? 1 : 2;
+                    stateName  = p > 0 ? 'FALLEN FWD'  : 'FALLEN BWD';
+                } else {
+                    fallenDir = 0;
+                }
+            } else {
+                fallenDir = 0;
+            }
+
             swingBtn.classList.toggle('active', robotState === 1);
             standUpBtn.classList.toggle('active', robotState === 3);
             swingDownBtn.classList.toggle('active', robotState === 4);
             sideRcvrBtn.classList.toggle('active', robotState === 5);
-            ctrlStateVal.textContent = STATE_NAMES[s] || String(robotState);
+            ctrlStateVal.textContent = stateName;
             ctrlStateCard.className = 'ctrl-card ' + (STATE_CSS[s] || '');
+
+            // D-pad hints: highlight button(s) relevant to current fall direction
+            const pitchFallen = robotState === 0 && (fallenDir === 1 || fallenDir === 2);
+            const leftFallen  = robotState === 0 && fallenDir === 3;
+            const rightFallen = robotState === 0 && fallenDir === 4;
+            btnFwd.classList.toggle('dpad-hint',   pitchFallen);
+            btnBack.classList.toggle('dpad-hint',  pitchFallen);
+            btnLeft.classList.toggle('dpad-hint',  leftFallen);
+            btnRight.classList.toggle('dpad-hint', rightFallen);
         }
 
         // ==================== TABS ====================
@@ -2466,6 +2505,8 @@
         }
 
         let lastPitch = null, lastOffset = null;
+        let lastRollAngle = 0;
+        let fallenDir = 0; // 0=unknown, 1=fwd, 2=bwd, 3=left, 4=right
         let statusResolve = null;
 
         // Map BLE status JSON keys to slider definitions
@@ -2498,7 +2539,7 @@
             if (data.g !== undefined) { sliders.swingDownK.el.value = data.g; sliders.swingDownK.val.textContent = data.g.toFixed(2); }
             if (data.h !== undefined) { sliders.swingDownNudge.el.value = data.h; sliders.swingDownNudge.val.textContent = data.h.toFixed(2); }
             if (data.k !== undefined) { sliders.swingDownEndAngle.el.value = data.k; sliders.swingDownEndAngle.val.textContent = data.k.toFixed(1) + '°'; }
-            if (data.ra  !== undefined) { document.getElementById('rollAngleVal').textContent = data.ra.toFixed(1) + '°'; }
+            if (data.ra  !== undefined) { lastRollAngle = data.ra; document.getElementById('rollAngleVal').textContent = data.ra.toFixed(1) + '°'; }
             if (data.m1t !== undefined) { sliders.sideM1Torque.el.value = data.m1t; sliders.sideM1Torque.val.textContent = data.m1t.toFixed(2); }
             if (data.m1s !== undefined) { sliders.sideM1Ms.el.value     = data.m1s; sliders.sideM1Ms.val.textContent     = data.m1s.toFixed(0) + 'ms'; }
             if (data.m2t !== undefined) { sliders.sideM2Torque.el.value = data.m2t; sliders.sideM2Torque.val.textContent = data.m2t.toFixed(2); }
@@ -2509,11 +2550,11 @@
                 isArmed = data.armed === 1;
                 updateArmUI();
             }
+            if (data.pitch !== undefined) lastPitch = data.pitch;
             if (data.st !== undefined) {
                 robotState = data.st;
                 updateStateUI();
             }
-            if (data.pitch !== undefined) lastPitch = data.pitch;
             if (data.temp !== undefined) {
                 const el = document.getElementById('imuTempVal');
                 if (el) el.textContent = data.temp.toFixed(1) + '\u00B0C';
@@ -2687,8 +2728,47 @@
 
         setupMoveBtn(btnFwd, 'f');
         setupMoveBtn(btnBack, 'b');
-        setupMoveBtn(btnLeft, 'l');
-        setupMoveBtn(btnRight, 'r');
+
+        // Left/Right d-pad: intercept for side-recover when robot fallen sideways
+        function setupDirBtn(btn, pressCmd) {
+            let interval = null;
+            let wasSideRecover = false;
+            function isSideRecover() {
+                if (robotState !== 0) return false;
+                if (pressCmd === 'l' && lastRollAngle > 60) return true;
+                if (pressCmd === 'r' && lastRollAngle < -60) return true;
+                return false;
+            }
+            function press() {
+                if (btn.disabled) return;
+                wasSideRecover = isSideRecover();
+                if (wasSideRecover) {
+                    sendCmd(pressCmd); // one-shot — firmware handles timing
+                    btn.classList.add('active');
+                    setTimeout(() => btn.classList.remove('active'), 400);
+                    return;
+                }
+                macroOnCmdChange(pressCmd);
+                sendCmd(mapMoveCmd(pressCmd));
+                btn.classList.add('active');
+                if (interval) clearInterval(interval);
+                interval = setInterval(() => sendCmd(mapMoveCmd(pressCmd)), 200);
+            }
+            function release() {
+                if (wasSideRecover) { wasSideRecover = false; return; }
+                if (interval) { clearInterval(interval); interval = null; }
+                macroOnCmdChange('x');
+                sendCmd('x');
+                btn.classList.remove('active');
+            }
+            btn.addEventListener('mousedown', press);
+            btn.addEventListener('mouseup', release);
+            btn.addEventListener('mouseleave', release);
+            btn.addEventListener('touchstart', e => { e.preventDefault(); press(); });
+            btn.addEventListener('touchend', e => { e.preventDefault(); release(); });
+        }
+        setupDirBtn(btnLeft, 'l');
+        setupDirBtn(btnRight, 'r');
         btnStop.addEventListener('click', () => { macroOnCmdChange('x'); sendCmd('x'); });
 
         // Keyboard WASD controls
@@ -2701,6 +2781,16 @@
             const m = keyMap[k];
             if (!m || m.btn.disabled || keyHeld[k]) return;
             keyHeld[k] = true;
+            // Intercept a/d for side recover when fallen sideways
+            if ((k === 'a' || k === 'd') && robotState === 0) {
+                if ((k === 'a' && lastRollAngle > 60) || (k === 'd' && lastRollAngle < -60)) {
+                    sendCmd(m.cmd); // one-shot side recover trigger
+                    m.btn.classList.add('active');
+                    m._sideRecover = true;
+                    return;
+                }
+            }
+            m._sideRecover = false;
             macroOnCmdChange(m.cmd);
             sendCmd(mapMoveCmd(m.cmd));
             m.btn.classList.add('active');
@@ -2711,6 +2801,7 @@
             const m = keyMap[k];
             if (!m || !keyHeld[k]) return;
             keyHeld[k] = false;
+            if (m._sideRecover) { m._sideRecover = false; m.btn.classList.remove('active'); return; }
             if (m._interval) { clearInterval(m._interval); m._interval = null; }
             m.btn.classList.remove('active');
             if (!Object.values(keyHeld).some(v => v)) { macroOnCmdChange('x'); sendCmd('x'); }
