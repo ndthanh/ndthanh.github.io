@@ -1712,39 +1712,39 @@
                                     class="pg-val"
                                     style="color:#ffb74d"
                                 >—</span></div>
-                            <div style="font-size:10px;color:#888;padding:2px 0 4px">Right≈-120° Left≈+120°. Sign flips direction. Disarms when done.</div>
+                            <div style="font-size:10px;color:#888;padding:2px 0 4px">Right≈-120° Left≈+120°. D-pad L/R triggers single-motor recovery.</div>
                         </div>
                         <div class="pg">
                             <div class="pg-label"><span>Motor 1 Torque V (N)</span><span
                                     id="sideM1TorqueVal"
                                     class="pg-val"
-                                >4.00</span></div>
+                                >5.50</span></div>
                             <input type="range" id="sideM1Torque" class="slider"
-                                min="-9" max="9" step="0.5" value="4" disabled>
+                                min="-9" max="9" step="0.5" value="5.5" disabled>
                         </div>
                         <div class="pg">
                             <div class="pg-label"><span>Motor 1 Duration ms (P)</span><span
                                     id="sideM1MsVal"
                                     class="pg-val"
-                                >1500ms</span></div>
+                                >700ms</span></div>
                             <input type="range" id="sideM1Ms" class="slider"
-                                min="100" max="5000" step="100" value="1500" disabled>
+                                min="100" max="5000" step="100" value="700" disabled>
                         </div>
                         <div class="pg">
                             <div class="pg-label"><span>Motor 2 Torque V (D)</span><span
                                     id="sideM2TorqueVal"
                                     class="pg-val"
-                                >-4.00</span></div>
+                                >5.50</span></div>
                             <input type="range" id="sideM2Torque" class="slider"
-                                min="-9" max="9" step="0.5" value="-4" disabled>
+                                min="-9" max="9" step="0.5" value="5.5" disabled>
                         </div>
                         <div class="pg">
                             <div class="pg-label"><span>Motor 2 Duration ms (Z)</span><span
                                     id="sideM2MsVal"
                                     class="pg-val"
-                                >1500ms</span></div>
+                                >700ms</span></div>
                             <input type="range" id="sideM2Ms" class="slider"
-                                min="100" max="5000" step="100" value="1500" disabled>
+                                min="100" max="5000" step="100" value="700" disabled>
                         </div>
                     </div>
 
@@ -2342,8 +2342,8 @@
                     fallenDir = r > 0 ? 3 : 4;
                     stateName  = r > 0 ? 'FALLEN LEFT' : 'FALLEN RIGHT';
                 } else if (Math.abs(p) > 30) {
-                    fallenDir = p > 0 ? 1 : 2;
-                    stateName  = p > 0 ? 'FALLEN FWD'  : 'FALLEN BWD';
+                    fallenDir = p > 0 ? 2 : 1;
+                    stateName  = p > 0 ? 'FALLEN BWD'  : 'FALLEN FWD';
                 } else {
                     fallenDir = 0;
                 }
@@ -2432,7 +2432,7 @@
 
         function onTelemetry(event) {
             const dv = event.target.value;
-            if (dv.byteLength < 13) return;
+            if (dv.byteLength < 13) return; // accept 13-byte (old fw) or 14-byte (new fw)
             const pitch = dv.getInt16(0, true) / 100;
             const pitchRate = dv.getInt16(2, true) / 10;
             const wheelVel = dv.getInt16(4, true) / 10;
@@ -2456,10 +2456,20 @@
                 updateArmUI();
             }
 
-            // Update state from telemetry flags (bit2-3)
-            const telState = (flags >> 2) & 0x03;
+            // Update roll angle from byte 13 (new fw only, 14-byte packet)
+            if (dv.byteLength >= 14) {
+                lastRollAngle = dv.getInt8(13); // roll_angle clamped ±127°
+                document.getElementById('rollAngleVal').textContent = lastRollAngle.toFixed(0) + '°';
+            }
+
+            // Update state from telemetry flags (bits 4-2 = state 0-7, bit1=armed)
+            const telState = (flags >> 2) & 0x07;
+            const prevFallenDir = fallenDir;
             if (telState !== robotState) {
                 robotState = telState;
+                updateStateUI();
+            } else if (robotState === 0) {
+                // Re-run updateStateUI at 10Hz when FALLEN to keep sub-state name fresh
                 updateStateUI();
             }
 
