@@ -1694,46 +1694,46 @@
                     </div>
 
                     <div class="sec">
-                        <div class="sec-title">Side Recover (fallen sideways → face-down)</div>
+                        <div class="sec-title">Side Recover (sideways → pitch-fall → swing-up)</div>
                         <div class="pg">
                             <div class="pg-label"><span>Roll Angle °</span><span
                                     id="rollAngleVal"
                                     class="pg-val"
                                     style="color:#ffb74d"
                                 >—</span></div>
-                            <div style="font-size:10px;color:#888;padding:2px 0 6px">Tilt robot sideways to verify sign (+/- correct)</div>
+                            <div style="font-size:10px;color:#888;padding:2px 0 4px">Right≈-120° Left≈+120°. Sign flips direction. Disarms when done.</div>
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>Recover Torque V (N)</span><span
-                                    id="sideRecoverTorqueVal"
+                            <div class="pg-label"><span>Motor 1 Torque V (N)</span><span
+                                    id="sideM1TorqueVal"
                                     class="pg-val"
-                                >3.50</span></div>
-                            <input
-                                type="range"
-                                id="sideRecoverTorque"
-                                class="slider"
-                                min="-9"
-                                max="9"
-                                step="0.5"
-                                value="3.5"
-                                disabled
-                            >
+                                >4.00</span></div>
+                            <input type="range" id="sideM1Torque" class="slider"
+                                min="-9" max="9" step="0.5" value="4" disabled>
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>Duration ms (P)</span><span
-                                    id="sideRecoverMsVal"
+                            <div class="pg-label"><span>Motor 1 Duration ms (P)</span><span
+                                    id="sideM1MsVal"
                                     class="pg-val"
-                                >1000ms</span></div>
-                            <input
-                                type="range"
-                                id="sideRecoverMs"
-                                class="slider"
-                                min="100"
-                                max="5000"
-                                step="100"
-                                value="1000"
-                                disabled
-                            >
+                                >1500ms</span></div>
+                            <input type="range" id="sideM1Ms" class="slider"
+                                min="100" max="5000" step="100" value="1500" disabled>
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Motor 2 Torque V (D)</span><span
+                                    id="sideM2TorqueVal"
+                                    class="pg-val"
+                                >-4.00</span></div>
+                            <input type="range" id="sideM2Torque" class="slider"
+                                min="-9" max="9" step="0.5" value="-4" disabled>
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Motor 2 Duration ms (Z)</span><span
+                                    id="sideM2MsVal"
+                                    class="pg-val"
+                                >1500ms</span></div>
+                            <input type="range" id="sideM2Ms" class="slider"
+                                min="100" max="5000" step="100" value="1500" disabled>
                         </div>
                     </div>
 
@@ -2244,8 +2244,10 @@
             swingDownK:          { el: document.getElementById('swingDownK'),          val: document.getElementById('swingDownKVal'),          cmd: 'g', fmt: 2 },
             swingDownNudge:      { el: document.getElementById('swingDownNudge'),      val: document.getElementById('swingDownNudgeVal'),      cmd: 'h', fmt: 2 },
             swingDownEndAngle:   { el: document.getElementById('swingDownEndAngle'),   val: document.getElementById('swingDownEndAngleVal'),   cmd: 'k', fmt: 1, suffix: '°' },
-            sideRecoverTorque:   { el: document.getElementById('sideRecoverTorque'),   val: document.getElementById('sideRecoverTorqueVal'),   cmd: 'N', fmt: 2 },
-            sideRecoverMs:       { el: document.getElementById('sideRecoverMs'),       val: document.getElementById('sideRecoverMsVal'),       cmd: 'P', fmt: 0, suffix: 'ms' }
+            sideM1Torque: { el: document.getElementById('sideM1Torque'), val: document.getElementById('sideM1TorqueVal'), cmd: 'N', fmt: 2 },
+            sideM1Ms:     { el: document.getElementById('sideM1Ms'),     val: document.getElementById('sideM1MsVal'),     cmd: 'P', fmt: 0, suffix: 'ms' },
+            sideM2Torque: { el: document.getElementById('sideM2Torque'), val: document.getElementById('sideM2TorqueVal'), cmd: 'D', fmt: 2 },
+            sideM2Ms:     { el: document.getElementById('sideM2Ms'),     val: document.getElementById('sideM2MsVal'),     cmd: 'Z', fmt: 0, suffix: 'ms' }
         };
 
         if (!navigator.bluetooth) {
@@ -2496,9 +2498,11 @@
             if (data.g !== undefined) { sliders.swingDownK.el.value = data.g; sliders.swingDownK.val.textContent = data.g.toFixed(2); }
             if (data.h !== undefined) { sliders.swingDownNudge.el.value = data.h; sliders.swingDownNudge.val.textContent = data.h.toFixed(2); }
             if (data.k !== undefined) { sliders.swingDownEndAngle.el.value = data.k; sliders.swingDownEndAngle.val.textContent = data.k.toFixed(1) + '°'; }
-            if (data.ra !== undefined) { document.getElementById('rollAngleVal').textContent = data.ra.toFixed(1) + '°'; }
-            if (data.srt !== undefined) { sliders.sideRecoverTorque.el.value = data.srt; sliders.sideRecoverTorque.val.textContent = data.srt.toFixed(2); }
-            if (data.srm !== undefined) { sliders.sideRecoverMs.el.value = data.srm; sliders.sideRecoverMs.val.textContent = data.srm.toFixed(0) + 'ms'; }
+            if (data.ra  !== undefined) { document.getElementById('rollAngleVal').textContent = data.ra.toFixed(1) + '°'; }
+            if (data.m1t !== undefined) { sliders.sideM1Torque.el.value = data.m1t; sliders.sideM1Torque.val.textContent = data.m1t.toFixed(2); }
+            if (data.m1s !== undefined) { sliders.sideM1Ms.el.value     = data.m1s; sliders.sideM1Ms.val.textContent     = data.m1s.toFixed(0) + 'ms'; }
+            if (data.m2t !== undefined) { sliders.sideM2Torque.el.value = data.m2t; sliders.sideM2Torque.val.textContent = data.m2t.toFixed(2); }
+            if (data.m2s !== undefined) { sliders.sideM2Ms.el.value     = data.m2s; sliders.sideM2Ms.val.textContent     = data.m2s.toFixed(0) + 'ms'; }
             if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(2); }
             if (data.p !== undefined) { sliders.movePitchGain.el.value = data.p; sliders.movePitchGain.val.textContent = data.p.toFixed(1); }
             if (data.armed !== undefined) {
