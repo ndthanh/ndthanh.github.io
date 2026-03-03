@@ -806,6 +806,25 @@
         .ctrl-card.state-swingdown { border-color: rgba(0,188,212,0.5); background: rgba(0,188,212,0.1); }
         .ctrl-card.state-swingdown .ctrl-card-val { color: #4dd0e1; }
 
+        /* Side-recover button */
+        .tbtn-sidercvr {
+            background: rgba(255, 152, 0, 0.12);
+            border: 2px solid rgba(255, 152, 0, 0.45);
+            color: #ffb74d;
+            font-size: 9px;
+            padding: 5px 12px;
+            transition: all 0.3s;
+        }
+        .tbtn-sidercvr:disabled { opacity: 0.3; }
+        .tbtn-sidercvr.active {
+            background: rgba(255, 152, 0, 0.28);
+            border-color: rgba(255, 152, 0, 0.9);
+            color: #ffe082;
+            box-shadow: 0 0 12px rgba(255, 152, 0, 0.45);
+            animation: swing-pulse 0.8s ease-in-out infinite;
+        }
+        .ctrl-card.state-siderecover { border-color: rgba(255,152,0,0.5); background: rgba(255,152,0,0.1); }
+        .ctrl-card.state-siderecover .ctrl-card-val { color: #ffb74d; }
 
         @keyframes swing-pulse {
 
@@ -1675,6 +1694,50 @@
                     </div>
 
                     <div class="sec">
+                        <div class="sec-title">Side Recover (fallen sideways → face-down)</div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Roll Angle °</span><span
+                                    id="rollAngleVal"
+                                    class="pg-val"
+                                    style="color:#ffb74d"
+                                >—</span></div>
+                            <div style="font-size:10px;color:#888;padding:2px 0 6px">Tilt robot sideways to verify sign (+/- correct)</div>
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Recover Torque V (N)</span><span
+                                    id="sideRecoverTorqueVal"
+                                    class="pg-val"
+                                >3.50</span></div>
+                            <input
+                                type="range"
+                                id="sideRecoverTorque"
+                                class="slider"
+                                min="-9"
+                                max="9"
+                                step="0.5"
+                                value="3.5"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Duration ms (P)</span><span
+                                    id="sideRecoverMsVal"
+                                    class="pg-val"
+                                >1000ms</span></div>
+                            <input
+                                type="range"
+                                id="sideRecoverMs"
+                                class="slider"
+                                min="100"
+                                max="5000"
+                                step="100"
+                                value="1000"
+                                disabled
+                            >
+                        </div>
+                    </div>
+
+                    <div class="sec">
                         <div class="sec-title">Swing-Up (Gravity PD)</div>
                         <div class="pg">
                             <div class="pg-label"><span>K_swing</span><span
@@ -1895,6 +1958,7 @@
                     <button id="swingBtn" class="tbtn tbtn-swing ctrl-big-btn" disabled>SWING UP</button>
                     <button id="standUpBtn" class="tbtn ctrl-big-btn" style="background:rgba(156,39,176,0.15);color:#ce93d8;border:1px solid rgba(156,39,176,0.4);" disabled>STAND UP</button>
                     <button id="swingDownBtn" class="tbtn tbtn-swingdown ctrl-big-btn" disabled>SWING DOWN</button>
+                    <button id="sideRcvrBtn" class="tbtn tbtn-sidercvr ctrl-big-btn" disabled>SIDE RCVR</button>
                     <button id="zeroBtn" class="tbtn tbtn-zero ctrl-big-btn" disabled>Zero</button>
                 </div>
 
@@ -2135,6 +2199,7 @@
         const swingBtn = document.getElementById('swingBtn');
         const standUpBtn = document.getElementById('standUpBtn');
         const swingDownBtn = document.getElementById('swingDownBtn');
+        const sideRcvrBtn  = document.getElementById('sideRcvrBtn');
         const zeroBtn = document.getElementById('zeroBtn');
         // Controller tab status cards
         const ctrlConnCard = document.getElementById('ctrlConnCard');
@@ -2176,9 +2241,11 @@
             crawlMaxTorque: { el: document.getElementById('crawlMaxTorque'), val: document.getElementById('crawlMaxTorqueVal'), cmd: 'o', fmt: 2 },
             standUpTorque:  { el: document.getElementById('standUpTorque'),  val: document.getElementById('standUpTorqueVal'),  cmd: 'e', fmt: 2 },
             standUpMs:      { el: document.getElementById('standUpMs'),      val: document.getElementById('standUpMsVal'),      cmd: 'n', fmt: 0, suffix: 'ms' },
-            swingDownK:        { el: document.getElementById('swingDownK'),        val: document.getElementById('swingDownKVal'),        cmd: 'g', fmt: 2 },
-            swingDownNudge:    { el: document.getElementById('swingDownNudge'),    val: document.getElementById('swingDownNudgeVal'),    cmd: 'h', fmt: 2 },
-            swingDownEndAngle: { el: document.getElementById('swingDownEndAngle'), val: document.getElementById('swingDownEndAngleVal'), cmd: 'k', fmt: 1, suffix: '°' }
+            swingDownK:          { el: document.getElementById('swingDownK'),          val: document.getElementById('swingDownKVal'),          cmd: 'g', fmt: 2 },
+            swingDownNudge:      { el: document.getElementById('swingDownNudge'),      val: document.getElementById('swingDownNudgeVal'),      cmd: 'h', fmt: 2 },
+            swingDownEndAngle:   { el: document.getElementById('swingDownEndAngle'),   val: document.getElementById('swingDownEndAngleVal'),   cmd: 'k', fmt: 1, suffix: '°' },
+            sideRecoverTorque:   { el: document.getElementById('sideRecoverTorque'),   val: document.getElementById('sideRecoverTorqueVal'),   cmd: 'N', fmt: 2 },
+            sideRecoverMs:       { el: document.getElementById('sideRecoverMs'),       val: document.getElementById('sideRecoverMsVal'),       cmd: 'P', fmt: 0, suffix: 'ms' }
         };
 
         if (!navigator.bluetooth) {
@@ -2229,6 +2296,7 @@
             swingBtn.disabled = !enabled;
             standUpBtn.disabled = !enabled;
             swingDownBtn.disabled = !enabled;
+            sideRcvrBtn.disabled  = !enabled;
             btnFwd.disabled = !enabled;
             btnBack.disabled = !enabled;
             btnLeft.disabled = !enabled;
@@ -2246,14 +2314,15 @@
             ctrlArmCard.classList.toggle('armed', isArmed);
         }
 
-        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'STAND UP', 'SWING DOWN'];
-        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-swing', 'state-swingdown'];
+        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'STAND UP', 'SWING DOWN', 'SIDE RCVR'];
+        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-swing', 'state-swingdown', 'state-siderecover'];
 
         function updateStateUI() {
             const s = Math.min(robotState, STATE_NAMES.length - 1);
             swingBtn.classList.toggle('active', robotState === 1);
             standUpBtn.classList.toggle('active', robotState === 3);
             swingDownBtn.classList.toggle('active', robotState === 4);
+            sideRcvrBtn.classList.toggle('active', robotState === 5);
             ctrlStateVal.textContent = STATE_NAMES[s] || String(robotState);
             ctrlStateCard.className = 'ctrl-card ' + (STATE_CSS[s] || '');
         }
@@ -2427,6 +2496,9 @@
             if (data.g !== undefined) { sliders.swingDownK.el.value = data.g; sliders.swingDownK.val.textContent = data.g.toFixed(2); }
             if (data.h !== undefined) { sliders.swingDownNudge.el.value = data.h; sliders.swingDownNudge.val.textContent = data.h.toFixed(2); }
             if (data.k !== undefined) { sliders.swingDownEndAngle.el.value = data.k; sliders.swingDownEndAngle.val.textContent = data.k.toFixed(1) + '°'; }
+            if (data.ra !== undefined) { document.getElementById('rollAngleVal').textContent = data.ra.toFixed(1) + '°'; }
+            if (data.srt !== undefined) { sliders.sideRecoverTorque.el.value = data.srt; sliders.sideRecoverTorque.val.textContent = data.srt.toFixed(2); }
+            if (data.srm !== undefined) { sliders.sideRecoverMs.el.value = data.srm; sliders.sideRecoverMs.val.textContent = data.srm.toFixed(0) + 'ms'; }
             if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(2); }
             if (data.p !== undefined) { sliders.movePitchGain.el.value = data.p; sliders.movePitchGain.val.textContent = data.p.toFixed(1); }
             if (data.armed !== undefined) {
@@ -2522,6 +2594,10 @@
 
         swingDownBtn.addEventListener('click', async () => {
             await sendCmd('F0');
+        });
+
+        sideRcvrBtn.addEventListener('click', async () => {
+            await sendCmd('R0');
         });
 
         // Zero button
