@@ -786,23 +786,6 @@
             animation: swing-pulse 0.8s ease-in-out infinite;
         }
 
-        /* Swing-down button */
-        .tbtn-swingdown {
-            background: rgba(0, 188, 212, 0.12);
-            border: 2px solid rgba(0, 188, 212, 0.45);
-            color: #4dd0e1;
-            font-size: 9px;
-            padding: 5px 12px;
-            transition: all 0.3s;
-        }
-        .tbtn-swingdown:disabled { opacity: 0.3; }
-        .tbtn-swingdown.active {
-            background: rgba(0, 188, 212, 0.28);
-            border-color: rgba(0, 188, 212, 0.9);
-            color: #80deea;
-            box-shadow: 0 0 12px rgba(0, 188, 212, 0.45);
-            animation: swing-pulse 0.8s ease-in-out infinite;
-        }
         .ctrl-card.state-swingdown { border-color: rgba(0,188,212,0.5); background: rgba(0,188,212,0.1); }
         .ctrl-card.state-swingdown .ctrl-card-val { color: #4dd0e1; }
 
@@ -1664,58 +1647,6 @@
                     </div>
 
                     <div class="sec">
-                        <div class="sec-title">Swing Down (Balance → controlled descent)</div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Damping Gain k (g)</span><span
-                                    id="swingDownKVal"
-                                    class="pg-val"
-                                >3.00</span></div>
-                            <input
-                                type="range"
-                                id="swingDownK"
-                                class="slider"
-                                min="0"
-                                max="15"
-                                step="0.1"
-                                value="3.0"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Nudge Torque V (h)</span><span
-                                    id="swingDownNudgeVal"
-                                    class="pg-val"
-                                >1.50</span></div>
-                            <input
-                                type="range"
-                                id="swingDownNudge"
-                                class="slider"
-                                min="0"
-                                max="5"
-                                step="0.1"
-                                value="1.5"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Cut Angle ° (k)</span><span
-                                    id="swingDownEndAngleVal"
-                                    class="pg-val"
-                                >65.0°</span></div>
-                            <input
-                                type="range"
-                                id="swingDownEndAngle"
-                                class="slider"
-                                min="50"
-                                max="85"
-                                step="1"
-                                value="65"
-                                disabled
-                            >
-                        </div>
-                    </div>
-
-                    <div class="sec">
                         <div class="sec-title">Side Recover (sideways → pitch-fall → swing-up)</div>
                         <div class="pg">
                             <div class="pg-label"><span>Roll Angle °</span><span
@@ -1979,7 +1910,6 @@
                     <button id="armBtn" class="tbtn tbtn-arm ctrl-big-btn" disabled>DISARMED</button>
                     <button id="swingBtn" class="tbtn tbtn-swing ctrl-big-btn" disabled>SWING UP</button>
                     <button id="standUpBtn" class="tbtn ctrl-big-btn" style="background:rgba(156,39,176,0.15);color:#ce93d8;border:1px solid rgba(156,39,176,0.4);" disabled>STAND UP</button>
-                    <button id="swingDownBtn" class="tbtn tbtn-swingdown ctrl-big-btn" disabled>SWING DOWN</button>
                     <button id="sideRcvrBtn" class="tbtn tbtn-sidercvr ctrl-big-btn" disabled>SIDE RCVR</button>
                     <button id="zeroBtn" class="tbtn tbtn-zero ctrl-big-btn" disabled>Zero</button>
                 </div>
@@ -2220,7 +2150,6 @@
         const armBtn = document.getElementById('armBtn');
         const swingBtn = document.getElementById('swingBtn');
         const standUpBtn = document.getElementById('standUpBtn');
-        const swingDownBtn = document.getElementById('swingDownBtn');
         const sideRcvrBtn  = document.getElementById('sideRcvrBtn');
         const zeroBtn = document.getElementById('zeroBtn');
         // Controller tab status cards
@@ -2263,9 +2192,6 @@
             crawlMaxTorque: { el: document.getElementById('crawlMaxTorque'), val: document.getElementById('crawlMaxTorqueVal'), cmd: 'o', fmt: 2 },
             standUpTorque:  { el: document.getElementById('standUpTorque'),  val: document.getElementById('standUpTorqueVal'),  cmd: 'e', fmt: 2 },
             standUpMs:      { el: document.getElementById('standUpMs'),      val: document.getElementById('standUpMsVal'),      cmd: 'n', fmt: 0, suffix: 'ms' },
-            swingDownK:          { el: document.getElementById('swingDownK'),          val: document.getElementById('swingDownKVal'),          cmd: 'g', fmt: 2 },
-            swingDownNudge:      { el: document.getElementById('swingDownNudge'),      val: document.getElementById('swingDownNudgeVal'),      cmd: 'h', fmt: 2 },
-            swingDownEndAngle:   { el: document.getElementById('swingDownEndAngle'),   val: document.getElementById('swingDownEndAngleVal'),   cmd: 'k', fmt: 1, suffix: '°' },
             sideM1Torque: { el: document.getElementById('sideM1Torque'), val: document.getElementById('sideM1TorqueVal'), cmd: 'N', fmt: 2 },
             sideM1Ms:     { el: document.getElementById('sideM1Ms'),     val: document.getElementById('sideM1MsVal'),     cmd: 'P', fmt: 0, suffix: 'ms' },
             sideM2Torque: { el: document.getElementById('sideM2Torque'), val: document.getElementById('sideM2TorqueVal'), cmd: 'D', fmt: 2 },
@@ -2319,7 +2245,6 @@
             armBtn.disabled = !enabled;
             swingBtn.disabled = !enabled;
             standUpBtn.disabled = !enabled;
-            swingDownBtn.disabled = !enabled;
             sideRcvrBtn.disabled  = !enabled;
             btnFwd.disabled = !enabled;
             btnBack.disabled = !enabled;
@@ -2338,8 +2263,8 @@
             ctrlArmCard.classList.toggle('armed', isArmed);
         }
 
-        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'STAND UP', 'SWING DOWN', 'SIDE RCVR'];
-        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-swing', 'state-swingdown', 'state-siderecover'];
+        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'STAND UP', 'SIDE RCVR'];
+        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-swing', 'state-siderecover'];
 
         function updateStateUI() {
             const s = Math.min(robotState, STATE_NAMES.length - 1);
@@ -2364,8 +2289,7 @@
 
             swingBtn.classList.toggle('active', robotState === 1);
             standUpBtn.classList.toggle('active', robotState === 3);
-            swingDownBtn.classList.toggle('active', robotState === 4);
-            sideRcvrBtn.classList.toggle('active', robotState === 5);
+            sideRcvrBtn.classList.toggle('active', robotState === 4);
             ctrlStateVal.textContent = stateName;
             ctrlStateCard.className = 'ctrl-card ' + (STATE_CSS[s] || '');
 
@@ -2560,9 +2484,6 @@
             if (data.o !== undefined) { sliders.crawlMaxTorque.el.value = data.o; sliders.crawlMaxTorque.val.textContent = data.o.toFixed(2); }
             if (data.e !== undefined) { sliders.standUpTorque.el.value = data.e; sliders.standUpTorque.val.textContent = data.e.toFixed(2); }
             if (data.n !== undefined) { sliders.standUpMs.el.value = data.n; sliders.standUpMs.val.textContent = data.n.toFixed(0) + 'ms'; }
-            if (data.g !== undefined) { sliders.swingDownK.el.value = data.g; sliders.swingDownK.val.textContent = data.g.toFixed(2); }
-            if (data.h !== undefined) { sliders.swingDownNudge.el.value = data.h; sliders.swingDownNudge.val.textContent = data.h.toFixed(2); }
-            if (data.k !== undefined) { sliders.swingDownEndAngle.el.value = data.k; sliders.swingDownEndAngle.val.textContent = data.k.toFixed(1) + '°'; }
             if (data.ra  !== undefined) { lastRollAngle = data.ra; document.getElementById('rollAngleVal').textContent = data.ra.toFixed(1) + '°'; }
             if (data.m1t !== undefined) { sliders.sideM1Torque.el.value = data.m1t; sliders.sideM1Torque.val.textContent = data.m1t.toFixed(2); }
             if (data.m1s !== undefined) { sliders.sideM1Ms.el.value     = data.m1s; sliders.sideM1Ms.val.textContent     = data.m1s.toFixed(0) + 'ms'; }
@@ -2685,10 +2606,6 @@
 
         standUpBtn.addEventListener('click', async () => {
             await sendCmd('u0');
-        });
-
-        swingDownBtn.addEventListener('click', async () => {
-            await sendCmd('F0');
         });
 
         sideRcvrBtn.addEventListener('click', async () => {
