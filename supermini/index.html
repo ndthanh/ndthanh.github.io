@@ -1647,18 +1647,6 @@
                     </div>
 
                     <div class="sec">
-                        <div class="sec-title">Motor Direction (wiring fix)</div>
-                        <div class="pg" style="align-items:center">
-                            <span style="font-size:11px;color:#aaa;flex:1">Motor 1 (LEFT)</span>
-                            <button id="m1SignBtn" class="tbtn" style="min-width:80px;font-size:11px" disabled>+1 (m)</button>
-                        </div>
-                        <div class="pg" style="align-items:center">
-                            <span style="font-size:11px;color:#aaa;flex:1">Motor 2 (RIGHT)</span>
-                            <button id="m2SignBtn" class="tbtn" style="min-width:80px;font-size:11px" disabled>+1 (w)</button>
-                        </div>
-                    </div>
-
-                    <div class="sec">
                         <div class="sec-title">Side Recover (sideways → pitch-fall → swing-up)</div>
                         <div class="pg">
                             <div class="pg-label"><span>Roll Angle °</span><span
@@ -2258,8 +2246,6 @@
             swingBtn.disabled = !enabled;
             standUpBtn.disabled = !enabled;
             sideRcvrBtn.disabled  = !enabled;
-            document.getElementById('m1SignBtn').disabled = !enabled;
-            document.getElementById('m2SignBtn').disabled = !enabled;
             btnFwd.disabled = !enabled;
             btnBack.disabled = !enabled;
             btnLeft.disabled = !enabled;
@@ -2503,8 +2489,6 @@
             if (data.m1s !== undefined) { sliders.sideM1Ms.el.value     = data.m1s; sliders.sideM1Ms.val.textContent     = data.m1s.toFixed(0) + 'ms'; }
             if (data.m2t !== undefined) { sliders.sideM2Torque.el.value = data.m2t; sliders.sideM2Torque.val.textContent = data.m2t.toFixed(2); }
             if (data.m2s !== undefined) { sliders.sideM2Ms.el.value     = data.m2s; sliders.sideM2Ms.val.textContent     = data.m2s.toFixed(0) + 'ms'; }
-            if (data.ms1 !== undefined) { motor1Sign = data.ms1 >= 0 ? 1 : -1; updateMotorSignUI(); }
-            if (data.ms2 !== undefined) { motor2Sign = data.ms2 >= 0 ? 1 : -1; updateMotorSignUI(); }
             if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(2); }
             if (data.p !== undefined) { sliders.movePitchGain.el.value = data.p; sliders.movePitchGain.val.textContent = data.p.toFixed(1); }
             if (data.armed !== undefined) {
@@ -2626,31 +2610,6 @@
 
         sideRcvrBtn.addEventListener('click', async () => {
             await sendCmd('R0');
-        });
-
-        // Motor direction sign toggles (+1 / -1)
-        const m1SignBtn = document.getElementById('m1SignBtn');
-        const m2SignBtn = document.getElementById('m2SignBtn');
-        let motor1Sign = 1, motor2Sign = 1;
-
-        function updateMotorSignUI() {
-            m1SignBtn.textContent = motor1Sign > 0 ? '+1 (m)' : '-1 (m)';
-            m1SignBtn.style.background = motor1Sign > 0 ? '' : 'rgba(244,67,54,0.2)';
-            m1SignBtn.style.borderColor = motor1Sign > 0 ? '' : 'rgba(244,67,54,0.7)';
-            m2SignBtn.textContent = motor2Sign > 0 ? '+1 (w)' : '-1 (w)';
-            m2SignBtn.style.background = motor2Sign > 0 ? '' : 'rgba(244,67,54,0.2)';
-            m2SignBtn.style.borderColor = motor2Sign > 0 ? '' : 'rgba(244,67,54,0.7)';
-        }
-
-        m1SignBtn.addEventListener('click', async () => {
-            motor1Sign = motor1Sign > 0 ? -1 : 1;
-            updateMotorSignUI();
-            await sendCmd('m' + motor1Sign);
-        });
-        m2SignBtn.addEventListener('click', async () => {
-            motor2Sign = motor2Sign > 0 ? -1 : 1;
-            updateMotorSignUI();
-            await sendCmd('w' + motor2Sign);
         });
 
         // Zero button
