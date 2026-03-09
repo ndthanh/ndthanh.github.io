@@ -1,0 +1,3659 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <title>BalanceBot LQR Tuner</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: #0a0e27;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 12px;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at top, rgba(13, 110, 253, 0.15), transparent 50%),
+                radial-gradient(ellipse at bottom, rgba(220, 53, 69, 0.15), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            background: rgba(15, 20, 40, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 16px 20px;
+            max-width: 1100px;
+            width: 100%;
+            height: calc(100vh - 24px);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== TOOLBAR ===== */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .toolbar-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #0d6efd, #6610f2, #d63384);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .tab-btn {
+            padding: 4px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 5px;
+            background: transparent;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: rgba(13, 110, 253, 0.2);
+            border-color: rgba(13, 110, 253, 0.5);
+            color: #0d6efd;
+        }
+
+        .tab-btn:hover:not(.active) {
+            border-color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .hw-leds {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 6px 0 4px;
+        }
+        .hw-led-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .hw-led {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #333;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .hw-led.ok   { background: #51cf66; box-shadow: 0 0 6px #51cf66aa; }
+        .hw-led.fail { background: #ff6b6b; box-shadow: 0 0 6px #ff6b6baa; }
+        .hw-led-label { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 0.3px; }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-badge {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            color: #dc3545;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .status-badge.connected {
+            background: rgba(25, 135, 84, 0.2);
+            border-color: rgba(25, 135, 84, 0.6);
+            color: #198754;
+            box-shadow: 0 0 10px rgba(25, 135, 84, 0.3);
+        }
+
+        .tbtn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tbtn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .tbtn-connect {
+            background: linear-gradient(135deg, #0d6efd, #6610f2);
+            color: white;
+        }
+
+        .tbtn-zero {
+            background: linear-gradient(135deg, #198754, #20c997);
+            color: white;
+        }
+
+        /* ARM button */
+        .tbtn-arm {
+            background: rgba(220, 53, 69, 0.2);
+            border: 2px solid rgba(220, 53, 69, 0.6);
+            color: #dc3545;
+            font-size: 10px;
+            padding: 5px 14px;
+            transition: all 0.3s;
+        }
+
+        .tbtn-arm.armed {
+            background: rgba(25, 135, 84, 0.3);
+            border-color: rgba(25, 135, 84, 0.8);
+            color: #20c997;
+            box-shadow: 0 0 12px rgba(25, 135, 84, 0.4);
+        }
+
+        .toolbar-sep {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.15);
+            flex-shrink: 0;
+        }
+
+        /* Movement D-pad */
+        .move-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 28px);
+            grid-template-rows: repeat(3, 28px);
+            gap: 3px;
+            flex-shrink: 0;
+        }
+
+        .move-pad .mbtn {
+            border: none;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            padding: 0;
+        }
+
+        .move-pad .mbtn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .move-pad .mbtn.dir {
+            background: rgba(13, 110, 253, 0.2);
+            border: 1px solid rgba(13, 110, 253, 0.4);
+            color: #0d6efd;
+        }
+
+        .move-pad .mbtn.dir:active:not(:disabled),
+        .move-pad .mbtn.dir.active {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .move-pad .mbtn.stp {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.4);
+            color: #dc3545;
+            font-size: 10px;
+        }
+
+        .move-pad .empty {
+            background: transparent;
+            border: none;
+        }
+
+        .toolbar-spacer {
+            flex: 1;
+        }
+
+        .tuner-toolbar {
+            display: contents;
+        }
+
+        .tuner-toolbar.hidden {
+            display: none;
+        }
+
+        .error {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            color: #dc3545;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 11px;
+            display: none;
+            flex-shrink: 0;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .zero-info {
+            background: rgba(25, 135, 84, 0.15);
+            border: 1px solid rgba(25, 135, 84, 0.4);
+            color: #20c997;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        /* ===== MAIN LAYOUT ===== */
+        .main {
+            display: flex;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .col-left {
+            width: 280px;
+            flex-shrink: 0;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .col-left::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .col-left::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+
+        .col-right {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== SLIDER SECTIONS ===== */
+        .sec-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            color: #0d6efd;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(13, 110, 253, 0.25);
+        }
+
+        .sec {
+            margin-bottom: 12px;
+        }
+
+        .pg {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 6px 8px;
+            margin-bottom: 4px;
+        }
+
+        .pg-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .pg-val {
+            font-family: 'Orbitron', sans-serif;
+            color: #0d6efd;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .slider {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d6efd, #6610f2);
+            cursor: pointer;
+        }
+
+        .slider:disabled {
+            opacity: 0.3;
+        }
+
+        /* ===== CHARTS ===== */
+        .charts-stack {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-height: 0;
+        }
+
+        .mini-chart {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 4px 8px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            min-height: 0;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .mini-chart.saturated {
+            border-color: rgba(220, 53, 69, 0.7);
+            box-shadow: 0 0 10px rgba(220, 53, 69, 0.3);
+        }
+
+        .mini-chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .mini-chart-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .mini-chart-val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .mini-chart-canvas {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+
+        .chart-dt {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 1px;
+            margin-left: 8px;
+        }
+
+        .sat-badge {
+            display: none;
+            position: absolute;
+            top: 4px;
+            left: 8px;
+            background: rgba(220, 53, 69, 0.8);
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 3px;
+            letter-spacing: 1px;
+        }
+
+        .mini-chart.saturated .sat-badge {
+            display: block;
+        }
+
+        /* ===== OTA TAB ===== */
+        .ota-panel {
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .ota-file-drop {
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 32px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 16px;
+        }
+
+        .ota-file-drop:hover,
+        .ota-file-drop.dragover {
+            border-color: rgba(13, 110, 253, 0.5);
+            background: rgba(13, 110, 253, 0.05);
+        }
+
+        .ota-file-drop.has-file {
+            border-color: rgba(25, 135, 84, 0.5);
+            background: rgba(25, 135, 84, 0.05);
+        }
+
+        .ota-file-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        .ota-file-text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .ota-file-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            color: #20c997;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .ota-progress {
+            margin-bottom: 16px;
+        }
+
+        .ota-progress-bg {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .ota-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #0d6efd, #20c997);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .ota-progress-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .ota-upload-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #198754, #20c997);
+            color: white;
+            font-size: 11px;
+            margin-bottom: 16px;
+        }
+
+        .ota-log {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 10px;
+            max-height: 240px;
+            overflow-y: auto;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .ota-log::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .ota-log::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+
+        .ota-log-entry {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .ota-log-entry.info {
+            color: #4dabf7;
+        }
+
+        .ota-log-entry.success {
+            color: #20c997;
+        }
+
+        .ota-log-entry.error {
+            color: #dc3545;
+        }
+
+        /* ===== PROFILES ===== */
+        .prof-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
+        .prof-bar .tbtn {
+            flex: 1;
+            font-size: 8px;
+            padding: 4px 6px;
+        }
+
+        .prof-save-form {
+            display: none;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 6px;
+        }
+
+        .prof-save-form.show {
+            display: block;
+        }
+
+        .prof-input {
+            width: 100%;
+            padding: 5px 8px;
+            margin-bottom: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #e2e8f0;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .prof-input:focus {
+            border-color: rgba(13, 110, 253, 0.5);
+        }
+
+        .prof-input::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        .prof-save-btns {
+            display: flex;
+            gap: 4px;
+        }
+
+        .prof-save-btns .tbtn {
+            flex: 1;
+            font-size: 8px;
+            padding: 4px 6px;
+        }
+
+        .prof-list {
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+        .prof-list::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .prof-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+
+        .prof-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 6px 8px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .prof-item:hover {
+            border-color: rgba(13, 110, 253, 0.3);
+        }
+
+        .prof-item-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            font-weight: 700;
+            color: #0d6efd;
+            letter-spacing: 0.5px;
+        }
+
+        .prof-item-desc {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 2px;
+            line-height: 1.3;
+        }
+
+        .prof-item-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .prof-item-actions .tbtn {
+            font-size: 7px;
+            padding: 2px 8px;
+        }
+
+        .prof-item.loading {
+            border-color: rgba(25, 135, 84, 0.5);
+            background: rgba(25, 135, 84, 0.05);
+        }
+
+        .prof-empty {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.25);
+            text-align: center;
+            padding: 8px;
+        }
+
+        .prof-active {
+            background: rgba(13, 110, 253, 0.1);
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            border-radius: 6px;
+            padding: 5px 8px;
+            margin-bottom: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            color: #0d6efd;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .prof-loaded-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(25, 135, 84, 0.9);
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 8px 20px;
+            border-radius: 8px;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .prof-loaded-toast.show {
+            opacity: 1;
+        }
+
+        /* Swing-up button */
+        .tbtn-swing {
+            background: rgba(255, 193, 7, 0.15);
+            border: 2px solid rgba(255, 193, 7, 0.5);
+            color: #ffc107;
+            font-size: 9px;
+            padding: 5px 12px;
+            transition: all 0.3s;
+        }
+
+        .tbtn-swing:disabled {
+            opacity: 0.3;
+        }
+
+        .tbtn-swing.active {
+            background: rgba(255, 193, 7, 0.3);
+            border-color: rgba(255, 193, 7, 0.8);
+            color: #ffda6a;
+            box-shadow: 0 0 12px rgba(255, 193, 7, 0.4);
+            animation: swing-pulse 0.8s ease-in-out infinite;
+        }
+
+        .ctrl-card.state-swingdown { border-color: rgba(0,188,212,0.5); background: rgba(0,188,212,0.1); }
+        .ctrl-card.state-swingdown .ctrl-card-val { color: #4dd0e1; }
+
+        /* Side-recover button */
+        .tbtn-sidercvr {
+            background: rgba(255, 152, 0, 0.12);
+            border: 2px solid rgba(255, 152, 0, 0.45);
+            color: #ffb74d;
+            font-size: 9px;
+            padding: 5px 12px;
+            transition: all 0.3s;
+        }
+        .tbtn-sidercvr:disabled { opacity: 0.3; }
+        .tbtn-sidercvr.active {
+            background: rgba(255, 152, 0, 0.28);
+            border-color: rgba(255, 152, 0, 0.9);
+            color: #ffe082;
+            box-shadow: 0 0 12px rgba(255, 152, 0, 0.45);
+            animation: swing-pulse 0.8s ease-in-out infinite;
+        }
+        .ctrl-card.state-siderecover { border-color: rgba(255,152,0,0.5); background: rgba(255,152,0,0.1); }
+        .ctrl-card.state-siderecover .ctrl-card-val { color: #ffb74d; }
+
+        @keyframes swing-pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 12px rgba(255, 193, 7, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 20px rgba(255, 193, 7, 0.7);
+            }
+        }
+
+        .state-badge {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.4);
+            white-space: nowrap;
+        }
+
+        .state-badge.fallen {
+            background: rgba(108, 117, 125, 0.2);
+            border-color: rgba(108, 117, 125, 0.5);
+            color: #adb5bd;
+        }
+
+        .state-badge.swing {
+            background: rgba(255, 193, 7, 0.2);
+            border-color: rgba(255, 193, 7, 0.5);
+            color: #ffc107;
+        }
+
+        .state-badge.balancing {
+            background: rgba(25, 135, 84, 0.2);
+            border-color: rgba(25, 135, 84, 0.5);
+            color: #20c997;
+        }
+
+        .state-badge.swingdown {
+            background: rgba(156, 39, 176, 0.2);
+            border-color: rgba(156, 39, 176, 0.5);
+            color: #ce93d8;
+        }
+
+
+        /* ===== CONTROLLER TAB ===== */
+        .ctrl-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            padding: 24px 16px;
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .ctrl-status {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .ctrl-card {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px 8px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .ctrl-card-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .ctrl-card-val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .ctrl-card.online { border-color: rgba(25, 135, 84, 0.5); background: rgba(25, 135, 84, 0.1); }
+        .ctrl-card.online .ctrl-card-val { color: #20c997; }
+        .ctrl-card.armed { border-color: rgba(25, 135, 84, 0.5); background: rgba(25, 135, 84, 0.1); }
+        .ctrl-card.armed .ctrl-card-val { color: #20c997; }
+        .ctrl-card.state-swing { border-color: rgba(255, 193, 7, 0.5); background: rgba(255, 193, 7, 0.1); }
+        .ctrl-card.state-swing .ctrl-card-val { color: #ffc107; }
+        .ctrl-card.state-balance { border-color: rgba(13, 110, 253, 0.5); background: rgba(13, 110, 253, 0.1); }
+        .ctrl-card.state-balance .ctrl-card-val { color: #4dabf7; }
+
+        .ctrl-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .ctrl-big-btn {
+            padding: 12px 8px !important;
+            font-size: 10px !important;
+            border-radius: 8px !important;
+        }
+
+        .ctrl-dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            grid-template-rows: repeat(3, 80px);
+            gap: 8px;
+        }
+
+        .ctrl-dpad .mbtn { font-size: 26px; border-radius: 12px; }
+        .ctrl-dpad .mbtn.stp { font-size: 20px; }
+
+        /* D-pad hint: pulsing highlight for suggested action based on fall direction */
+        @keyframes dpad-hint-pulse {
+            0%, 100% { box-shadow: 0 0 4px rgba(255,152,0,0.3); }
+            50%       { box-shadow: 0 0 16px rgba(255,152,0,0.9); }
+        }
+        .mbtn.dpad-hint {
+            border-color: rgba(255,152,0,0.85) !important;
+            color: #ffa726 !important;
+            animation: dpad-hint-pulse 1s ease-in-out infinite;
+        }
+
+        /* State card: stale telemetry indicator */
+        .ctrl-card.state-stale {
+            border-color: rgba(255,152,0,0.5) !important;
+            opacity: 0.75;
+        }
+        .ctrl-card.state-stale .ctrl-val::after {
+            content: ' ?';
+            color: rgba(255,152,0,0.8);
+            font-size: 0.75em;
+        }
+
+        /* ===== JOYSTICK ===== */
+        .ctrl-mode-toggle {
+            display: flex; gap: 0; border-radius: 8px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.15); margin-bottom: 12px;
+            align-self: center;
+        }
+        .ctrl-mode-toggle button {
+            flex: 1; padding: 6px 18px; font-size: 11px; font-weight: 600;
+            background: transparent; color: rgba(255,255,255,0.45);
+            border: none; cursor: pointer; letter-spacing: 0.5px;
+            transition: background 0.15s, color 0.15s;
+        }
+        .ctrl-mode-toggle button.active {
+            background: rgba(79,195,247,0.18); color: #4fc3f7;
+        }
+        .joystick-wrap {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        #joystickCanvas {
+            border-radius: 50%; cursor: grab; touch-action: none;
+            display: block;
+        }
+        #joystickCanvas:active { cursor: grabbing; }
+        .joystick-xy {
+            font-size: 10px; color: rgba(255,255,255,0.4);
+            font-family: monospace; letter-spacing: 0.5px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            body {
+                height: auto;
+                overflow: auto;
+            }
+
+            .container {
+                height: auto;
+            }
+
+            .toolbar {
+                flex-wrap: wrap;
+            }
+
+            .main {
+                flex-direction: column;
+            }
+
+            .col-left {
+                width: 100%;
+                overflow-y: visible;
+            }
+
+            .mini-chart-canvas {
+                min-height: 80px;
+            }
+
+            .toolbar {
+                gap: 8px;
+            }
+
+            .toolbar-sep {
+                display: none;
+            }
+
+            .move-pad {
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(3, 52px);
+                gap: 6px;
+                width: 100%;
+                order: 99;
+            }
+
+            .move-pad .mbtn {
+                font-size: 22px;
+                border-radius: 10px;
+            }
+
+            .move-pad .mbtn.stp {
+                font-size: 16px;
+            }
+        }
+
+        /* ===== MACRO TAB ===== */
+        .macro-panel {
+            max-width: 640px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 100%;
+        }
+
+        .macro-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        .tbtn-record {
+            background: rgba(220, 53, 69, 0.2);
+            border: 2px solid rgba(220, 53, 69, 0.5);
+            color: #dc3545;
+        }
+
+        .tbtn-record.active {
+            background: rgba(220, 53, 69, 0.4);
+            border-color: #dc3545;
+            animation: rec-pulse 1s ease-in-out infinite;
+        }
+
+        .tbtn-play {
+            background: rgba(25, 135, 84, 0.2);
+            border: 2px solid rgba(25, 135, 84, 0.5);
+            color: #20c997;
+        }
+
+        .tbtn-play.active {
+            background: rgba(25, 135, 84, 0.4);
+            border-color: #20c997;
+        }
+
+        @keyframes rec-pulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(220, 53, 69, 0.4); }
+            50%       { box-shadow: 0 0 18px rgba(220, 53, 69, 0.8); }
+        }
+
+        .macro-loop-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+        }
+
+        .macro-status {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.4);
+            flex-shrink: 0;
+        }
+
+        .macro-step-list {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .macro-step-list::-webkit-scrollbar { width: 3px; }
+        .macro-step-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+
+        .macro-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 5px 10px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .macro-step.playing {
+            border-color: rgba(25, 135, 84, 0.6);
+            background: rgba(25, 135, 84, 0.1);
+        }
+
+        .macro-step-num {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            color: rgba(255,255,255,0.2);
+            width: 18px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .macro-step-icon {
+            font-size: 15px;
+            width: 22px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .macro-step-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            width: 65px;
+            flex-shrink: 0;
+        }
+
+        .macro-step-dur {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 4px;
+            color: #0d6efd;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            width: 68px;
+            text-align: right;
+            outline: none;
+        }
+
+        .macro-step-dur:focus { border-color: rgba(13,110,253,0.5); }
+
+        .macro-step-ms {
+            font-size: 9px;
+            color: rgba(255,255,255,0.25);
+            flex-shrink: 0;
+        }
+
+        .macro-step-del {
+            margin-left: auto;
+            background: transparent;
+            border: none;
+            color: rgba(220,53,69,0.4);
+            cursor: pointer;
+            font-size: 13px;
+            padding: 0 2px;
+            transition: color 0.2s;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        .macro-step-del:hover { color: #dc3545; }
+
+        .macro-empty {
+            text-align: center;
+            color: rgba(255,255,255,0.18);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            letter-spacing: 1px;
+            padding: 28px;
+        }
+
+        .macro-save-area {
+            border-top: 1px solid rgba(255,255,255,0.08);
+            padding-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .macro-save-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .macro-save-input {
+            flex: 1;
+            padding: 5px 8px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            background: rgba(0,0,0,0.3);
+            color: #e2e8f0;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .macro-save-input:focus { border-color: rgba(13,110,253,0.5); }
+        .macro-save-input::placeholder { color: rgba(255,255,255,0.2); }
+
+        .macro-saved-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            max-height: 72px;
+            overflow-y: auto;
+        }
+
+        .macro-saved-item {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px;
+            padding: 3px 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: border-color 0.2s;
+        }
+
+        .macro-saved-item:hover { border-color: rgba(13,110,253,0.4); }
+
+        .macro-saved-item-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            color: #4dabf7;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+        }
+
+        .macro-saved-item-del {
+            background: none;
+            border: none;
+            color: rgba(220,53,69,0.4);
+            cursor: pointer;
+            font-size: 10px;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .macro-saved-item-del:hover { color: #dc3545; }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:1px">
+                <span class="toolbar-title">LQR Tuner <span style="font-size:10px;opacity:0.45;font-weight:400">+ crawl</span></span>
+                <div id="fwChip" style="display:none;font-size:8px;color:rgba(255,255,255,0.35);letter-spacing:0.5px;white-space:nowrap;padding-left:2px"></div>
+            </div>
+            <button class="tab-btn active" data-tab="tuner">Tuner</button>
+            <button class="tab-btn" data-tab="controller">Controller</button>
+            <button class="tab-btn" data-tab="ota">OTA</button>
+            <button class="tab-btn" data-tab="macro">Macro</button>
+            <button class="tab-btn" data-tab="log">Log</button>
+            <div id="statusBadge" class="status-badge"><span id="statusText">OFFLINE</span></div>
+            <button id="connectBtn" class="tbtn tbtn-connect">Connect</button>
+        </div>
+
+        <div
+            id="error"
+            class="error"
+        ></div>
+        <div
+            id="zeroInfo"
+            class="zero-info"
+            style="display:none"
+        ></div>
+
+        <!-- TAB: TUNER -->
+        <div
+            id="tabTuner"
+            class="tab-content active"
+        >
+            <div class="main">
+                <div class="col-left">
+                    <div
+                        id="profActive"
+                        class="prof-active"
+                        style="display:none"
+                    ></div>
+                    <div class="sec">
+                        <div class="sec-title">LQR Gains</div>
+                        <div class="pg">
+                            <div class="pg-label"><span>K1 (Angle)</span><span
+                                    id="k1Val"
+                                    class="pg-val"
+                                >0.44</span></div>
+                            <input
+                                type="range"
+                                id="k1"
+                                class="slider"
+                                min="0"
+                                max="3"
+                                step="0.01"
+                                value="0.44"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>K2 (Rate)</span><span
+                                    id="k2Val"
+                                    class="pg-val"
+                                >0.036</span></div>
+                            <input
+                                type="range"
+                                id="k2"
+                                class="slider"
+                                min="0"
+                                max="0.3"
+                                step="0.001"
+                                value="0.036"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>K3 (Velocity)</span><span
+                                    id="k3Val"
+                                    class="pg-val"
+                                >0.50</span></div>
+                            <input
+                                type="range"
+                                id="k3"
+                                class="slider"
+                                min="0"
+                                max="3"
+                                step="0.01"
+                                value="0.50"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>K4 (Position)</span><span
+                                    id="k4Val"
+                                    class="pg-val"
+                                >1.00</span></div>
+                            <input
+                                type="range"
+                                id="k4"
+                                class="slider"
+                                min="0"
+                                max="5"
+                                step="0.01"
+                                value="1.00"
+                                disabled
+                            >
+                        </div>
+                    </div>
+
+                    <div class="sec">
+                        <div class="sec-title">System</div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Max Torque (V)</span><span
+                                    id="maxTorqueVal"
+                                    class="pg-val"
+                                >3.0</span></div>
+                            <input
+                                type="range"
+                                id="maxTorque"
+                                class="slider"
+                                min="0.5"
+                                max="8"
+                                step="0.1"
+                                value="3.0"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Slew (V/s)</span><span
+                                    id="slewVal"
+                                    class="pg-val"
+                                >500</span></div>
+                            <input
+                                type="range"
+                                id="slew"
+                                class="slider"
+                                min="10"
+                                max="2000"
+                                step="10"
+                                value="500"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Steer Kp (G)</span><span
+                                    id="steerGainVal"
+                                    class="pg-val"
+                                >0.15</span></div>
+                            <input
+                                type="range"
+                                id="steerGain"
+                                class="slider"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value="0.15"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Steer Ki (I)</span><span
+                                    id="steerKiVal"
+                                    class="pg-val"
+                                >0.020</span></div>
+                            <input
+                                type="range"
+                                id="steerKi"
+                                class="slider"
+                                min="0"
+                                max="0.5"
+                                step="0.005"
+                                value="0.02"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Steer Scale (X)</span><span
+                                    id="steerScaleVal"
+                                    class="pg-val"
+                                >5.0</span></div>
+                            <input
+                                type="range"
+                                id="steerScale"
+                                class="slider"
+                                min="0"
+                                max="20"
+                                step="0.5"
+                                value="5"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Steer LPF τ (Q)</span><span
+                                    id="steerLpfVal"
+                                    class="pg-val"
+                                >0.40</span></div>
+                            <input
+                                type="range"
+                                id="steerLpf"
+                                class="slider"
+                                min="0"
+                                max="1"
+                                step="0.02"
+                                value="0.4"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Steer Max Torque (v)</span><span
+                                    id="steerMaxTorqueVal"
+                                    class="pg-val"
+                                >5.0</span></div>
+                            <input
+                                type="range"
+                                id="steerMaxTorque"
+                                class="slider"
+                                min="0"
+                                max="9"
+                                step="0.1"
+                                value="5"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Move Speed</span><span
+                                    id="moveSpeedVal"
+                                    class="pg-val"
+                                >500.0</span></div>
+                            <input
+                                type="range"
+                                id="moveSpeed"
+                                class="slider"
+                                min="1"
+                                max="500"
+                                step="0.5"
+                                value="500"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Move Pitch Gain (p)</span><span
+                                    id="movePitchGainVal"
+                                    class="pg-val"
+                                >0.0</span></div>
+                            <input
+                                type="range"
+                                id="movePitchGain"
+                                class="slider"
+                                min="0"
+                                max="10"
+                                step="0.1"
+                                value="0"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Ctrl Freq (Hz)</span><span
+                                    id="ctrlFreqVal"
+                                    class="pg-val"
+                                >400</span></div>
+                            <input
+                                type="range"
+                                id="ctrlFreq"
+                                class="slider"
+                                min="50"
+                                max="1000"
+                                step="50"
+                                value="400"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Pitch Offset (°)</span><span
+                                    id="pitchOffsetVal"
+                                    class="pg-val"
+                                >0.00</span></div>
+                            <input
+                                type="range"
+                                id="pitchOffset"
+                                class="slider"
+                                min="-15"
+                                max="15"
+                                step="0.01"
+                                value="0"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label">
+                                <span>IMU Temperature</span>
+                                <span id="imuTempVal" class="pg-val" style="color:#fcc419">--°C</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sec">
+                        <div class="sec-title">Crawl Mode (Fallen)</div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Vel Gain (c)</span><span
+                                    id="crawlVelGainVal"
+                                    class="pg-val"
+                                >0.500</span></div>
+                            <input
+                                type="range"
+                                id="crawlVelGain"
+                                class="slider"
+                                min="0"
+                                max="0.5"
+                                step="0.005"
+                                value="0.5"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Max Torque (o)</span><span
+                                    id="crawlMaxTorqueVal"
+                                    class="pg-val"
+                                >4.00</span></div>
+                            <input
+                                type="range"
+                                id="crawlMaxTorque"
+                                class="slider"
+                                min="0"
+                                max="6"
+                                step="0.1"
+                                value="4.0"
+                                disabled
+                            >
+                        </div>
+                    </div>
+
+                    <div class="sec">
+                        <div class="sec-title">Stand-Up (Fallen → push to upright)</div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Push Torque (e)</span><span
+                                    id="standUpTorqueVal"
+                                    class="pg-val"
+                                >3.50</span></div>
+                            <input
+                                type="range"
+                                id="standUpTorque"
+                                class="slider"
+                                min="0"
+                                max="8"
+                                step="0.1"
+                                value="3.5"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Timeout ms (n)</span><span
+                                    id="standUpMsVal"
+                                    class="pg-val"
+                                >800</span></div>
+                            <input
+                                type="range"
+                                id="standUpMs"
+                                class="slider"
+                                min="100"
+                                max="2000"
+                                step="50"
+                                value="800"
+                                disabled
+                            >
+                        </div>
+                    </div>
+
+                    <div class="sec">
+                        <div class="sec-title">Side Recover (sideways → pitch-fall → swing-up)</div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Roll Angle °</span><span
+                                    id="rollAngleVal"
+                                    class="pg-val"
+                                    style="color:#ffb74d"
+                                >—</span></div>
+                            <div style="font-size:10px;color:#888;padding:2px 0 4px">Right≈-120° Left≈+120°. D-pad L/R triggers single-motor recovery.</div>
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Motor 1 Torque V (N)</span><span
+                                    id="sideM1TorqueVal"
+                                    class="pg-val"
+                                >4.50</span></div>
+                            <input type="range" id="sideM1Torque" class="slider"
+                                min="-9" max="9" step="0.5" value="4.5" disabled>
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Motor 1 Duration ms (P)</span><span
+                                    id="sideM1MsVal"
+                                    class="pg-val"
+                                >500ms</span></div>
+                            <input type="range" id="sideM1Ms" class="slider"
+                                min="100" max="5000" step="100" value="500" disabled>
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Motor 2 Torque V (D)</span><span
+                                    id="sideM2TorqueVal"
+                                    class="pg-val"
+                                >4.50</span></div>
+                            <input type="range" id="sideM2Torque" class="slider"
+                                min="-9" max="9" step="0.5" value="4.5" disabled>
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Motor 2 Duration ms (Z)</span><span
+                                    id="sideM2MsVal"
+                                    class="pg-val"
+                                >500ms</span></div>
+                            <input type="range" id="sideM2Ms" class="slider"
+                                min="100" max="5000" step="100" value="500" disabled>
+                        </div>
+                    </div>
+
+                    <div class="sec">
+                        <div class="sec-title">Swing-Up (Gravity PD)</div>
+                        <div class="pg">
+                            <div class="pg-label"><span>K_swing</span><span
+                                    id="kSwingVal"
+                                    class="pg-val"
+                                >4.50</span></div>
+                            <input
+                                type="range"
+                                id="kSwing"
+                                class="slider"
+                                min="0.5"
+                                max="10"
+                                step="0.25"
+                                value="4.5"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>K_damping</span><span
+                                    id="kDampingVal"
+                                    class="pg-val"
+                                >0.0</span></div>
+                            <input
+                                type="range"
+                                id="kDamping"
+                                class="slider"
+                                min="0"
+                                max="3"
+                                step="0.05"
+                                value="0.0"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Swing Max V</span><span
+                                    id="swingMaxVal"
+                                    class="pg-val"
+                                >5.0</span></div>
+                            <input
+                                type="range"
+                                id="swingMax"
+                                class="slider"
+                                min="2"
+                                max="10"
+                                step="0.5"
+                                value="5.0"
+                                disabled
+                            >
+                        </div>
+                    </div>
+
+                    <div class="sec">
+                        <div class="sec-title">Profiles</div>
+                        <div class="prof-bar">
+                            <button
+                                class="tbtn"
+                                style="background:linear-gradient(135deg,#0d6efd,#6610f2);color:white"
+                                onclick="showSaveForm()"
+                            >Save</button>
+                        </div>
+                        <div
+                            id="profSaveForm"
+                            class="prof-save-form"
+                        >
+                            <input
+                                type="text"
+                                id="profName"
+                                class="prof-input"
+                                placeholder="Profile name"
+                                maxlength="40"
+                            >
+                            <input
+                                type="text"
+                                id="profDesc"
+                                class="prof-input"
+                                placeholder="Description (optional)"
+                                maxlength="100"
+                            >
+                            <div class="prof-save-btns">
+                                <button
+                                    class="tbtn"
+                                    style="background:linear-gradient(135deg,#198754,#20c997);color:white"
+                                    onclick="saveProfile()"
+                                >Confirm</button>
+                                <button
+                                    class="tbtn"
+                                    style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5)"
+                                    onclick="hideSaveForm()"
+                                >Cancel</button>
+                            </div>
+                        </div>
+                        <div
+                            id="profList"
+                            class="prof-list"
+                        ></div>
+                    </div>
+                </div>
+
+                <div class="col-right">
+                    <div class="sec-title" style="display:flex;align-items:center;justify-content:space-between;">
+                        <span>Telemetry <span id="chartDt" class="chart-dt"></span></span>
+                        <div style="display:flex;gap:6px;">
+                            <button class="tbtn" onclick="clearChart()"
+                                style="font-size:8px;padding:3px 8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);">
+                                &#10005; CLEAR
+                            </button>
+                            <button id="telemetryToggle" class="tbtn" disabled
+                                style="font-size:8px;padding:3px 8px;background:rgba(25,135,84,0.2);border:1px solid rgba(25,135,84,0.5);color:#20c997;">
+                                &#9646;&#9646; PAUSE
+                            </button>
+                        </div>
+                    </div>
+                    <div class="charts-stack">
+                        <div
+                            class="mini-chart"
+                            id="chartPitch"
+                        >
+                            <span class="sat-badge">SAT</span>
+                            <div class="mini-chart-header">
+                                <span
+                                    class="mini-chart-label"
+                                    style="color:#4dabf7"
+                                >Pitch</span>
+                                <span
+                                    id="livePitch"
+                                    class="mini-chart-val"
+                                >--</span>
+                            </div>
+                            <div class="mini-chart-canvas"><canvas id="canvasPitch"></canvas></div>
+                        </div>
+                        <div
+                            class="mini-chart"
+                            id="chartTorque"
+                        >
+                            <div class="mini-chart-header">
+                                <span
+                                    class="mini-chart-label"
+                                    style="color:#ff6b6b"
+                                >Torque (V)</span>
+                                <span
+                                    id="liveTorque"
+                                    class="mini-chart-val"
+                                >--</span>
+                            </div>
+                            <div class="mini-chart-canvas"><canvas id="canvasTorque"></canvas></div>
+                        </div>
+                        <div
+                            class="mini-chart"
+                            id="chartVel"
+                        >
+                            <div class="mini-chart-header">
+                                <span
+                                    class="mini-chart-label"
+                                    style="color:#51cf66"
+                                >Velocity</span>
+                                <span
+                                    id="liveVel"
+                                    class="mini-chart-val"
+                                >--</span>
+                            </div>
+                            <div class="mini-chart-canvas"><canvas id="canvasVel"></canvas></div>
+                        </div>
+                        <div
+                            class="mini-chart"
+                            id="chartWpos"
+                        >
+                            <div class="mini-chart-header">
+                                <span
+                                    class="mini-chart-label"
+                                    style="color:#fcc419"
+                                >WheelPos</span>
+                                <span
+                                    id="liveWpos"
+                                    class="mini-chart-val"
+                                >--</span>
+                            </div>
+                            <div class="mini-chart-canvas"><canvas id="canvasWpos"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: CONTROLLER -->
+        <div id="tabController" class="tab-content">
+            <div class="ctrl-panel">
+                <!-- Status cards -->
+                <div class="ctrl-status">
+                    <div class="ctrl-card" id="ctrlConnCard">
+                        <div class="ctrl-card-label">Connection</div>
+                        <div class="ctrl-card-val" id="ctrlConnVal">OFFLINE</div>
+                    </div>
+                    <div class="ctrl-card" id="ctrlArmCard">
+                        <div class="ctrl-card-label">Safety</div>
+                        <div class="ctrl-card-val" id="ctrlArmVal">DISARMED</div>
+                    </div>
+                    <div class="ctrl-card" id="ctrlStateCard">
+                        <div class="ctrl-card-label">State</div>
+                        <div class="ctrl-card-val" id="ctrlStateVal">FALLEN</div>
+                    </div>
+                    <div class="ctrl-card" id="ctrlOffsetCard">
+                        <div class="ctrl-card-label">Offset</div>
+                        <div class="ctrl-card-val" id="ctrlOffsetVal" style="color:#fcc419">--°</div>
+                    </div>
+                </div>
+
+                <!-- Hardware status LEDs -->
+                <div class="hw-leds">
+                    <div class="hw-led-item"><span class="hw-led" id="ledImu"></span><span class="hw-led-label">IMU</span></div>
+                    <div class="hw-led-item"><span class="hw-led" id="ledS1"></span><span class="hw-led-label">AS5600 L</span></div>
+                    <div class="hw-led-item"><span class="hw-led" id="ledS2"></span><span class="hw-led-label">AS5600 R</span></div>
+                    <div class="hw-led-item"><span class="hw-led" id="ledM"></span><span class="hw-led-label">Motors</span></div>
+                </div>
+
+                <!-- Control buttons -->
+                <div class="ctrl-btns">
+                    <button id="armBtn" class="tbtn tbtn-arm ctrl-big-btn" disabled>DISARMED</button>
+                    <button id="swingBtn" class="tbtn tbtn-swing ctrl-big-btn" disabled>SWING UP</button>
+                    <button id="standUpBtn" class="tbtn ctrl-big-btn" style="background:rgba(156,39,176,0.15);color:#ce93d8;border:1px solid rgba(156,39,176,0.4);" disabled>STAND UP</button>
+                    <button id="sideRcvrBtn" class="tbtn tbtn-sidercvr ctrl-big-btn" disabled>SIDE RCVR</button>
+                    <button id="zeroBtn" class="tbtn tbtn-zero ctrl-big-btn" disabled>Zero</button>
+                </div>
+
+                <!-- Control mode toggle -->
+                <div class="ctrl-mode-toggle">
+                    <button id="modeDpad" class="active">D-PAD</button>
+                    <button id="modeJoy">JOYSTICK</button>
+                </div>
+
+                <!-- Joystick (hidden by default) -->
+                <div class="joystick-wrap" id="joystickWrap" style="display:none;">
+                    <canvas id="joystickCanvas" width="240" height="240"></canvas>
+                    <div class="joystick-xy" id="joystickXY">X: 0.00 | Y: 0.00</div>
+                </div>
+
+                <!-- D-pad -->
+                <div class="ctrl-dpad" id="dpadWrap">
+                    <div class="empty"></div>
+                    <button id="btnFwd" class="mbtn dir" disabled>&#9650;</button>
+                    <div class="empty"></div>
+                    <button id="btnLeft" class="mbtn dir" disabled>&#9664;</button>
+                    <button id="btnStop" class="mbtn stp" disabled>&#9632;</button>
+                    <button id="btnRight" class="mbtn dir" disabled>&#9654;</button>
+                    <div class="empty"></div>
+                    <button id="btnBack" class="mbtn dir" disabled>&#9660;</button>
+                    <div class="empty"></div>
+                </div>
+
+                <!-- Direction invert toggles -->
+                <div style="display:flex;gap:12px;justify-content:center;margin-top:10px;flex-wrap:wrap;">
+                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
+                        <input type="checkbox" id="invertDrive" style="width:16px;height:16px;accent-color:#4fc3f7;">
+                        Invert Drive (F/B)
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
+                        <input type="checkbox" id="invertSteer" style="width:16px;height:16px;accent-color:#4fc3f7;">
+                        Invert Steer (L/R)
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
+                        <input type="checkbox" id="swingDisarmedCb" style="width:16px;height:16px;accent-color:#ffc107;" disabled>
+                        <span style="color:#ffc107;">Swing Up while Disarmed</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: OTA -->
+        <div
+            id="tabOta"
+            class="tab-content"
+        >
+            <div class="ota-panel">
+                <div
+                    class="sec-title"
+                    style="margin-bottom:16px"
+                >Firmware Update (BLE OTA)</div>
+                <div id="otaContent">
+                    <div
+                        class="ota-file-drop"
+                        id="otaFileDrop"
+                    >
+                        <input
+                            type="file"
+                            id="otaFileInput"
+                            accept=".bin"
+                            style="display:none"
+                        >
+                        <div class="ota-file-icon">&#128230;</div>
+                        <div
+                            class="ota-file-text"
+                            id="otaFileText"
+                        >Click or drop firmware .bin file</div>
+                        <div
+                            id="otaFileName"
+                            class="ota-file-name"
+                        ></div>
+                    </div>
+
+                    <!-- Download latest firmware from GitHub -->
+                    <div style="display:flex;align-items:center;gap:8px;margin:10px 0 6px">
+                        <div style="flex:1;height:1px;background:rgba(255,255,255,0.1)"></div>
+                        <span style="font-size:11px;color:rgba(255,255,255,0.35)">or</span>
+                        <div style="flex:1;height:1px;background:rgba(255,255,255,0.1)"></div>
+                    </div>
+                    <div style="display:flex;gap:6px;margin-bottom:4px;">
+                        <button
+                            id="otaFetchLatestBtn"
+                            class="tbtn"
+                            style="flex:1;background:rgba(79,195,247,0.12);color:#4fc3f7;border:1px solid rgba(79,195,247,0.3);font-size:12px;"
+                        >&#8659; Latest</button>
+                        <button
+                            id="otaFetchStableBtn"
+                            class="tbtn"
+                            style="flex:1;background:rgba(82,196,26,0.12);color:#52c41a;border:1px solid rgba(82,196,26,0.3);font-size:12px;"
+                        >&#8659; Stable</button>
+                    </div>
+                    <div id="otaFetchStatus" style="font-size:11px;color:rgba(255,255,255,0.45);min-height:16px;text-align:center;margin-bottom:6px;"></div>
+
+                    <div
+                        class="ota-progress"
+                        id="otaProgressContainer"
+                        style="display:none"
+                    >
+                        <div class="ota-progress-bg">
+                            <div
+                                class="ota-progress-bar"
+                                id="otaProgressBar"
+                            ></div>
+                        </div>
+                        <div
+                            class="ota-progress-text"
+                            id="otaProgressText"
+                        >0%</div>
+                    </div>
+
+                    <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.55);margin-bottom:6px;cursor:pointer;">
+                        <input type="checkbox" id="otaUseCompression" checked style="accent-color:#4fc3f7;">
+                        Use zlib compression (smaller/faster — uncheck if OTA hangs)
+                    </label>
+                    <button
+                        id="otaUploadBtn"
+                        class="tbtn ota-upload-btn"
+                        disabled
+                    >Upload Firmware</button>
+
+                    <div
+                        class="ota-log"
+                        id="otaLog"
+                    ></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: MACRO -->
+        <div id="tabMacro" class="tab-content">
+            <div class="macro-panel">
+                <div class="macro-controls">
+                    <button id="macroRecordBtn" class="tbtn tbtn-record">&#9679; REC</button>
+                    <button id="macroPlayBtn" class="tbtn tbtn-play" disabled>&#9654; PLAY</button>
+                    <label class="macro-loop-toggle">
+                        <input type="checkbox" id="macroLoop" style="width:14px;height:14px;accent-color:#20c997;">
+                        LOOP
+                    </label>
+                    <div class="toolbar-spacer"></div>
+                    <button id="macroClearBtn" class="tbtn" style="background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.4)">&#10005; Clear</button>
+                </div>
+
+                <div id="macroStatus" class="macro-status">No steps — go to Controller tab and use D-pad while recording</div>
+
+                <div id="macroStepList" class="macro-step-list">
+                    <div class="macro-empty">No steps recorded</div>
+                </div>
+
+                <div class="macro-save-area">
+                    <div class="sec-title">Saved Macros</div>
+                    <div class="macro-save-row">
+                        <input type="text" id="macroSaveName" class="macro-save-input" placeholder="Macro name" maxlength="40">
+                        <button id="macroSaveBtn" class="tbtn" style="background:linear-gradient(135deg,#0d6efd,#6610f2);color:white;flex-shrink:0">Save</button>
+                    </div>
+                    <div id="macroSavedList" class="macro-saved-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: LOG -->
+        <div id="tabLog" class="tab-content">
+            <div style="display:flex;flex-direction:column;height:100%;padding:12px;gap:10px;box-sizing:border-box;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:0.5px;">BLE LOG</span>
+                    <span id="logCount" style="font-size:10px;color:rgba(255,255,255,0.35);">0 messages</span>
+                    <div style="flex:1"></div>
+                    <button id="logClearBtn" class="tbtn" style="background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);font-size:11px;padding:4px 10px;">&#10005; Clear</button>
+                    <button id="logDownloadBtn" class="tbtn" style="background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);font-size:11px;padding:4px 10px;">&#8659; Download</button>
+                </div>
+                <div id="logPanel" style="flex:1;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow-y:auto;padding:10px;font-family:'Courier New',monospace;font-size:11px;line-height:1.7;color:#ccc;white-space:pre-wrap;word-break:break-all;min-height:200px;">
+                    <span style="color:rgba(255,255,255,0.2);">Waiting for BLE log messages…</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div
+        id="profToast"
+        class="prof-loaded-toast"
+    ></div>
+
+    <script>
+        // ==================== BLE UUIDs ====================
+        const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+        const CHAR_CMD_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
+        const CHAR_STATUS_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a9';
+        const CHAR_DATA_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26aa';
+        const CHAR_LOG_UUID  = 'beb5483e-36e1-4688-b7f5-ea07361b26ab';
+
+        const OTA_SERVICE_UUID = 'fb1e4001-54ae-4a28-9f74-dfccb248601d';
+        const OTA_CONTROL_CHAR_UUID = 'fb1e4002-54ae-4a28-9f74-dfccb248601d';
+        const OTA_DATA_CHAR_UUID = 'fb1e4003-54ae-4a28-9f74-dfccb248601d';
+
+        const OTA_CMD_BEGIN   = 0x01;  // Uncompressed: [0x01, size[4]]
+        const OTA_CMD_END     = 0x02;
+        const OTA_CMD_ABORT   = 0x03;
+        const OTA_CMD_BEGIN_Z = 0x05;  // zlib compressed: [0x05, usize[4], csize[4]] (9 bytes)
+        const OTA_STATUS_OK       = 0x01;
+        const OTA_STATUS_ERROR    = 0x03;
+        const OTA_CHUNK_SIZE = 512;
+
+        // Compress Uint8Array using zlib (deflate with header) — matches esp32-flashz
+        async function compressZlib(data) {
+            const cs = new CompressionStream('deflate');
+            const writer = cs.writable.getWriter();
+            const reader = cs.readable.getReader();
+            writer.write(data);
+            writer.close();
+            const chunks = [];
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(value);
+            }
+            const total = chunks.reduce((s, c) => s + c.length, 0);
+            const out = new Uint8Array(total);
+            let off = 0;
+            for (const c of chunks) { out.set(c, off); off += c.length; }
+            return out;
+        }
+
+        let device = null, charCmd = null, charStatus = null, charData = null, charLog = null;
+        let otaControlChar = null, otaDataChar = null;
+        let otaHasService = false;
+        let isArmed = false;
+        let robotState = 0; // 0=FALLEN, 1=SWING_UP, 2=BALANCING
+
+        const statusBadge = document.getElementById('statusBadge');
+        const statusText = document.getElementById('statusText');
+        const errorDiv = document.getElementById('error');
+        const connectBtn = document.getElementById('connectBtn');
+        const armBtn = document.getElementById('armBtn');
+        const swingBtn = document.getElementById('swingBtn');
+        const standUpBtn = document.getElementById('standUpBtn');
+        const sideRcvrBtn  = document.getElementById('sideRcvrBtn');
+        const zeroBtn = document.getElementById('zeroBtn');
+        // Controller tab status cards
+        const ctrlConnCard = document.getElementById('ctrlConnCard');
+        const ctrlConnVal = document.getElementById('ctrlConnVal');
+        const ctrlArmCard = document.getElementById('ctrlArmCard');
+        const ctrlArmVal = document.getElementById('ctrlArmVal');
+        const ctrlStateCard = document.getElementById('ctrlStateCard');
+        const ctrlStateVal = document.getElementById('ctrlStateVal');
+        const ctrlOffsetVal = document.getElementById('ctrlOffsetVal');
+
+        const btnFwd = document.getElementById('btnFwd');
+        const btnBack = document.getElementById('btnBack');
+        const btnLeft = document.getElementById('btnLeft');
+        const btnRight = document.getElementById('btnRight');
+        const btnStop = document.getElementById('btnStop');
+
+        // Slider definitions: LQR gains + system params
+        // cmd = BLE command character, fmt = decimal places
+        const sliders = {
+            k1: { el: document.getElementById('k1'), val: document.getElementById('k1Val'), cmd: 'A', fmt: 2 },
+            k2: { el: document.getElementById('k2'), val: document.getElementById('k2Val'), cmd: 'B', fmt: 3 },
+            k3: { el: document.getElementById('k3'), val: document.getElementById('k3Val'), cmd: 'V', fmt: 2 },
+            k4: { el: document.getElementById('k4'), val: document.getElementById('k4Val'), cmd: 'W', fmt: 2 },
+            maxTorque: { el: document.getElementById('maxTorque'), val: document.getElementById('maxTorqueVal'), cmd: 'T', fmt: 1 },
+            slew: { el: document.getElementById('slew'), val: document.getElementById('slewVal'), cmd: 'S', fmt: 0 },
+            steerGain:  { el: document.getElementById('steerGain'),  val: document.getElementById('steerGainVal'),  cmd: 'G', fmt: 3 },
+            steerKi:    { el: document.getElementById('steerKi'),    val: document.getElementById('steerKiVal'),    cmd: 'I', fmt: 4 },
+            steerScale: { el: document.getElementById('steerScale'), val: document.getElementById('steerScaleVal'), cmd: 'X', fmt: 2 },
+            steerLpf:        { el: document.getElementById('steerLpf'),        val: document.getElementById('steerLpfVal'),        cmd: 'Q', fmt: 2 },
+            steerMaxTorque:  { el: document.getElementById('steerMaxTorque'),  val: document.getElementById('steerMaxTorqueVal'),  cmd: 'v', fmt: 2 },
+            moveSpeed:       { el: document.getElementById('moveSpeed'),       val: document.getElementById('moveSpeedVal'),       cmd: 'M', fmt: 1 },
+            movePitchGain:   { el: document.getElementById('movePitchGain'),   val: document.getElementById('movePitchGainVal'),   cmd: 'p', fmt: 1 },
+            ctrlFreq: { el: document.getElementById('ctrlFreq'), val: document.getElementById('ctrlFreqVal'), cmd: 'C', fmt: 0 },
+            pitchOffset: { el: document.getElementById('pitchOffset'), val: document.getElementById('pitchOffsetVal'), cmd: 'O', fmt: 2, confirm: true },
+            kSwing: { el: document.getElementById('kSwing'), val: document.getElementById('kSwingVal'), cmd: 'J', fmt: 2 },
+            kDamping: { el: document.getElementById('kDamping'), val: document.getElementById('kDampingVal'), cmd: 'K', fmt: 3 },
+            swingMax: { el: document.getElementById('swingMax'), val: document.getElementById('swingMaxVal'), cmd: 'H', fmt: 1 },
+            crawlVelGain:   { el: document.getElementById('crawlVelGain'),   val: document.getElementById('crawlVelGainVal'),   cmd: 'c', fmt: 3 },
+            crawlMaxTorque: { el: document.getElementById('crawlMaxTorque'), val: document.getElementById('crawlMaxTorqueVal'), cmd: 'o', fmt: 2 },
+            standUpTorque:  { el: document.getElementById('standUpTorque'),  val: document.getElementById('standUpTorqueVal'),  cmd: 'e', fmt: 2 },
+            standUpMs:      { el: document.getElementById('standUpMs'),      val: document.getElementById('standUpMsVal'),      cmd: 'n', fmt: 0, suffix: 'ms' },
+            sideM1Torque: { el: document.getElementById('sideM1Torque'), val: document.getElementById('sideM1TorqueVal'), cmd: 'N', fmt: 2 },
+            sideM1Ms:     { el: document.getElementById('sideM1Ms'),     val: document.getElementById('sideM1MsVal'),     cmd: 'P', fmt: 0, suffix: 'ms' },
+            sideM2Torque: { el: document.getElementById('sideM2Torque'), val: document.getElementById('sideM2TorqueVal'), cmd: 'D', fmt: 2 },
+            sideM2Ms:     { el: document.getElementById('sideM2Ms'),     val: document.getElementById('sideM2MsVal'),     cmd: 'Z', fmt: 0, suffix: 'ms' }
+        };
+
+        if (!navigator.bluetooth) {
+            showError('Web Bluetooth not supported. Use Chrome on desktop/Android.');
+            connectBtn.disabled = true;
+        }
+
+        function showError(msg) {
+            errorDiv.textContent = msg;
+            errorDiv.classList.add('show');
+            setTimeout(() => errorDiv.classList.remove('show'), 4000);
+        }
+
+        function updateStatus(msg, connected) {
+            statusText.textContent = msg;
+            statusBadge.classList.toggle('connected', connected);
+            ctrlConnVal.textContent = connected ? 'ONLINE' : msg;
+            ctrlConnCard.classList.toggle('online', connected);
+        }
+
+        const telemetryToggle = document.getElementById('telemetryToggle');
+        let telemetryOn = false;
+
+        function updateTelemetryToggleUI() {
+            if (telemetryOn) {
+                telemetryToggle.innerHTML = '&#9646;&#9646; PAUSE';
+                telemetryToggle.style.background = 'rgba(25,135,84,0.2)';
+                telemetryToggle.style.borderColor = 'rgba(25,135,84,0.5)';
+                telemetryToggle.style.color = '#20c997';
+            } else {
+                telemetryToggle.innerHTML = '&#9654; RESUME';
+                telemetryToggle.style.background = 'rgba(255,193,7,0.2)';
+                telemetryToggle.style.borderColor = 'rgba(255,193,7,0.5)';
+                telemetryToggle.style.color = '#ffc107';
+            }
+        }
+
+        telemetryToggle.addEventListener('click', async () => {
+            telemetryOn = !telemetryOn;
+            updateTelemetryToggleUI();
+            await sendCmd('L');
+        });
+
+        function enableControls(enabled) {
+            Object.values(sliders).forEach(s => s.el.disabled = !enabled);
+            zeroBtn.disabled = !enabled;
+            armBtn.disabled = !enabled;
+            swingBtn.disabled = !enabled;
+            standUpBtn.disabled = !enabled;
+            sideRcvrBtn.disabled  = !enabled;
+            btnFwd.disabled = !enabled;
+            btnBack.disabled = !enabled;
+            btnLeft.disabled = !enabled;
+            btnRight.disabled = !enabled;
+            btnStop.disabled = !enabled;
+            telemetryToggle.disabled = !enabled;
+            swingDisarmedCb.disabled = !enabled;
+            if (!enabled) { telemetryOn = false; updateTelemetryToggleUI(); }
+        }
+
+        function updateArmUI() {
+            armBtn.textContent = isArmed ? 'ARMED' : 'DISARMED';
+            armBtn.classList.toggle('armed', isArmed);
+            ctrlArmVal.textContent = isArmed ? 'ARMED' : 'DISARMED';
+            ctrlArmCard.classList.toggle('armed', isArmed);
+        }
+
+        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'STAND UP', 'SIDE RCVR'];
+        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-swing', 'state-siderecover'];
+
+        function updateStateUI() {
+            const s = Math.min(robotState, STATE_NAMES.length - 1);
+
+            // Compute fallen direction sub-state (uses latest pitch/roll data)
+            let stateName = STATE_NAMES[s] || String(robotState);
+            if (robotState === 0) {
+                const p = lastPitch || 0;
+                const r = lastRollAngle;
+                if (Math.abs(r) > 60) {
+                    fallenDir = r > 0 ? 3 : 4;
+                    stateName  = r > 0 ? 'FALLEN LEFT' : 'FALLEN RIGHT';
+                } else if (Math.abs(p) > 30) {
+                    fallenDir = p > 0 ? 2 : 1;
+                    stateName  = p > 0 ? 'FALLEN BWD'  : 'FALLEN FWD';
+                } else {
+                    fallenDir = 0;
+                }
+            } else {
+                fallenDir = 0;
+            }
+
+            swingBtn.classList.toggle('active', robotState === 1);
+            standUpBtn.classList.toggle('active', robotState === 3);
+            sideRcvrBtn.classList.toggle('active', robotState === 4);
+            ctrlStateVal.textContent = stateName;
+            ctrlStateCard.className = 'ctrl-card ' + (STATE_CSS[s] || '');
+
+            // D-pad hints: highlight button(s) relevant to current fall direction
+            const pitchFallen = robotState === 0 && (fallenDir === 1 || fallenDir === 2);
+            const leftFallen  = robotState === 0 && fallenDir === 3;
+            const rightFallen = robotState === 0 && fallenDir === 4;
+            btnFwd.classList.toggle('dpad-hint',   pitchFallen);
+            btnBack.classList.toggle('dpad-hint',  pitchFallen);
+            btnLeft.classList.toggle('dpad-hint',  leftFallen);
+            btnRight.classList.toggle('dpad-hint', rightFallen);
+        }
+
+        // ==================== TABS ====================
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabMap = { tuner: 'tabTuner', controller: 'tabController', ota: 'tabOta', macro: 'tabMacro', log: 'tabLog' };
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            tabBtns.forEach(b => b.classList.remove('active'));
+            document.getElementById(tabMap[tabName] || 'tabTuner').classList.add('active');
+            document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
+            updateOtaUI();
+        }
+
+        tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+
+        // ==================== TELEMETRY CHARTS ====================
+        const chartDt = document.getElementById('chartDt');
+        const chartPitchEl = document.getElementById('chartPitch');
+        const livePitch = document.getElementById('livePitch');
+        const liveTorque = document.getElementById('liveTorque');
+        const liveVel = document.getElementById('liveVel');
+        const liveWpos = document.getElementById('liveWpos');
+
+        const MAX_POINTS = 3000;
+        let mcuTimeMs = 0;
+
+        function makeMiniChart(canvasId, color, showXAxis) {
+            return new Chart(document.getElementById(canvasId).getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{ data: [], borderColor: color, borderWidth: 1.2, pointRadius: 0, tension: 0.2, fill: false }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            display: showXAxis,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 8 }, maxTicksLimit: 6, callback: function (v) { var s = this.getLabelForValue(v) / 1000; return s < 10 ? s.toFixed(1) + 's' : Math.round(s) + 's'; } }
+                        },
+                        y: {
+                            display: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 8 }, maxTicksLimit: 4 }
+                        }
+                    },
+                    interaction: { enabled: false },
+                    layout: { padding: { left: 0, right: 0, top: 0, bottom: 0 } }
+                }
+            });
+        }
+
+        const charts = {
+            pitch: makeMiniChart('canvasPitch', '#4dabf7', false),
+            torque: makeMiniChart('canvasTorque', '#ff6b6b', false),
+            vel: makeMiniChart('canvasVel', '#51cf66', false),
+            wpos: makeMiniChart('canvasWpos', '#fcc419', true)
+        };
+
+        function onTelemetry(event) {
+            const dv = event.target.value;
+            if (dv.byteLength < 13) return; // accept 13-byte (old fw) or 14-byte (new fw)
+            lastTelemetryMs = Date.now();
+            // Clear stale indicator when data resumes
+            ctrlStateCard.classList.remove('state-stale');
+            const pitch = dv.getInt16(0, true) / 100;
+            const pitchRate = dv.getInt16(2, true) / 10;
+            const wheelVel = dv.getInt16(4, true) / 10;
+            const wheelPos = dv.getInt16(6, true) / 100;
+            const torque = dv.getInt16(8, true) / 100;
+            const dtUs = dv.getUint16(10, true);
+            const flags = dv.getUint8(12);
+
+            mcuTimeMs += dtUs / 1000;
+            livePitch.textContent = pitch.toFixed(2) + '\u00B0';
+            liveTorque.textContent = torque.toFixed(2) + 'V';
+            liveVel.textContent = wheelVel.toFixed(1);
+            liveWpos.textContent = wheelPos.toFixed(1);
+            chartDt.textContent = 'dt ' + dtUs + '\u00B5s';
+            chartPitchEl.classList.toggle('saturated', (flags & 0x01) !== 0);
+
+            // Update armed state from telemetry flags
+            const telArmed = (flags & 0x02) !== 0;
+            if (telArmed !== isArmed) {
+                isArmed = telArmed;
+                updateArmUI();
+            }
+
+            // Update roll angle from byte 13 (new fw only, 14-byte packet)
+            if (dv.byteLength >= 14) {
+                lastRollAngle = dv.getInt8(13); // roll_angle clamped ±127°
+                document.getElementById('rollAngleVal').textContent = lastRollAngle.toFixed(0) + '°';
+            }
+
+            // Update state + sub-state at 10Hz from telemetry flags (bits 4-2 = state 0-7)
+            const telState = (flags >> 2) & 0x07;
+            robotState = telState;
+            updateStateUI(); // always refresh: sub-state name, d-pad hints, fallenDir
+
+            const values = { pitch, torque, vel: wheelVel, wpos: wheelPos };
+            Object.entries(charts).forEach(([key, c]) => {
+                c.data.labels.push(mcuTimeMs);
+                c.data.datasets[0].data.push(values[key]);
+                if (c.data.labels.length > MAX_POINTS) {
+                    c.data.labels.shift();
+                    c.data.datasets[0].data.shift();
+                }
+                c.update();
+            });
+        }
+
+        function clearChart() {
+            mcuTimeMs = 0;
+            Object.values(charts).forEach(c => {
+                c.data.labels = [];
+                c.data.datasets[0].data = [];
+                c.update();
+            });
+            livePitch.textContent = '--';
+            liveTorque.textContent = '--';
+            liveVel.textContent = '--';
+            liveWpos.textContent = '--';
+            chartDt.textContent = '';
+            chartPitchEl.classList.remove('saturated');
+        }
+
+        // ==================== BLE COMMANDS ====================
+        let _gattBusy = false;
+        async function sendCmd(cmd) {
+            if (!charCmd || _gattBusy) return;
+            _gattBusy = true;
+            try {
+                await charCmd.writeValue(new TextEncoder().encode(cmd));
+            } catch (e) {
+                showError('Send failed: ' + e.message);
+            } finally {
+                _gattBusy = false;
+            }
+        }
+
+        let lastPitch = null, lastOffset = null;
+        let lastRollAngle = 0;
+        let fallenDir = 0; // 0=unknown, 1=fwd, 2=bwd, 3=left, 4=right
+
+        // Telemetry watchdog — detects when binary telemetry stops flowing
+        let lastTelemetryMs = 0;
+        let telemetryWatchdogTimer = null;
+        const TELEMETRY_STALE_MS = 3000; // consider stale after 3s of silence
+        const WATCHDOG_INTERVAL_MS = 2000; // check every 2s
+        let statusResolve = null;
+
+        // Map BLE status JSON keys to slider definitions
+        function updateSlidersFromData(data) {
+            if (data.A !== undefined) { sliders.k1.el.value = data.A; sliders.k1.val.textContent = data.A.toFixed(2); }
+            if (data.B !== undefined) { sliders.k2.el.value = data.B; sliders.k2.val.textContent = data.B.toFixed(3); }
+            if (data.V !== undefined) { sliders.k3.el.value = data.V; sliders.k3.val.textContent = data.V.toFixed(2); }
+            if (data.W !== undefined) { sliders.k4.el.value = data.W; sliders.k4.val.textContent = data.W.toFixed(2); }
+            if (data.T !== undefined) { sliders.maxTorque.el.value = data.T; sliders.maxTorque.val.textContent = data.T.toFixed(1); }
+            if (data.S !== undefined) { sliders.slew.el.value = data.S; sliders.slew.val.textContent = data.S.toFixed(0); }
+            if (data.G !== undefined) { sliders.steerGain.el.value = data.G; sliders.steerGain.val.textContent = data.G.toFixed(3); }
+            if (data.I !== undefined) { sliders.steerKi.el.value = data.I; sliders.steerKi.val.textContent = data.I.toFixed(4); }
+            if (data.X !== undefined) { sliders.steerScale.el.value = data.X; sliders.steerScale.val.textContent = data.X.toFixed(2); }
+            if (data.Q !== undefined) { sliders.steerLpf.el.value = data.Q; sliders.steerLpf.val.textContent = data.Q.toFixed(2); }
+            if (data.M !== undefined) { sliders.moveSpeed.el.value = data.M; sliders.moveSpeed.val.textContent = data.M.toFixed(1); }
+            if (data.C !== undefined) { sliders.ctrlFreq.el.value = data.C; sliders.ctrlFreq.val.textContent = data.C.toFixed(0); }
+            if (data.O !== undefined) {
+                sliders.pitchOffset.el.value = data.O;
+                sliders.pitchOffset.val.textContent = data.O.toFixed(2);
+                lastOffset = data.O;
+                ctrlOffsetVal.textContent = (data.O >= 0 ? '+' : '') + data.O.toFixed(2) + '\u00B0';
+            }
+            if (data.J !== undefined) { sliders.kSwing.el.value = data.J; sliders.kSwing.val.textContent = data.J.toFixed(2); }
+            if (data.K !== undefined) { sliders.kDamping.el.value = data.K; sliders.kDamping.val.textContent = data.K.toFixed(3); }
+            if (data.H !== undefined) { sliders.swingMax.el.value = data.H; sliders.swingMax.val.textContent = data.H.toFixed(1); }
+            if (data.c !== undefined) { sliders.crawlVelGain.el.value = data.c; sliders.crawlVelGain.val.textContent = data.c.toFixed(3); }
+            if (data.o !== undefined) { sliders.crawlMaxTorque.el.value = data.o; sliders.crawlMaxTorque.val.textContent = data.o.toFixed(2); }
+            if (data.e !== undefined) { sliders.standUpTorque.el.value = data.e; sliders.standUpTorque.val.textContent = data.e.toFixed(2); }
+            if (data.n !== undefined) { sliders.standUpMs.el.value = data.n; sliders.standUpMs.val.textContent = data.n.toFixed(0) + 'ms'; }
+            if (data.ra  !== undefined) { lastRollAngle = data.ra; document.getElementById('rollAngleVal').textContent = data.ra.toFixed(1) + '°'; }
+            if (data.m1t !== undefined) { sliders.sideM1Torque.el.value = data.m1t; sliders.sideM1Torque.val.textContent = data.m1t.toFixed(2); }
+            if (data.m1s !== undefined) { sliders.sideM1Ms.el.value     = data.m1s; sliders.sideM1Ms.val.textContent     = data.m1s.toFixed(0) + 'ms'; }
+            if (data.m2t !== undefined) { sliders.sideM2Torque.el.value = data.m2t; sliders.sideM2Torque.val.textContent = data.m2t.toFixed(2); }
+            if (data.m2s !== undefined) { sliders.sideM2Ms.el.value     = data.m2s; sliders.sideM2Ms.val.textContent     = data.m2s.toFixed(0) + 'ms'; }
+            if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(2); }
+            if (data.p !== undefined) { sliders.movePitchGain.el.value = data.p; sliders.movePitchGain.val.textContent = data.p.toFixed(1); }
+            if (data.armed !== undefined) {
+                isArmed = data.armed === 1;
+                updateArmUI();
+            }
+            if (data.pitch !== undefined) lastPitch = data.pitch;
+            if (data.st !== undefined) {
+                robotState = data.st;
+                updateStateUI();
+            }
+            if (data.temp !== undefined) {
+                const el = document.getElementById('imuTempVal');
+                if (el) el.textContent = data.temp.toFixed(1) + '\u00B0C';
+            }
+            if (data.Y !== undefined) {
+                const cb = document.getElementById('swingDisarmedCb');
+                if (cb) cb.checked = data.Y === 1;
+            }
+            if (data.fw !== undefined) {
+                const chip = document.getElementById('fwChip');
+                if (chip) { chip.textContent = 'FW ' + data.fw; chip.style.display = 'block'; }
+            }
+            // Hardware status LEDs
+            function setLed(id, val) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.remove('ok', 'fail');
+                if (val === 1) el.classList.add('ok');
+                else if (val === 0) el.classList.add('fail');
+            }
+            if (data.himu !== undefined) setLed('ledImu', data.himu);
+            if (data.hs1  !== undefined) setLed('ledS1',  data.hs1);
+            if (data.hs2  !== undefined) setLed('ledS2',  data.hs2);
+            if (data.hm   !== undefined) setLed('ledM',   data.hm);
+        }
+
+        function onStatusNotify(event) {
+            try {
+                const data = JSON.parse(new TextDecoder().decode(event.target.value));
+                updateSlidersFromData(data);
+                if (statusResolve) { statusResolve(data); statusResolve = null; }
+            } catch (e) { }
+        }
+
+        function waitForStatusNotify(timeoutMs = 1500) {
+            return new Promise(resolve => {
+                statusResolve = resolve;
+                setTimeout(() => { statusResolve = null; resolve(null); }, timeoutMs);
+            });
+        }
+
+        async function readStatus() {
+            if (!charStatus) return;
+            try {
+                const raw = await charStatus.readValue();
+                const text = new TextDecoder().decode(raw);
+                const data = JSON.parse(text);
+                updateSlidersFromData(data);
+            } catch (e) {
+                console.warn('readStatus failed:', e);
+            }
+        }
+
+        // ==================== TELEMETRY WATCHDOG ====================
+        // Three-layer fallback for state updates:
+        //   Layer 1: Binary telemetry at 10Hz (CHAR_DATA notify) — fastest, can fail silently
+        //   Layer 2: Status JSON at 1Hz background (CHAR_STATUS notify) — firmware pushes periodically
+        //   Layer 3: This watchdog — GATT READ every 2s when no data for 3s (always reliable)
+        function startTelemetryWatchdog() {
+            if (telemetryWatchdogTimer) clearInterval(telemetryWatchdogTimer);
+            lastTelemetryMs = Date.now(); // reset on connect
+            telemetryWatchdogTimer = setInterval(async () => {
+                if (!charStatus) return;
+                const stale = Date.now() - lastTelemetryMs > TELEMETRY_STALE_MS;
+                ctrlStateCard.classList.toggle('state-stale', stale);
+                if (stale) {
+                    // Layer 3: GATT READ fallback — bypasses notify queue, always works.
+                    // readStatus updates robotState/fallenDir via updateSlidersFromData.
+                    // State card keeps "?" indicator until binary telemetry resumes (lastTelemetryMs).
+                    await readStatus();
+                }
+            }, WATCHDOG_INTERVAL_MS);
+        }
+
+        function stopTelemetryWatchdog() {
+            if (telemetryWatchdogTimer) { clearInterval(telemetryWatchdogTimer); telemetryWatchdogTimer = null; }
+            ctrlStateCard.classList.remove('state-stale');
+        }
+
+        // Slider input/change handlers
+        Object.entries(sliders).forEach(([k, s]) => {
+            s.el.addEventListener('input', () => s.val.textContent = parseFloat(s.el.value).toFixed(s.fmt) + (s.suffix || ''));
+            s.el.addEventListener('change', async () => {
+                sendCmd(s.cmd + s.el.value);
+                if (s.confirm) {
+                    showProfileToast('SAVING...');
+                    const d = await waitForStatusNotify(2000);
+                    showProfileToast(d ? 'OFFSET SAVED \u2713' : 'OFFSET SENT');
+                }
+            });
+        });
+
+        // ARM/DISARM button
+        armBtn.addEventListener('click', async () => {
+            isArmed = !isArmed;
+            updateArmUI();
+            await sendCmd('E' + (isArmed ? '1' : '0'));
+        });
+
+        // Swing-up button
+        swingBtn.addEventListener('click', async () => {
+            await sendCmd('U1');
+        });
+
+        standUpBtn.addEventListener('click', async () => {
+            await sendCmd('u0');
+        });
+
+        sideRcvrBtn.addEventListener('click', async () => {
+            await sendCmd('R0');
+        });
+
+        // Zero button
+        const zeroInfo = document.getElementById('zeroInfo');
+        zeroBtn.addEventListener('click', async () => {
+            zeroBtn.textContent = 'OK!';
+            const notifyPromise = waitForStatusNotify(1500);
+            await sendCmd('z0');
+            const data = await notifyPromise;
+            // updateSlidersFromData already ran (slider + card both updated)
+            if (lastOffset !== null) {
+                zeroInfo.textContent = `ZERO SET \u2014 OFFSET: ${lastOffset.toFixed(2)}\u00B0`;
+            } else {
+                zeroInfo.textContent = 'ZERO SET';
+            }
+            zeroInfo.style.display = 'block';
+            setTimeout(() => { zeroBtn.textContent = 'Zero'; }, 1500);
+        });
+
+        // Invert toggles — load from localStorage
+        const invertDriveEl = document.getElementById('invertDrive');
+        const invertSteerEl = document.getElementById('invertSteer');
+        invertDriveEl.checked = localStorage.getItem('invertDrive') === '1';
+        invertSteerEl.checked = localStorage.getItem('invertSteer') === '1';
+        invertDriveEl.addEventListener('change', () => localStorage.setItem('invertDrive', invertDriveEl.checked ? '1' : '0'));
+        invertSteerEl.addEventListener('change', () => localStorage.setItem('invertSteer', invertSteerEl.checked ? '1' : '0'));
+
+        // Swing while disarmed checkbox — sends 'Y1'/'Y0' to firmware
+        const swingDisarmedCb = document.getElementById('swingDisarmedCb');
+        swingDisarmedCb.addEventListener('change', () => sendCmd('Y' + (swingDisarmedCb.checked ? '1' : '0')));
+
+        // Brake landing checkbox — sends 'P1'/'P0' to firmware
+        function mapMoveCmd(cmd) {
+            const inv = { f: 'b', b: 'f', l: 'r', r: 'l' };
+            if ((cmd === 'f' || cmd === 'b') && invertDriveEl.checked) cmd = inv[cmd];
+            if ((cmd === 'l' || cmd === 'r') && invertSteerEl.checked) cmd = inv[cmd];
+            return cmd;
+        }
+
+        // ==================== MACRO STATE (shared with MACRO section below) ====================
+        let macroRecording = false;
+        let macroPlaying = false;
+        let macroCurrentCmd = null;
+        let macroCurrentStart = 0;
+        let macroCurrentSteps = [];
+        let macroPlayingIndex = -1;
+        let macroAbortController = null;
+
+        function macroOnCmdChange(rawCmd) {
+            if (!macroRecording) return;
+            const now = Date.now();
+            if (macroCurrentCmd !== null) {
+                const duration = now - macroCurrentStart;
+                if (duration >= 50) macroCurrentSteps.push({ cmd: macroCurrentCmd, duration });
+            }
+            macroCurrentCmd = rawCmd;
+            macroCurrentStart = now;
+        }
+
+        // Movement buttons (press & hold with repeat)
+        function setupMoveBtn(btn, pressCmd) {
+            let interval = null;
+            function press() {
+                if (btn.disabled) return;
+                macroOnCmdChange(pressCmd);
+                sendCmd(mapMoveCmd(pressCmd));
+                btn.classList.add('active');
+                if (interval) clearInterval(interval);
+                interval = setInterval(() => sendCmd(mapMoveCmd(pressCmd)), 200);
+            }
+            function release() {
+                if (interval) { clearInterval(interval); interval = null; }
+                macroOnCmdChange('x');
+                sendCmd('x');
+                btn.classList.remove('active');
+            }
+            btn.addEventListener('mousedown', press);
+            btn.addEventListener('mouseup', release);
+            btn.addEventListener('mouseleave', release);
+            btn.addEventListener('touchstart', e => { e.preventDefault(); press(); });
+            btn.addEventListener('touchend', e => { e.preventDefault(); release(); });
+        }
+
+        setupMoveBtn(btnFwd, 'f');
+        setupMoveBtn(btnBack, 'b');
+
+        // Left/Right d-pad: intercept for side-recover when robot fallen sideways
+        function setupDirBtn(btn, pressCmd) {
+            let interval = null;
+            let wasSideRecover = false;
+            function isSideRecover() {
+                // Use fallenDir (set by updateStateUI) rather than raw lastRollAngle.
+                // fallenDir is cleared to 0 whenever robotState leaves FALLEN,
+                // so this never mis-fires when the robot is balancing with stale roll data.
+                if (pressCmd === 'l') return fallenDir === 3; // FALLEN LEFT
+                if (pressCmd === 'r') return fallenDir === 4; // FALLEN RIGHT
+                return false;
+            }
+            function press() {
+                if (btn.disabled) return;
+                wasSideRecover = isSideRecover();
+                if (wasSideRecover) {
+                    sendCmd(pressCmd); // one-shot — firmware handles timing
+                    btn.classList.add('active');
+                    setTimeout(() => btn.classList.remove('active'), 400);
+                    return;
+                }
+                macroOnCmdChange(pressCmd);
+                sendCmd(mapMoveCmd(pressCmd));
+                btn.classList.add('active');
+                if (interval) clearInterval(interval);
+                interval = setInterval(() => sendCmd(mapMoveCmd(pressCmd)), 200);
+            }
+            function release() {
+                if (wasSideRecover) { wasSideRecover = false; return; }
+                if (interval) { clearInterval(interval); interval = null; }
+                macroOnCmdChange('x');
+                sendCmd('x');
+                btn.classList.remove('active');
+            }
+            btn.addEventListener('mousedown', press);
+            btn.addEventListener('mouseup', release);
+            btn.addEventListener('mouseleave', release);
+            btn.addEventListener('touchstart', e => { e.preventDefault(); press(); });
+            btn.addEventListener('touchend', e => { e.preventDefault(); release(); });
+        }
+        setupDirBtn(btnLeft, 'l');
+        setupDirBtn(btnRight, 'r');
+        btnStop.addEventListener('click', () => { macroOnCmdChange('x'); sendCmd('x'); });
+
+        // Keyboard WASD controls
+        const keyMap = { w: { btn: btnFwd, cmd: 'f' }, s: { btn: btnBack, cmd: 'b' }, a: { btn: btnLeft, cmd: 'l' }, d: { btn: btnRight, cmd: 'r' } };
+        const keyHeld = {};
+        document.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            const k = e.key.toLowerCase();
+            if (k === 'x' || k === ' ') { macroOnCmdChange('x'); sendCmd('x'); Object.values(keyMap).forEach(m => m.btn.classList.remove('active')); return; }
+            const m = keyMap[k];
+            if (!m || m.btn.disabled || keyHeld[k]) return;
+            keyHeld[k] = true;
+            // Intercept a/d for side recover when fallen sideways (use fallenDir, not raw roll)
+            if ((k === 'a' && fallenDir === 3) || (k === 'd' && fallenDir === 4)) {
+                sendCmd(m.cmd); // one-shot side recover trigger
+                m.btn.classList.add('active');
+                m._sideRecover = true;
+                return;
+            }
+            m._sideRecover = false;
+            macroOnCmdChange(m.cmd);
+            sendCmd(mapMoveCmd(m.cmd));
+            m.btn.classList.add('active');
+            m._interval = setInterval(() => sendCmd(mapMoveCmd(m.cmd)), 200);
+        });
+        document.addEventListener('keyup', e => {
+            const k = e.key.toLowerCase();
+            const m = keyMap[k];
+            if (!m || !keyHeld[k]) return;
+            keyHeld[k] = false;
+            if (m._sideRecover) { m._sideRecover = false; m.btn.classList.remove('active'); return; }
+            if (m._interval) { clearInterval(m._interval); m._interval = null; }
+            m.btn.classList.remove('active');
+            if (!Object.values(keyHeld).some(v => v)) { macroOnCmdChange('x'); sendCmd('x'); }
+        });
+
+        // ==================== JOYSTICK ====================
+        (function() {
+            const canvas = document.getElementById('joystickCanvas');
+            const ctx = canvas.getContext('2d');
+            const xyLabel = document.getElementById('joystickXY');
+            const joystickWrap = document.getElementById('joystickWrap');
+            const dpadWrap = document.getElementById('dpadWrap');
+            const modeDpadBtn = document.getElementById('modeDpad');
+            const modeJoyBtn = document.getElementById('modeJoy');
+
+            const W = canvas.width, H = canvas.height;
+            const cx = W / 2, cy = H / 2;
+            const outerR = W / 2 - 6;   // outer ring radius
+            const dotR = 22;             // draggable dot radius
+            const maxTravel = outerR - dotR;
+            const deadzone = 0.12;       // normalized deadzone radius
+
+            let joyX = 0, joyY = 0;     // normalized -1..1
+            let dragging = false;
+            let joyInterval = null;
+
+            // ---- draw ----
+            function draw() {
+                ctx.clearRect(0, 0, W, H);
+
+                // outer ring
+                ctx.beginPath();
+                ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(79,195,247,0.25)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = 'rgba(255,255,255,0.03)';
+                ctx.fill();
+
+                // crosshair
+                ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+                ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(cx, cy - outerR); ctx.lineTo(cx, cy + outerR); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx - outerR, cy); ctx.lineTo(cx + outerR, cy); ctx.stroke();
+
+                // deadzone circle
+                ctx.beginPath();
+                ctx.arc(cx, cy, maxTravel * deadzone, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // dot position
+                const dx = cx + joyX * maxTravel;
+                const dy = cy - joyY * maxTravel; // canvas Y inverted
+
+                // dot glow
+                const grad = ctx.createRadialGradient(dx, dy, 0, dx, dy, dotR * 1.8);
+                grad.addColorStop(0, 'rgba(79,195,247,0.35)');
+                grad.addColorStop(1, 'rgba(79,195,247,0)');
+                ctx.beginPath(); ctx.arc(dx, dy, dotR * 1.8, 0, Math.PI * 2);
+                ctx.fillStyle = grad; ctx.fill();
+
+                // dot
+                ctx.beginPath();
+                ctx.arc(dx, dy, dotR, 0, Math.PI * 2);
+                const active = dragging || (Math.abs(joyX) > deadzone || Math.abs(joyY) > deadzone);
+                ctx.fillStyle = active ? '#4fc3f7' : 'rgba(79,195,247,0.5)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            // ---- curve helpers ----
+            // Per-axis deadzone: remap dz..1 → 0..1 (no jump)
+            function applyDz(v) {
+                if (Math.abs(v) < deadzone) return 0;
+                return Math.sign(v) * (Math.abs(v) - deadzone) / (1 - deadzone);
+            }
+            // Expo curve: alpha*v³ + (1-alpha)*v
+            // alpha=0.6 → vùng giữa nhạy hơn ~50%, full power ở rìa không đổi
+            function expo(v, alpha) {
+                return alpha * v * v * v + (1 - alpha) * v;
+            }
+
+            // ---- send BLE ----
+            function joySend() {
+                let ax = invertSteerEl.checked ? -joyX : joyX;
+                let ay = invertDriveEl.checked ? -joyY : joyY;
+
+                // Per-axis deadzone + rescale
+                ax = applyDz(ax);
+                ay = applyDz(ay);
+
+                if (Math.abs(ax) < 0.001 && Math.abs(ay) < 0.001) {
+                    sendCmd('x');
+                    return;
+                }
+
+                // Expo only on Y (speed): α=0.6 — precision near center
+                // X (steering) stays linear — expo would make it too weak
+                const ayE = expo(ay, 0.6);
+
+                // Speed taper when steering hard: max -35% at full steer
+                const speedScale = 1 - 0.35 * ax * ax;
+
+                const spd = parseFloat(sliders.moveSpeed.el.value) || 500;
+                // Single BLE write — avoids _gattBusy drop of second command
+                sendCmd('Joy' + Math.round(ayE * speedScale * spd) + ',' + ax.toFixed(3));
+            }
+
+            // ---- pointer handling ----
+            function setFromEvent(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = W / rect.width, scaleY = H / rect.height;
+                const touch = e.touches ? e.touches[0] : e;
+                let px = (touch.clientX - rect.left) * scaleX - cx;
+                let py = -((touch.clientY - rect.top) * scaleY - cy); // invert Y
+                const dist = Math.sqrt(px*px + py*py);
+                if (dist > maxTravel) { px *= maxTravel/dist; py *= maxTravel/dist; }
+                joyX = px / maxTravel;
+                joyY = py / maxTravel;
+                xyLabel.textContent = 'X: ' + joyX.toFixed(2) + ' | Y: ' + joyY.toFixed(2);
+                draw();
+            }
+
+            function startDrag(e) {
+                if (canvas.style.opacity === '0.4') return; // disabled
+                e.preventDefault();
+                dragging = true;
+                setFromEvent(e);
+                if (joyInterval) clearInterval(joyInterval);
+                joyInterval = setInterval(joySend, 100);
+            }
+            function moveDrag(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                setFromEvent(e);
+            }
+            function endDrag(e) {
+                if (!dragging) return;
+                dragging = false;
+                joyX = 0; joyY = 0;
+                xyLabel.textContent = 'X: 0.00 | Y: 0.00';
+                if (joyInterval) { clearInterval(joyInterval); joyInterval = null; }
+                sendCmd('x');
+                draw();
+            }
+
+            canvas.addEventListener('mousedown', startDrag);
+            canvas.addEventListener('mousemove', moveDrag);
+            canvas.addEventListener('mouseup', endDrag);
+            canvas.addEventListener('mouseleave', endDrag);
+            canvas.addEventListener('touchstart', startDrag, { passive: false });
+            canvas.addEventListener('touchmove', moveDrag, { passive: false });
+            canvas.addEventListener('touchend', endDrag);
+
+            // ---- mode toggle ----
+            let joyMode = false;
+            function setMode(joy) {
+                joyMode = joy;
+                modeDpadBtn.classList.toggle('active', !joy);
+                modeJoyBtn.classList.toggle('active', joy);
+                dpadWrap.style.display = joy ? 'none' : '';
+                joystickWrap.style.display = joy ? 'flex' : 'none';
+                localStorage.setItem('ctrlMode', joy ? 'joy' : 'dpad');
+                if (!joy && joyInterval) { clearInterval(joyInterval); joyInterval = null; sendCmd('x'); }
+            }
+            modeDpadBtn.addEventListener('click', () => setMode(false));
+            modeJoyBtn.addEventListener('click', () => setMode(true));
+
+            // restore saved mode
+            if (localStorage.getItem('ctrlMode') === 'joy') setMode(true);
+
+            // ---- disabled state (mirror enableControls) ----
+            // patch into enableControls via MutationObserver on btnFwd.disabled
+            const fwdBtn = document.getElementById('btnFwd');
+            new MutationObserver(() => {
+                const dis = fwdBtn.disabled;
+                canvas.style.opacity = dis ? '0.4' : '1';
+                canvas.style.cursor = dis ? 'not-allowed' : 'grab';
+                if (dis && joyInterval) { clearInterval(joyInterval); joyInterval = null; joyX=0; joyY=0; draw(); }
+            }).observe(fwdBtn, { attributes: true, attributeFilter: ['disabled'] });
+
+            draw();
+        })();
+
+        // ==================== BLE CONNECT ====================
+        connectBtn.addEventListener('click', async () => {
+            if (device && device.gatt.connected) { device.gatt.disconnect(); return; }
+            try {
+                updateStatus('SCAN...', false);
+                device = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: [SERVICE_UUID] }],
+                    optionalServices: [OTA_SERVICE_UUID]
+                });
+                device.addEventListener('gattserverdisconnected', onDisconnected);
+                updateStatus('LINK...', false);
+                const server = await device.gatt.connect();
+
+                // Tuner service
+                const service = await server.getPrimaryService(SERVICE_UUID);
+                charCmd = await service.getCharacteristic(CHAR_CMD_UUID);
+                charStatus = await service.getCharacteristic(CHAR_STATUS_UUID);
+                charData = await service.getCharacteristic(CHAR_DATA_UUID);
+                await charData.startNotifications();
+                charData.addEventListener('characteristicvaluechanged', onTelemetry);
+                await charStatus.startNotifications();
+                charStatus.addEventListener('characteristicvaluechanged', onStatusNotify);
+                // Log characteristic (optional — only present in firmware with BLE log support)
+                try {
+                    charLog = await service.getCharacteristic(CHAR_LOG_UUID);
+                    await charLog.startNotifications();
+                    charLog.addEventListener('characteristicvaluechanged', onLogNotify);
+                } catch (e) {
+                    charLog = null; // older firmware without log characteristic
+                }
+
+                // OTA service (optional)
+                otaHasService = false;
+                try {
+                    const otaService = await server.getPrimaryService(OTA_SERVICE_UUID);
+                    otaControlChar = await otaService.getCharacteristic(OTA_CONTROL_CHAR_UUID);
+                    otaDataChar = await otaService.getCharacteristic(OTA_DATA_CHAR_UUID);
+                    await otaControlChar.startNotifications();
+                    otaControlChar.addEventListener('characteristicvaluechanged', onOtaControlNotify);
+                    otaHasService = true;
+                    otaLog('OTA service ready', 'success');
+                } catch (e) {
+                    otaLog('OTA service not available on this device', 'info');
+                }
+
+                clearChart();
+                await readStatus();
+                updateStatus('ONLINE', true);
+                connectBtn.textContent = 'Disconnect';
+                enableControls(true);
+                // Firmware defaults to ble_telemetry_enabled=true — sync toggle button
+                telemetryOn = true;
+                updateTelemetryToggleUI();
+                startTelemetryWatchdog();
+                updateOtaUI();
+            } catch (e) {
+                showError('Connection failed: ' + (e.message || String(e)));
+                updateStatus('OFFLINE', false);
+                connectBtn.textContent = 'Connect';
+            }
+        });
+
+        function onDisconnected() {
+            stopTelemetryWatchdog();
+            if (otaDisconnectResolve) { otaDisconnectResolve(true); otaDisconnectResolve = null; }
+            updateStatus('OFFLINE', false);
+            connectBtn.textContent = 'Connect';
+            enableControls(false);
+            isArmed = false;
+            robotState = 0;
+            updateArmUI();
+            updateStateUI();
+            device = null; charCmd = null; charStatus = null; charData = null; charLog = null;
+            otaControlChar = null; otaDataChar = null; otaHasService = false;
+            ['ledImu','ledS1','ledS2','ledM'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('ok','fail');
+            });
+            const fwChip = document.getElementById('fwChip');
+            if (fwChip) fwChip.style.display = 'none';
+            otaUploading = false;
+            updateOtaUI();
+        }
+
+        // ==================== OTA ====================
+        const otaFileDrop = document.getElementById('otaFileDrop');
+        const otaFileInput = document.getElementById('otaFileInput');
+        const otaFileText = document.getElementById('otaFileText');
+        const otaFileName = document.getElementById('otaFileName');
+        const otaUploadBtn = document.getElementById('otaUploadBtn');
+        const otaProgressContainer = document.getElementById('otaProgressContainer');
+        const otaProgressBar = document.getElementById('otaProgressBar');
+        const otaProgressText = document.getElementById('otaProgressText');
+        const otaLogEl = document.getElementById('otaLog');
+
+        let otaFirmwareData = null;
+        let otaUploading = false;
+        let otaDisconnectResolve = null; // resolves when BLE disconnects (reboot = OTA success)
+
+        function onOtaControlNotify(event) {
+            // Only used to catch OTA_STATUS_ERROR from firmware (logged but not blocking)
+            const bytes = new Uint8Array(event.target.value.buffer);
+            if (bytes[0] === OTA_STATUS_ERROR) otaLog('Device reported flash ERROR.', 'error');
+        }
+
+        function waitForDisconnect(timeoutMs = 20000) {
+            return new Promise(resolve => {
+                otaDisconnectResolve = resolve;
+                setTimeout(() => { if (otaDisconnectResolve) { otaDisconnectResolve = null; resolve(false); } }, timeoutMs);
+            });
+        }
+
+        function updateOtaUI() {
+            otaUploadBtn.disabled = !otaHasService || !otaFirmwareData || otaUploading;
+        }
+
+        function otaLog(msg, type = '') {
+            const entry = document.createElement('div');
+            entry.className = 'ota-log-entry ' + type;
+            const time = new Date().toLocaleTimeString();
+            entry.textContent = `[${time}] ${msg}`;
+            otaLogEl.appendChild(entry);
+            otaLogEl.scrollTop = otaLogEl.scrollHeight;
+        }
+
+        function otaSetProgress(percent) {
+            otaProgressBar.style.width = percent + '%';
+            otaProgressText.textContent = percent + '%';
+        }
+
+        otaFileDrop.addEventListener('click', () => otaFileInput.click());
+        otaFileDrop.addEventListener('dragover', e => { e.preventDefault(); otaFileDrop.classList.add('dragover'); });
+        otaFileDrop.addEventListener('dragleave', () => otaFileDrop.classList.remove('dragover'));
+        otaFileDrop.addEventListener('drop', e => {
+            e.preventDefault();
+            otaFileDrop.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) loadOtaFile(e.dataTransfer.files[0]);
+        });
+        otaFileInput.addEventListener('change', () => {
+            if (otaFileInput.files.length > 0) loadOtaFile(otaFileInput.files[0]);
+        });
+
+        function loadOtaFile(file) {
+            if (!file.name.endsWith('.bin')) {
+                otaLog('Please select a .bin file', 'error');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = e => {
+                otaFirmwareData = new Uint8Array(e.target.result);
+                otaFileText.textContent = file.name;
+                otaFileName.textContent = (otaFirmwareData.length / 1024).toFixed(1) + ' KB';
+                otaFileDrop.classList.add('has-file');
+                otaLog(`File: ${file.name} (${otaFirmwareData.length} bytes)`, 'info');
+                updateOtaUI();
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Download firmware from GitHub
+        const FW_URLS = {
+            latest: 'https://raw.githubusercontent.com/ndthanh/ndthanh.github.io/master/esp32mks/firmware.bin',
+            stable: 'https://raw.githubusercontent.com/ndthanh/ndthanh.github.io/master/esp32mks/stable.bin'
+        };
+
+        const otaFetchLatestBtn = document.getElementById('otaFetchLatestBtn');
+        const otaFetchStableBtn = document.getElementById('otaFetchStableBtn');
+        const otaFetchStatus   = document.getElementById('otaFetchStatus');
+
+        async function fetchFirmware(url, label, statusColor, btn) {
+            btn.disabled = true;
+            otaFetchStatus.textContent = 'Downloading...';
+            otaFetchStatus.style.color = 'rgba(255,255,255,0.55)';
+            try {
+                const resp = await fetch(url);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+                const contentLength = resp.headers.get('Content-Length');
+                let data;
+                if (contentLength && resp.body) {
+                    const total = parseInt(contentLength, 10);
+                    const reader = resp.body.getReader();
+                    const chunks = [];
+                    let received = 0;
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        chunks.push(value);
+                        received += value.length;
+                        otaFetchStatus.textContent = `Downloading... ${(received/1024).toFixed(1)} / ${(total/1024).toFixed(1)} KB`;
+                    }
+                    data = new Uint8Array(received);
+                    let pos = 0;
+                    for (const c of chunks) { data.set(c, pos); pos += c.length; }
+                } else {
+                    data = new Uint8Array(await resp.arrayBuffer());
+                }
+                otaFirmwareData = data;
+                otaFileText.textContent = label;
+                otaFileName.textContent = (data.length / 1024).toFixed(1) + ' KB';
+                otaFileDrop.classList.add('has-file');
+                otaFetchStatus.style.color = statusColor;
+                otaFetchStatus.textContent = `✓ Ready — ${(data.length/1024).toFixed(1)} KB`;
+                otaLog(`Downloaded: ${label} (${data.length} bytes)`, 'success');
+                updateOtaUI();
+            } catch (e) {
+                otaFetchStatus.style.color = '#ef5350';
+                otaFetchStatus.textContent = `Error: ${e.message}`;
+                otaLog(`Firmware download failed: ${e.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        otaFetchLatestBtn.addEventListener('click', () =>
+            fetchFirmware(FW_URLS.latest, 'firmware.bin (latest LQR)', '#4fc3f7', otaFetchLatestBtn));
+
+        otaFetchStableBtn.addEventListener('click', () =>
+            fetchFirmware(FW_URLS.stable, 'stable.bin (stable LQR)', '#52c41a', otaFetchStableBtn));
+
+        otaUploadBtn.addEventListener('click', startOta);
+
+        async function startOta() {
+            if (!otaControlChar || !otaDataChar || !otaFirmwareData) return;
+
+            otaUploading = true;
+            updateOtaUI();
+            otaProgressContainer.style.display = '';
+            otaSetProgress(0);
+
+            try {
+                // Compress if browser supports it AND user hasn't disabled it
+                let dataToSend = otaFirmwareData;
+                const compressionCb = document.getElementById('otaUseCompression');
+                let useCompression = typeof CompressionStream !== 'undefined' && compressionCb && compressionCb.checked;
+                if (useCompression) {
+                    otaLog(`Compressing ${otaFirmwareData.length} bytes...`, 'info');
+                    dataToSend = await compressZlib(otaFirmwareData);
+                    const ratio = (100 - dataToSend.length / otaFirmwareData.length * 100).toFixed(1);
+                    otaLog(`Compressed: ${dataToSend.length} bytes (${ratio}% smaller, ${(dataToSend.length/1024).toFixed(1)} KB)`, 'success');
+                }
+
+                let beginCmd;
+                if (useCompression) {
+                    // 9 bytes: [cmd][usize:4][csize:4]
+                    // usize = original firmware size (for FlashZ Update.begin)
+                    // csize = compressed stream size (for progress/last-chunk detection)
+                    const usize = otaFirmwareData.length;
+                    const csize = dataToSend.length;
+                    beginCmd = new Uint8Array(9);
+                    beginCmd[0] = OTA_CMD_BEGIN_Z;
+                    beginCmd[1] = usize & 0xFF;        beginCmd[2] = (usize >> 8) & 0xFF;
+                    beginCmd[3] = (usize >> 16) & 0xFF; beginCmd[4] = (usize >> 24) & 0xFF;
+                    beginCmd[5] = csize & 0xFF;        beginCmd[6] = (csize >> 8) & 0xFF;
+                    beginCmd[7] = (csize >> 16) & 0xFF; beginCmd[8] = (csize >> 24) & 0xFF;
+                } else {
+                    beginCmd = new Uint8Array(5);
+                    beginCmd[0] = OTA_CMD_BEGIN;
+                    beginCmd[1] = dataToSend.length & 0xFF;
+                    beginCmd[2] = (dataToSend.length >> 8) & 0xFF;
+                    beginCmd[3] = (dataToSend.length >> 16) & 0xFF;
+                    beginCmd[4] = (dataToSend.length >> 24) & 0xFF;
+                }
+
+                otaLog(`Starting OTA${useCompression ? ` (zlib, ${(dataToSend.length/1024).toFixed(1)}KB → ${(otaFirmwareData.length/1024).toFixed(1)}KB)` : ''}: ${dataToSend.length} bytes`, 'info');
+
+                // OTA auto-disarms the robot
+                isArmed = false;
+                updateArmUI();
+
+                await otaControlChar.writeValueWithResponse(beginCmd);
+                await sleep(500);
+
+                const totalChunks = Math.ceil(dataToSend.length / OTA_CHUNK_SIZE);
+                let lastLoggedPercent = -1;
+                for (let i = 0; i < totalChunks; i++) {
+                    const start = i * OTA_CHUNK_SIZE;
+                    const end = Math.min(start + OTA_CHUNK_SIZE, dataToSend.length);
+                    const chunk = dataToSend.slice(start, end);
+
+                    await otaDataChar.writeValueWithResponse(chunk);
+
+                    const percent = Math.round(((i + 1) / totalChunks) * 100);
+                    otaSetProgress(percent);
+
+                    if (percent % 10 === 0 && percent !== 100 && percent !== lastLoggedPercent) {
+                        lastLoggedPercent = percent;
+                        otaLog(`Uploading... ${percent}%`, 'info');
+                    }
+                }
+
+                otaLog('All data sent. Finalizing...', 'info');
+                await sleep(500);
+                const disconnectPromise = waitForDisconnect(20000);
+                await otaControlChar.writeValueWithResponse(new Uint8Array([OTA_CMD_END]));
+
+                // Success = device reboots = BLE disconnects
+                otaLog('Waiting for device to reboot (BLE disconnect)...', 'info');
+                const rebooted = await disconnectPromise;
+                if (rebooted) {
+                    otaLog('OTA complete! Device rebooted successfully.', 'success');
+                    otaSetProgress(100);
+                } else {
+                    otaLog('WARNING: Device did not disconnect after 20s — OTA likely failed (endz hang).', 'info');
+                    otaSetProgress(100);
+                }
+
+            } catch (e) {
+                otaLog(`OTA failed: ${e.message}`, 'error');
+                otaSetProgress(0);
+
+                try {
+                    await otaControlChar.writeValueWithResponse(new Uint8Array([OTA_CMD_ABORT]));
+                } catch (_) { }
+            }
+
+            otaUploading = false;
+            updateOtaUI();
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ==================== MACRO ====================
+        const MACRO_STORAGE_KEY = 'balancebot_macros';
+
+        const CMD_INFO = {
+            f: { icon: '▲', label: 'FORWARD', color: '#0d6efd' },
+            b: { icon: '▼', label: 'BACK',    color: '#0d6efd' },
+            l: { icon: '◀', label: 'LEFT',    color: '#0d6efd' },
+            r: { icon: '▶', label: 'RIGHT',   color: '#0d6efd' },
+            x: { icon: '■', label: 'STOP',    color: '#dc3545' },
+        };
+
+        const macroRecordBtn  = document.getElementById('macroRecordBtn');
+        const macroPlayBtn    = document.getElementById('macroPlayBtn');
+        const macroLoopEl     = document.getElementById('macroLoop');
+        const macroClearBtn   = document.getElementById('macroClearBtn');
+        const macroStatusEl   = document.getElementById('macroStatus');
+        const macroStepListEl = document.getElementById('macroStepList');
+        const macroSaveNameEl = document.getElementById('macroSaveName');
+        const macroSaveBtn    = document.getElementById('macroSaveBtn');
+        const macroSavedListEl= document.getElementById('macroSavedList');
+
+        function macroUpdateStatus() {
+            if (macroRecording) {
+                macroStatusEl.textContent = `● RECORDING — ${macroCurrentSteps.length} steps captured`;
+                macroStatusEl.style.color = '#dc3545';
+            } else if (macroPlaying) {
+                const loop = macroLoopEl.checked;
+                macroStatusEl.textContent = `▶ PLAYING${loop ? ' (LOOP)' : ''} — step ${macroPlayingIndex + 1} / ${macroCurrentSteps.length}`;
+                macroStatusEl.style.color = '#20c997';
+            } else {
+                const n = macroCurrentSteps.length;
+                const total = macroCurrentSteps.reduce((s, st) => s + st.duration, 0);
+                macroStatusEl.textContent = n > 0
+                    ? `${n} steps · ${(total / 1000).toFixed(1)}s total`
+                    : 'No steps — go to Controller tab and use D-pad while recording';
+                macroStatusEl.style.color = 'rgba(255,255,255,0.4)';
+            }
+        }
+
+        function macroRenderSteps() {
+            macroPlayBtn.disabled = macroCurrentSteps.length === 0;
+            if (macroCurrentSteps.length === 0) {
+                macroStepListEl.innerHTML = '<div class="macro-empty">No steps recorded</div>';
+                macroUpdateStatus();
+                return;
+            }
+            macroStepListEl.innerHTML = macroCurrentSteps.map((step, i) => {
+                const info = CMD_INFO[step.cmd] || CMD_INFO.x;
+                return `<div class="macro-step" id="macroStep${i}">
+                    <span class="macro-step-num">${i + 1}</span>
+                    <span class="macro-step-icon" style="color:${info.color}">${info.icon}</span>
+                    <span class="macro-step-label" style="color:${info.color}">${info.label}</span>
+                    <input type="number" class="macro-step-dur" value="${step.duration}" min="50" max="30000" step="50"
+                        onchange="macroCurrentSteps[${i}].duration = Math.max(50, parseInt(this.value)||50); macroUpdateStatus();">
+                    <span class="macro-step-ms">ms</span>
+                    <button class="macro-step-del" onclick="macroDeleteStep(${i})">✕</button>
+                </div>`;
+            }).join('');
+            macroUpdateStatus();
+        }
+
+        function macroDeleteStep(index) {
+            macroCurrentSteps.splice(index, 1);
+            macroRenderSteps();
+        }
+
+        macroRecordBtn.addEventListener('click', () => {
+            if (macroPlaying) return;
+            macroRecording = !macroRecording;
+            if (macroRecording) {
+                macroCurrentCmd = null;
+                macroCurrentStart = Date.now();
+                macroRecordBtn.textContent = '⬛ STOP REC';
+                macroRecordBtn.classList.add('active');
+                macroPlayBtn.disabled = true;
+            } else {
+                // Finalize last held step
+                if (macroCurrentCmd !== null) {
+                    const duration = Date.now() - macroCurrentStart;
+                    if (duration >= 50) macroCurrentSteps.push({ cmd: macroCurrentCmd, duration });
+                    macroCurrentCmd = null;
+                }
+                macroRecordBtn.textContent = '● REC';
+                macroRecordBtn.classList.remove('active');
+                macroRenderSteps();
+            }
+            macroUpdateStatus();
+        });
+
+        macroClearBtn.addEventListener('click', () => {
+            if (macroPlaying) macroStopPlayback();
+            if (macroRecording) {
+                macroRecording = false;
+                macroRecordBtn.textContent = '● REC';
+                macroRecordBtn.classList.remove('active');
+                macroCurrentCmd = null;
+            }
+            macroCurrentSteps = [];
+            macroRenderSteps();
+        });
+
+        macroPlayBtn.addEventListener('click', () => {
+            if (macroPlaying) { macroStopPlayback(); } else { macroStartPlayback(); }
+        });
+
+        async function macroStartPlayback() {
+            if (macroCurrentSteps.length === 0 || !charCmd) return;
+            macroPlaying = true;
+            macroPlayBtn.textContent = '⬛ STOP';
+            macroPlayBtn.classList.add('active');
+            macroRecordBtn.disabled = true;
+            const steps = [...macroCurrentSteps];
+            const ctrl = { aborted: false };
+            macroAbortController = ctrl;
+            do {
+                for (let i = 0; i < steps.length; i++) {
+                    if (ctrl.aborted) break;
+                    macroPlayingIndex = i;
+                    macroUpdateStatus();
+                    document.querySelectorAll('.macro-step').forEach((el, idx) => el.classList.toggle('playing', idx === i));
+                    const step = steps[i];
+                    await sendCmd(step.cmd === 'x' ? 'x' : mapMoveCmd(step.cmd));
+                    const end = Date.now() + step.duration;
+                    while (Date.now() < end && !ctrl.aborted) await sleep(Math.min(50, end - Date.now()));
+                }
+            } while (!ctrl.aborted && macroLoopEl.checked);
+            sendCmd('x');
+            macroPlaying = false;
+            macroPlayingIndex = -1;
+            macroPlayBtn.textContent = '▶ PLAY';
+            macroPlayBtn.classList.remove('active');
+            macroRecordBtn.disabled = false;
+            document.querySelectorAll('.macro-step').forEach(el => el.classList.remove('playing'));
+            macroUpdateStatus();
+        }
+
+        function macroStopPlayback() {
+            if (macroAbortController) macroAbortController.aborted = true;
+        }
+
+        macroSaveBtn.addEventListener('click', () => {
+            const name = macroSaveNameEl.value.trim();
+            if (!name || macroCurrentSteps.length === 0) return;
+            const macros = getMacros();
+            macros.unshift({ name, steps: [...macroCurrentSteps], ts: Date.now() });
+            saveMacros(macros);
+            macroSaveNameEl.value = '';
+            macroRenderSaved();
+        });
+
+        macroSaveNameEl.addEventListener('keydown', e => { if (e.key === 'Enter') macroSaveBtn.click(); });
+
+        function getMacros() {
+            try { return JSON.parse(localStorage.getItem(MACRO_STORAGE_KEY)) || []; } catch { return []; }
+        }
+        function saveMacros(m) { localStorage.setItem(MACRO_STORAGE_KEY, JSON.stringify(m)); }
+
+        function macroLoadSaved(index) {
+            const macros = getMacros();
+            if (!macros[index]) return;
+            macroCurrentSteps = [...macros[index].steps];
+            macroRenderSteps();
+        }
+
+        function macroDeleteSaved(index) {
+            const macros = getMacros();
+            macros.splice(index, 1);
+            saveMacros(macros);
+            macroRenderSaved();
+        }
+
+        function macroRenderSaved() {
+            const macros = getMacros();
+            if (macros.length === 0) {
+                macroSavedListEl.innerHTML = '<span style="font-size:10px;color:rgba(255,255,255,0.2)">No saved macros</span>';
+                return;
+            }
+            macroSavedListEl.innerHTML = macros.map((m, i) => `
+                <div class="macro-saved-item">
+                    <span class="macro-saved-item-name" onclick="macroLoadSaved(${i})" title="${m.steps.length} steps · ${(m.steps.reduce((s,st)=>s+st.duration,0)/1000).toFixed(1)}s">${esc(m.name)}</span>
+                    <button class="macro-saved-item-del" onclick="macroDeleteSaved(${i})">✕</button>
+                </div>`).join('');
+        }
+
+        macroRenderSaved();
+        macroUpdateStatus();
+
+        // ==================== PROFILES ====================
+        const PROF_STORAGE_KEY = 'balancebot_lqr_profiles';
+        const profList = document.getElementById('profList');
+        const profSaveForm = document.getElementById('profSaveForm');
+        const profNameInput = document.getElementById('profName');
+        const profDescInput = document.getElementById('profDesc');
+
+        function getProfiles() {
+            try { return JSON.parse(localStorage.getItem(PROF_STORAGE_KEY)) || []; }
+            catch { return []; }
+        }
+
+        function saveProfiles(profiles) {
+            localStorage.setItem(PROF_STORAGE_KEY, JSON.stringify(profiles));
+        }
+
+        function getCurrentParams() {
+            const params = {};
+            Object.entries(sliders).forEach(([k, s]) => {
+                params[s.cmd] = parseFloat(s.el.value);
+            });
+            return params;
+        }
+
+        function showSaveForm() {
+            profSaveForm.classList.add('show');
+            profNameInput.value = '';
+            profDescInput.value = '';
+            profNameInput.focus();
+        }
+
+        function hideSaveForm() {
+            profSaveForm.classList.remove('show');
+        }
+
+        function saveProfile() {
+            const name = profNameInput.value.trim();
+            if (!name) { profNameInput.focus(); return; }
+            const profiles = getProfiles();
+            profiles.unshift({
+                name,
+                desc: profDescInput.value.trim(),
+                ts: Date.now(),
+                params: getCurrentParams()
+            });
+            saveProfiles(profiles);
+            hideSaveForm();
+            renderProfiles();
+        }
+
+        function deleteProfile(index) {
+            const profiles = getProfiles();
+            profiles.splice(index, 1);
+            saveProfiles(profiles);
+            renderProfiles();
+        }
+
+        const profActive = document.getElementById('profActive');
+        const profToast = document.getElementById('profToast');
+
+        function showProfileToast(msg) {
+            profToast.textContent = msg;
+            profToast.classList.add('show');
+            setTimeout(() => profToast.classList.remove('show'), 2000);
+        }
+
+        async function loadProfile(index) {
+            const profiles = getProfiles();
+            const prof = profiles[index];
+            if (!prof) return;
+
+            Object.entries(sliders).forEach(([k, s]) => {
+                if (prof.params[s.cmd] !== undefined) {
+                    s.el.value = prof.params[s.cmd];
+                    s.val.textContent = parseFloat(prof.params[s.cmd]).toFixed(s.fmt);
+                }
+            });
+
+            profActive.textContent = prof.name;
+            profActive.style.display = '';
+
+            const items = profList.querySelectorAll('.prof-item');
+            if (items[index]) items[index].classList.add('loading');
+
+            if (charCmd) {
+                for (const [cmd, val] of Object.entries(prof.params)) {
+                    while (_gattBusy) await sleep(30);
+                    _gattBusy = true;
+                    try {
+                        await charCmd.writeValue(new TextEncoder().encode(cmd + val));
+                    } catch (e) { }
+                    _gattBusy = false;
+                    await sleep(80);
+                }
+                showProfileToast('PROFILE LOADED \u2014 READY');
+            } else {
+                showProfileToast('PROFILE LOADED (OFFLINE)');
+            }
+
+            setTimeout(() => {
+                if (items[index]) items[index].classList.remove('loading');
+            }, 500);
+        }
+
+        function renderProfiles() {
+            const profiles = getProfiles();
+            if (profiles.length === 0) {
+                profList.innerHTML = '<div class="prof-empty">No saved profiles</div>';
+                return;
+            }
+            profList.innerHTML = profiles.map((p, i) => `
+                <div class="prof-item">
+                    <div class="prof-item-name">${esc(p.name)}</div>
+                    ${p.desc ? `<div class="prof-item-desc">${esc(p.desc)}</div>` : ''}
+                    <div class="prof-item-actions">
+                        <button class="tbtn" style="background:linear-gradient(135deg,#198754,#20c997);color:white" onclick="loadProfile(${i})">Load</button>
+                        <button class="tbtn" style="background:rgba(220,53,69,0.2);color:#dc3545;border:1px solid rgba(220,53,69,0.3)" onclick="deleteProfile(${i})">Del</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function esc(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        profNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') saveProfile(); });
+
+        renderProfiles();
+
+        // ==================== BLE LOG ====================
+        const logPanel = document.getElementById('logPanel');
+        const logCount = document.getElementById('logCount');
+        const logClearBtn = document.getElementById('logClearBtn');
+        const logDownloadBtn = document.getElementById('logDownloadBtn');
+        const logMessages = []; // { ts, text }
+        let logInitialized = false;
+
+        function logAppend(text) {
+            if (!logInitialized) {
+                logPanel.innerHTML = '';
+                logInitialized = true;
+            }
+            const ts = new Date().toISOString().slice(11, 23); // HH:MM:SS.mmm
+            const msg = { ts, text };
+            logMessages.push(msg);
+
+            const color = text.startsWith('FALL') ? '#ff6b6b'
+                        : text.startsWith('PANIC') || text.includes('FAIL') ? '#ff9f43'
+                        : text.startsWith('BOOT') ? '#74b9ff'
+                        : text.startsWith('SWING') || text.startsWith('STAND_UP OK') ? '#55efc4'
+                        : '#ccc';
+
+            const line = document.createElement('div');
+            line.style.cssText = `color:${color};padding:1px 0;`;
+            line.textContent = `[${ts}] ${text}`;
+            logPanel.appendChild(line);
+            logPanel.scrollTop = logPanel.scrollHeight;
+            logCount.textContent = `${logMessages.length} message${logMessages.length !== 1 ? 's' : ''}`;
+        }
+
+        function onLogNotify(event) {
+            const text = new TextDecoder().decode(event.target.value);
+            logAppend(text.trim());
+        }
+
+        logClearBtn.addEventListener('click', () => {
+            logMessages.length = 0;
+            logInitialized = false;
+            logPanel.innerHTML = '<span style="color:rgba(255,255,255,0.2);">Cleared — waiting for BLE log messages…</span>';
+            logCount.textContent = '0 messages';
+        });
+
+        logDownloadBtn.addEventListener('click', () => {
+            if (logMessages.length === 0) return;
+            const lines = logMessages.map(m => `[${m.ts}] ${m.text}`).join('\n');
+            const blob = new Blob([lines], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const dt = new Date().toISOString().slice(0,19).replace(/[:T]/g, '-');
+            a.href = url; a.download = `balbot_log_${dt}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+
+</html>
