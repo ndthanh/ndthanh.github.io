@@ -1953,6 +1953,10 @@
                         <input type="checkbox" id="swingDisarmedCb" style="width:16px;height:16px;accent-color:#ffc107;" disabled>
                         <span style="color:#ffc107;">Swing Up while Disarmed</span>
                     </label>
+                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
+                        <input type="checkbox" id="imuYawFlipCb" style="width:16px;height:16px;accent-color:#ce93d8;" disabled>
+                        <span style="color:#ce93d8;">IMU Yaw Flip 180°</span>
+                    </label>
                 </div>
             </div>
         </div>
@@ -2253,6 +2257,7 @@
             btnStop.disabled = !enabled;
             telemetryToggle.disabled = !enabled;
             swingDisarmedCb.disabled = !enabled;
+            imuYawFlipCb.disabled = !enabled;
             if (!enabled) { telemetryOn = false; updateTelemetryToggleUI(); }
         }
 
@@ -2508,6 +2513,10 @@
                 const cb = document.getElementById('swingDisarmedCb');
                 if (cb) cb.checked = data.Y === 1;
             }
+            if (data.yf !== undefined) {
+                const cb = document.getElementById('imuYawFlipCb');
+                if (cb) cb.checked = data.yf === 1;
+            }
             if (data.fw !== undefined) {
                 const chip = document.getElementById('fwChip');
                 if (chip) { chip.textContent = 'FW ' + data.fw; chip.style.display = 'block'; }
@@ -2640,6 +2649,10 @@
         // Swing while disarmed checkbox — sends 'Y1'/'Y0' to firmware
         const swingDisarmedCb = document.getElementById('swingDisarmedCb');
         swingDisarmedCb.addEventListener('change', () => sendCmd('Y' + (swingDisarmedCb.checked ? '1' : '0')));
+
+        // IMU Yaw Flip 180° checkbox — sends 'y1'/'y0' to firmware, persisted to NVS
+        const imuYawFlipCb = document.getElementById('imuYawFlipCb');
+        imuYawFlipCb.addEventListener('change', () => sendCmd('y' + (imuYawFlipCb.checked ? '1' : '0')));
 
         // Brake landing checkbox — sends 'P1'/'P0' to firmware
         function mapMoveCmd(cmd) {
