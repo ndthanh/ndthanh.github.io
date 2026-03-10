@@ -1143,18 +1143,82 @@
                             >
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>Steer Gain</span><span
+                            <div class="pg-label"><span>Steer Kp (G)</span><span
                                     id="steerGainVal"
                                     class="pg-val"
-                                >0.80</span></div>
+                                >0.150</span></div>
                             <input
                                 type="range"
                                 id="steerGain"
                                 class="slider"
                                 min="0"
-                                max="5"
-                                step="0.1"
-                                value="0.8"
+                                max="2"
+                                step="0.01"
+                                value="0.15"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Steer Ki (I)</span><span
+                                    id="steerKiVal"
+                                    class="pg-val"
+                                >0.0000</span></div>
+                            <input
+                                type="range"
+                                id="steerKi"
+                                class="slider"
+                                min="0"
+                                max="0.1"
+                                step="0.001"
+                                value="0"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Steer Scale (X)</span><span
+                                    id="steerScaleVal"
+                                    class="pg-val"
+                                >20.00</span></div>
+                            <input
+                                type="range"
+                                id="steerScale"
+                                class="slider"
+                                min="0"
+                                max="50"
+                                step="1"
+                                value="20"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Steer LPF τ (Q)</span><span
+                                    id="steerLpfVal"
+                                    class="pg-val"
+                                >0.06</span></div>
+                            <input
+                                type="range"
+                                id="steerLpf"
+                                class="slider"
+                                min="0"
+                                max="1"
+                                step="0.02"
+                                value="0.06"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Steer Max Torque (v)</span><span
+                                    id="steerMaxTorqueVal"
+                                    class="pg-val"
+                                >9.0</span></div>
+                            <input
+                                type="range"
+                                id="steerMaxTorque"
+                                class="slider"
+                                min="0.5"
+                                max="12"
+                                step="0.5"
+                                value="9"
                                 disabled
                             >
                         </div>
@@ -1554,7 +1618,11 @@
             k4: { el: document.getElementById('k4'), val: document.getElementById('k4Val'), cmd: 'W', fmt: 2 },
             maxTorque: { el: document.getElementById('maxTorque'), val: document.getElementById('maxTorqueVal'), cmd: 'T', fmt: 1 },
             slew: { el: document.getElementById('slew'), val: document.getElementById('slewVal'), cmd: 'S', fmt: 0 },
-            steerGain: { el: document.getElementById('steerGain'), val: document.getElementById('steerGainVal'), cmd: 'G', fmt: 2 },
+            steerGain:       { el: document.getElementById('steerGain'),       val: document.getElementById('steerGainVal'),       cmd: 'G', fmt: 3 },
+            steerKi:         { el: document.getElementById('steerKi'),         val: document.getElementById('steerKiVal'),         cmd: 'I', fmt: 4 },
+            steerScale:      { el: document.getElementById('steerScale'),      val: document.getElementById('steerScaleVal'),      cmd: 'X', fmt: 2 },
+            steerLpf:        { el: document.getElementById('steerLpf'),        val: document.getElementById('steerLpfVal'),        cmd: 'Q', fmt: 2 },
+            steerMaxTorque:  { el: document.getElementById('steerMaxTorque'),  val: document.getElementById('steerMaxTorqueVal'),  cmd: 'v', fmt: 1 },
             moveSpeed: { el: document.getElementById('moveSpeed'), val: document.getElementById('moveSpeedVal'), cmd: 'M', fmt: 1 },
             ctrlFreq: { el: document.getElementById('ctrlFreq'), val: document.getElementById('ctrlFreqVal'), cmd: 'C', fmt: 0 },
             kSwing: { el: document.getElementById('kSwing'), val: document.getElementById('kSwingVal'), cmd: 'J', fmt: 2 },
@@ -1756,7 +1824,11 @@
             if (data.W !== undefined) { sliders.k4.el.value = data.W; sliders.k4.val.textContent = data.W.toFixed(2); }
             if (data.T !== undefined) { sliders.maxTorque.el.value = data.T; sliders.maxTorque.val.textContent = data.T.toFixed(1); }
             if (data.S !== undefined) { sliders.slew.el.value = data.S; sliders.slew.val.textContent = data.S.toFixed(0); }
-            if (data.G !== undefined) { sliders.steerGain.el.value = data.G; sliders.steerGain.val.textContent = data.G.toFixed(2); }
+            if (data.G !== undefined) { sliders.steerGain.el.value = data.G;      sliders.steerGain.val.textContent      = data.G.toFixed(3); }
+            if (data.I !== undefined) { sliders.steerKi.el.value = data.I;        sliders.steerKi.val.textContent        = data.I.toFixed(4); }
+            if (data.X !== undefined) { sliders.steerScale.el.value = data.X;     sliders.steerScale.val.textContent     = data.X.toFixed(2); }
+            if (data.Q !== undefined) { sliders.steerLpf.el.value = data.Q;       sliders.steerLpf.val.textContent       = data.Q.toFixed(2); }
+            if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(1); }
             if (data.M !== undefined) { sliders.moveSpeed.el.value = data.M; sliders.moveSpeed.val.textContent = data.M.toFixed(1); }
             if (data.C !== undefined) { sliders.ctrlFreq.el.value = data.C; sliders.ctrlFreq.val.textContent = data.C.toFixed(0); }
             if (data.J !== undefined) { sliders.kSwing.el.value = data.J; sliders.kSwing.val.textContent = data.J.toFixed(2); }
