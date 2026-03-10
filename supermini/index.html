@@ -1535,6 +1535,22 @@
                             >
                         </div>
                         <div class="pg">
+                            <div class="pg-label"><span>Move Ramp τ (s) (a)</span><span
+                                    id="moveRampVal"
+                                    class="pg-val"
+                                >0.080s</span></div>
+                            <input
+                                type="range"
+                                id="moveRamp"
+                                class="slider"
+                                min="0"
+                                max="0.5"
+                                step="0.01"
+                                value="0.08"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
                             <div class="pg-label"><span>Ctrl Freq (Hz)</span><span
                                     id="ctrlFreqVal"
                                     class="pg-val"
@@ -2183,6 +2199,7 @@
             steerMaxTorque:  { el: document.getElementById('steerMaxTorque'),  val: document.getElementById('steerMaxTorqueVal'),  cmd: 'v', fmt: 2 },
             moveSpeed:       { el: document.getElementById('moveSpeed'),       val: document.getElementById('moveSpeedVal'),       cmd: 'M', fmt: 1 },
             movePitchGain:   { el: document.getElementById('movePitchGain'),   val: document.getElementById('movePitchGainVal'),   cmd: 'p', fmt: 1 },
+            moveRamp:        { el: document.getElementById('moveRamp'),        val: document.getElementById('moveRampVal'),        cmd: 'a', fmt: 3, suffix: 's' },
             ctrlFreq: { el: document.getElementById('ctrlFreq'), val: document.getElementById('ctrlFreqVal'), cmd: 'C', fmt: 0 },
             pitchOffset: { el: document.getElementById('pitchOffset'), val: document.getElementById('pitchOffsetVal'), cmd: 'O', fmt: 2, confirm: true },
             kSwing: { el: document.getElementById('kSwing'), val: document.getElementById('kSwingVal'), cmd: 'J', fmt: 2 },
@@ -2491,6 +2508,7 @@
             if (data.m2s !== undefined) { sliders.sideM2Ms.el.value     = data.m2s; sliders.sideM2Ms.val.textContent     = data.m2s.toFixed(0) + 'ms'; }
             if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(2); }
             if (data.p !== undefined) { sliders.movePitchGain.el.value = data.p; sliders.movePitchGain.val.textContent = data.p.toFixed(1); }
+            if (data.a !== undefined) { sliders.moveRamp.el.value = data.a; sliders.moveRamp.val.textContent = data.a.toFixed(3) + 's'; }
             if (data.armed !== undefined) {
                 isArmed = data.armed === 1;
                 updateArmUI();
