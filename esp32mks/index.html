@@ -1551,6 +1551,22 @@
                             >
                         </div>
                         <div class="pg">
+                            <div class="pg-label"><span>FF Gate (°)</span><span
+                                    id="velFfGateVal"
+                                    class="pg-val"
+                                >5.0</span></div>
+                            <input
+                                type="range"
+                                id="velFfGate"
+                                class="slider"
+                                min="0"
+                                max="20"
+                                step="0.5"
+                                value="5"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
                             <div class="pg-label"><span>Ctrl Freq (Hz)</span><span
                                     id="ctrlFreqVal"
                                     class="pg-val"
@@ -2204,6 +2220,7 @@
             moveSpeed:       { el: document.getElementById('moveSpeed'),       val: document.getElementById('moveSpeedVal'),       cmd: 'M', fmt: 1 },
             movePitchGain:   { el: document.getElementById('movePitchGain'),   val: document.getElementById('movePitchGainVal'),   cmd: 'p', fmt: 1 },
             velMaxRads:      { el: document.getElementById('velMaxRads'),      val: document.getElementById('velMaxRadsVal'),      cmd: 'F', fmt: 1 },
+            velFfGate:       { el: document.getElementById('velFfGate'),       val: document.getElementById('velFfGateVal'),       cmd: 'w', fmt: 1 },
             ctrlFreq: { el: document.getElementById('ctrlFreq'), val: document.getElementById('ctrlFreqVal'), cmd: 'C', fmt: 0 },
             pitchOffset: { el: document.getElementById('pitchOffset'), val: document.getElementById('pitchOffsetVal'), cmd: 'O', fmt: 2, confirm: true },
             kSwing: { el: document.getElementById('kSwing'), val: document.getElementById('kSwingVal'), cmd: 'J', fmt: 2 },
@@ -2513,7 +2530,8 @@
             if (data.m2s !== undefined) { sliders.sideM2Ms.el.value     = data.m2s; sliders.sideM2Ms.val.textContent     = data.m2s.toFixed(0) + 'ms'; }
             if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(2); }
             if (data.p  !== undefined) { sliders.movePitchGain.el.value = data.p;  sliders.movePitchGain.val.textContent = data.p.toFixed(1); }
-            if (data.Vf !== undefined) { sliders.velMaxRads.el.value = data.Vf; sliders.velMaxRads.val.textContent = data.Vf.toFixed(1); }
+            if (data.Vf !== undefined) { sliders.velMaxRads.el.value = data.Vf;  sliders.velMaxRads.val.textContent = data.Vf.toFixed(1); }
+            if (data.wg !== undefined) { sliders.velFfGate.el.value  = data.wg; sliders.velFfGate.val.textContent  = data.wg.toFixed(1); }
             if (data.armed !== undefined) {
                 isArmed = data.armed === 1;
                 updateArmUI();
