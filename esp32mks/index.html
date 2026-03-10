@@ -1505,6 +1505,22 @@
                         ></div>
                     </div>
 
+                    <!-- Download latest / stable firmware from GitHub -->
+                    <div style="display:flex;align-items:center;gap:8px;margin:10px 0 6px">
+                        <div style="flex:1;height:1px;background:rgba(255,255,255,0.1)"></div>
+                        <span style="font-size:11px;color:rgba(255,255,255,0.35)">or</span>
+                        <div style="flex:1;height:1px;background:rgba(255,255,255,0.1)"></div>
+                    </div>
+                    <div style="display:flex;gap:6px;margin-bottom:4px;">
+                        <button id="otaFetchLatestBtn" class="tbtn"
+                            style="flex:1;background:rgba(79,195,247,0.12);color:#4fc3f7;border:1px solid rgba(79,195,247,0.3);font-size:12px;"
+                        >&#8659; Latest</button>
+                        <button id="otaFetchStableBtn" class="tbtn"
+                            style="flex:1;background:rgba(82,196,26,0.12);color:#52c41a;border:1px solid rgba(82,196,26,0.3);font-size:12px;"
+                        >&#8659; Stable</button>
+                    </div>
+                    <div id="otaFetchStatus" style="font-size:11px;color:rgba(255,255,255,0.45);min-height:16px;text-align:center;margin-bottom:6px;"></div>
+
                     <div
                         class="ota-progress"
                         id="otaProgressContainer"
@@ -1522,6 +1538,10 @@
                         >0%</div>
                     </div>
 
+                    <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.55);margin-bottom:6px;cursor:pointer;">
+                        <input type="checkbox" id="otaUseCompression" checked style="accent-color:#4fc3f7;">
+                        Use zlib compression (smaller/faster — uncheck if OTA hangs)
+                    </label>
                     <button
                         id="otaUploadBtn"
                         class="tbtn ota-upload-btn"
@@ -1575,12 +1595,33 @@
         const OTA_CONTROL_CHAR_UUID = 'fb1e4002-54ae-4a28-9f74-dfccb248601d';
         const OTA_DATA_CHAR_UUID = 'fb1e4003-54ae-4a28-9f74-dfccb248601d';
 
-        const OTA_CMD_BEGIN = 0x01;
-        const OTA_CMD_END = 0x02;
-        const OTA_CMD_ABORT = 0x03;
-        const OTA_STATUS_OK = 0x01;
-        const OTA_STATUS_ERROR = 0x03;
+        const OTA_CMD_BEGIN   = 0x01;  // Uncompressed: [0x01, size[4]]
+        const OTA_CMD_END     = 0x02;
+        const OTA_CMD_ABORT   = 0x03;
+        const OTA_CMD_BEGIN_Z = 0x05;  // zlib compressed: [0x05, usize[4], csize[4]]
+        const OTA_STATUS_OK       = 0x01;
+        const OTA_STATUS_ERROR    = 0x03;
         const OTA_CHUNK_SIZE = 512;
+
+        // Compress Uint8Array using zlib (deflate with header) — matches esp32-flashz
+        async function compressZlib(data) {
+            const cs = new CompressionStream('deflate');
+            const writer = cs.writable.getWriter();
+            const reader = cs.readable.getReader();
+            writer.write(data);
+            writer.close();
+            const chunks = [];
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(value);
+            }
+            const total = chunks.reduce((s, c) => s + c.length, 0);
+            const out = new Uint8Array(total);
+            let off = 0;
+            for (const c of chunks) { out.set(c, off); off += c.length; }
+            return out;
+        }
 
         let device = null, charCmd = null, charStatus = null, charData = null, charLog = null;
         let otaControlChar = null, otaDataChar = null;
@@ -2100,6 +2141,64 @@
             reader.readAsArrayBuffer(file);
         }
 
+        // Download firmware from GitHub
+        const FW_URLS = {
+            latest: 'https://raw.githubusercontent.com/ndthanh/ndthanh.github.io/master/esp32mks/firmware.bin',
+            stable: 'https://raw.githubusercontent.com/ndthanh/ndthanh.github.io/master/esp32mks/stable.bin'
+        };
+        const otaFetchLatestBtn = document.getElementById('otaFetchLatestBtn');
+        const otaFetchStableBtn = document.getElementById('otaFetchStableBtn');
+        const otaFetchStatus    = document.getElementById('otaFetchStatus');
+
+        async function fetchFirmware(url, label, statusColor, btn) {
+            btn.disabled = true;
+            otaFetchStatus.textContent = 'Downloading...';
+            otaFetchStatus.style.color = 'rgba(255,255,255,0.55)';
+            try {
+                const resp = await fetch(url);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+                const contentLength = resp.headers.get('Content-Length');
+                let data;
+                if (contentLength && resp.body) {
+                    const total = parseInt(contentLength, 10);
+                    const reader = resp.body.getReader();
+                    const chunks = [];
+                    let received = 0;
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        chunks.push(value);
+                        received += value.length;
+                        otaFetchStatus.textContent = `Downloading... ${(received/1024).toFixed(1)} / ${(total/1024).toFixed(1)} KB`;
+                    }
+                    data = new Uint8Array(received);
+                    let pos = 0;
+                    for (const c of chunks) { data.set(c, pos); pos += c.length; }
+                } else {
+                    data = new Uint8Array(await resp.arrayBuffer());
+                }
+                otaFirmwareData = data;
+                otaFileText.textContent = label;
+                otaFileName.textContent = (data.length / 1024).toFixed(1) + ' KB';
+                otaFileDrop.classList.add('has-file');
+                otaFetchStatus.style.color = statusColor;
+                otaFetchStatus.textContent = `✓ Ready — ${(data.length/1024).toFixed(1)} KB`;
+                otaLog(`Downloaded: ${label} (${data.length} bytes)`, 'success');
+                updateOtaUI();
+            } catch (e) {
+                otaFetchStatus.style.color = '#ef5350';
+                otaFetchStatus.textContent = `Error: ${e.message}`;
+                otaLog(`Firmware download failed: ${e.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        otaFetchLatestBtn.addEventListener('click', () =>
+            fetchFirmware(FW_URLS.latest, 'firmware.bin (latest MKS)', '#4fc3f7', otaFetchLatestBtn));
+        otaFetchStableBtn.addEventListener('click', () =>
+            fetchFirmware(FW_URLS.stable, 'stable.bin (stable MKS)', '#52c41a', otaFetchStableBtn));
+
         otaUploadBtn.addEventListener('click', startOta);
 
         async function startOta() {
@@ -2111,14 +2210,37 @@
             otaSetProgress(0);
 
             try {
-                const beginCmd = new Uint8Array(5);
-                beginCmd[0] = OTA_CMD_BEGIN;
-                beginCmd[1] = otaFirmwareData.length & 0xFF;
-                beginCmd[2] = (otaFirmwareData.length >> 8) & 0xFF;
-                beginCmd[3] = (otaFirmwareData.length >> 16) & 0xFF;
-                beginCmd[4] = (otaFirmwareData.length >> 24) & 0xFF;
+                // Compress if browser supports it AND user hasn't disabled it
+                let dataToSend = otaFirmwareData;
+                const compressionCb = document.getElementById('otaUseCompression');
+                let useCompression = typeof CompressionStream !== 'undefined' && compressionCb && compressionCb.checked;
+                if (useCompression) {
+                    otaLog(`Compressing ${otaFirmwareData.length} bytes...`, 'info');
+                    dataToSend = await compressZlib(otaFirmwareData);
+                    const ratio = (100 - dataToSend.length / otaFirmwareData.length * 100).toFixed(1);
+                    otaLog(`Compressed: ${dataToSend.length} bytes (${ratio}% smaller)`, 'success');
+                }
 
-                otaLog(`Starting OTA: ${otaFirmwareData.length} bytes`, 'info');
+                let beginCmd;
+                if (useCompression) {
+                    const usize = otaFirmwareData.length;
+                    const csize = dataToSend.length;
+                    beginCmd = new Uint8Array(9);
+                    beginCmd[0] = OTA_CMD_BEGIN_Z;
+                    beginCmd[1] = usize & 0xFF;         beginCmd[2] = (usize >> 8) & 0xFF;
+                    beginCmd[3] = (usize >> 16) & 0xFF; beginCmd[4] = (usize >> 24) & 0xFF;
+                    beginCmd[5] = csize & 0xFF;         beginCmd[6] = (csize >> 8) & 0xFF;
+                    beginCmd[7] = (csize >> 16) & 0xFF; beginCmd[8] = (csize >> 24) & 0xFF;
+                } else {
+                    beginCmd = new Uint8Array(5);
+                    beginCmd[0] = OTA_CMD_BEGIN;
+                    beginCmd[1] = dataToSend.length & 0xFF;
+                    beginCmd[2] = (dataToSend.length >> 8) & 0xFF;
+                    beginCmd[3] = (dataToSend.length >> 16) & 0xFF;
+                    beginCmd[4] = (dataToSend.length >> 24) & 0xFF;
+                }
+
+                otaLog(`Starting OTA${useCompression ? ` (zlib, ${(dataToSend.length/1024).toFixed(1)}KB → ${(otaFirmwareData.length/1024).toFixed(1)}KB)` : ''}: ${dataToSend.length} bytes`, 'info');
 
                 // OTA auto-disarms the robot
                 isArmed = false;
@@ -2127,11 +2249,11 @@
                 await otaControlChar.writeValueWithResponse(beginCmd);
                 await sleep(500);
 
-                const totalChunks = Math.ceil(otaFirmwareData.length / OTA_CHUNK_SIZE);
+                const totalChunks = Math.ceil(dataToSend.length / OTA_CHUNK_SIZE);
                 for (let i = 0; i < totalChunks; i++) {
                     const start = i * OTA_CHUNK_SIZE;
-                    const end = Math.min(start + OTA_CHUNK_SIZE, otaFirmwareData.length);
-                    const chunk = otaFirmwareData.slice(start, end);
+                    const end = Math.min(start + OTA_CHUNK_SIZE, dataToSend.length);
+                    const chunk = dataToSend.slice(start, end);
 
                     await otaDataChar.writeValueWithResponse(chunk);
 
