@@ -1535,7 +1535,7 @@
                             >
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>Vel Feedforward (rad/s)</span><span
+                            <div class="pg-label"><span>VMC Vel Target (rad/s)</span><span
                                     id="velMaxRadsVal"
                                     class="pg-val"
                                 >0.0</span></div>
@@ -1551,7 +1551,23 @@
                             >
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>FF Gate (°)</span><span
+                            <div class="pg-label"><span>VMC Kv Gain</span><span
+                                    id="kvForceVal"
+                                    class="pg-val"
+                                >0.00</span></div>
+                            <input
+                                type="range"
+                                id="kvForce"
+                                class="slider"
+                                min="0"
+                                max="5"
+                                step="0.05"
+                                value="0"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>VMC Gate (°)</span><span
                                     id="velFfGateVal"
                                     class="pg-val"
                                 >5.0</span></div>
@@ -2220,6 +2236,7 @@
             moveSpeed:       { el: document.getElementById('moveSpeed'),       val: document.getElementById('moveSpeedVal'),       cmd: 'M', fmt: 1 },
             movePitchGain:   { el: document.getElementById('movePitchGain'),   val: document.getElementById('movePitchGainVal'),   cmd: 'p', fmt: 1 },
             velMaxRads:      { el: document.getElementById('velMaxRads'),      val: document.getElementById('velMaxRadsVal'),      cmd: 'F', fmt: 1 },
+            kvForce:         { el: document.getElementById('kvForce'),         val: document.getElementById('kvForceVal'),         cmd: 'k', fmt: 2 },
             velFfGate:       { el: document.getElementById('velFfGate'),       val: document.getElementById('velFfGateVal'),       cmd: 'w', fmt: 1 },
             ctrlFreq: { el: document.getElementById('ctrlFreq'), val: document.getElementById('ctrlFreqVal'), cmd: 'C', fmt: 0 },
             pitchOffset: { el: document.getElementById('pitchOffset'), val: document.getElementById('pitchOffsetVal'), cmd: 'O', fmt: 2, confirm: true },
@@ -2531,6 +2548,7 @@
             if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(2); }
             if (data.p  !== undefined) { sliders.movePitchGain.el.value = data.p;  sliders.movePitchGain.val.textContent = data.p.toFixed(1); }
             if (data.Vf !== undefined) { sliders.velMaxRads.el.value = data.Vf;  sliders.velMaxRads.val.textContent = data.Vf.toFixed(1); }
+            if (data.kv !== undefined) { sliders.kvForce.el.value    = data.kv; sliders.kvForce.val.textContent    = data.kv.toFixed(2); }
             if (data.wg !== undefined) { sliders.velFfGate.el.value  = data.wg; sliders.velFfGate.val.textContent  = data.wg.toFixed(1); }
             if (data.armed !== undefined) {
                 isArmed = data.armed === 1;
