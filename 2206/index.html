@@ -78,8 +78,9 @@ h1{font-size:16px;text-align:center;margin:6px 0;color:#4fc3f7}
     <button class="dpad-btn dpad-right" data-press="N1" data-release="N0">&#9654;</button>
     <button class="dpad-btn dpad-down" data-press="M-1" data-release="M0">&#9660;</button>
   </div>
-  <div class="slider-row"><label>P</label><input type="range" id="sP" min="0.5" max="10" step="0.5" value="3.0"><span class="val" id="vP">3.0</span></div>
-  <div class="slider-row"><label>G</label><input type="range" id="sG" min="0" max="3" step="0.05" value="0.50"><span class="val" id="vG">0.50</span></div>
+  <div class="slider-row"><label title="move_pitch_gain: lean angle when moving">P</label><input type="range" id="sP" min="0.5" max="10" step="0.5" value="3.0"><span class="val" id="vP">3.0</span></div>
+  <div class="slider-row"><label title="steer_gain: manual turn voltage">G</label><input type="range" id="sG" min="0" max="3" step="0.05" value="0.50"><span class="val" id="vG">0.50</span></div>
+  <div class="slider-row"><label title="steer_kp: auto-straight P gain">D</label><input type="range" id="sD" min="0" max="2" step="0.05" value="0.30"><span class="val" id="vD">0.30</span></div>
 </div>
 
 <!-- LQR Gains -->
@@ -175,6 +176,7 @@ const sliders=[
   {id:'sO',vid:'vO',cmd:'O',fmt:v=>v.toFixed(1)},
   {id:'sP',vid:'vP',cmd:'P',fmt:v=>v.toFixed(1)},
   {id:'sG',vid:'vG',cmd:'G',fmt:v=>v.toFixed(2)},
+  {id:'sD',vid:'vD',cmd:'D',fmt:v=>v.toFixed(2)},
 ];
 sliders.forEach(s=>{
   const el=$(s.id), vl=$(s.vid);
@@ -250,6 +252,7 @@ function onStatus(e){
     if(j.O!=null)$('sO').value=j.O,$('vO').textContent=j.O.toFixed(1);
     if(j.P!=null)$('sP').value=j.P,$('vP').textContent=j.P.toFixed(1);
     if(j.G!=null)$('sG').value=j.G,$('vG').textContent=j.G.toFixed(2);
+    if(j.D!=null)$('sD').value=j.D,$('vD').textContent=j.D.toFixed(2);
     if(j.armed!=null){isArmed=!!j.armed;armBtn.textContent=isArmed?'DISARM':'ARM';armBtn.className='btn '+(isArmed?'btn-red':'btn-green')}
     if(j.fw){$('fwHash').textContent='FW: '+j.fw;addLog('FW: '+j.fw,'info')}
   }catch(e){}
