@@ -1954,8 +1954,8 @@
                         <span style="color:#ffc107;">Swing Up while Disarmed</span>
                     </label>
                     <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
-                        <input type="checkbox" id="motorDirFlip" style="width:16px;height:16px;accent-color:#ff7043;">
-                        <span style="color:#ff7043;">Flip Motor Dir (NVS)</span>
+                        <input type="checkbox" id="imuFlipCb" style="width:16px;height:16px;accent-color:#ff7043;">
+                        <span style="color:#ff7043;">IMU 180° Yaw Flip (NVS)</span>
                     </label>
                 </div>
             </div>
@@ -2512,9 +2512,9 @@
                 const cb = document.getElementById('swingDisarmedCb');
                 if (cb) cb.checked = data.Y === 1;
             }
-            if (data.mdir !== undefined) {
-                const cb = document.getElementById('motorDirFlip');
-                if (cb) cb.checked = data.mdir === -1;
+            if (data.imuflip !== undefined) {
+                const cb = document.getElementById('imuFlipCb');
+                if (cb) cb.checked = data.imuflip === 1;
             }
             if (data.fw !== undefined) {
                 const chip = document.getElementById('fwChip');
@@ -2649,10 +2649,10 @@
         const swingDisarmedCb = document.getElementById('swingDisarmedCb');
         swingDisarmedCb.addEventListener('change', () => sendCmd('Y' + (swingDisarmedCb.checked ? '1' : '0')));
 
-        // Motor direction flip — sends 'F-1'/'F1' to firmware, persists in NVS
-        const motorDirFlipEl = document.getElementById('motorDirFlip');
-        motorDirFlipEl.addEventListener('change', () => {
-            sendCmd('F' + (motorDirFlipEl.checked ? '-1' : '1'));
+        // IMU 180° yaw flip — sends 'F1'/'F0' to firmware, persists in NVS
+        const imuFlipEl = document.getElementById('imuFlipCb');
+        imuFlipEl.addEventListener('change', () => {
+            sendCmd('F' + (imuFlipEl.checked ? '1' : '0'));
         });
 
         // Brake landing checkbox — sends 'P1'/'P0' to firmware
