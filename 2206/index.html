@@ -1358,7 +1358,7 @@
                             <div class="pg-label"><span>K3 (Velocity)</span><span
                                     id="k3Val"
                                     class="pg-val"
-                                >0.50</span></div>
+                                >0.70</span></div>
                             <input
                                 type="range"
                                 id="k3"
@@ -1366,7 +1366,7 @@
                                 min="0"
                                 max="3"
                                 step="0.01"
-                                value="0.50"
+                                value="0.70"
                                 disabled
                             >
                         </div>
@@ -1374,7 +1374,7 @@
                             <div class="pg-label"><span>K4 (Position)</span><span
                                     id="k4Val"
                                     class="pg-val"
-                                >1.00</span></div>
+                                >1.50</span></div>
                             <input
                                 type="range"
                                 id="k4"
@@ -1382,7 +1382,7 @@
                                 min="0"
                                 max="5"
                                 step="0.01"
-                                value="1.00"
+                                value="1.50"
                                 disabled
                             >
                         </div>
@@ -1474,7 +1474,7 @@
                             <div class="pg-label"><span>Steer LPF τ (Q)</span><span
                                     id="steerLpfVal"
                                     class="pg-val"
-                                >0.40</span></div>
+                                >0.06</span></div>
                             <input
                                 type="range"
                                 id="steerLpf"
@@ -1482,7 +1482,7 @@
                                 min="0"
                                 max="1"
                                 step="0.02"
-                                value="0.4"
+                                value="0.06"
                                 disabled
                             >
                         </div>
@@ -1531,6 +1531,22 @@
                                 max="10"
                                 step="0.1"
                                 value="0"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Move Ramp τ (s) (a)</span><span
+                                    id="moveRampVal"
+                                    class="pg-val"
+                                >0.060s</span></div>
+                            <input
+                                type="range"
+                                id="moveRamp"
+                                class="slider"
+                                min="0"
+                                max="0.5"
+                                step="0.01"
+                                value="0.06"
                                 disabled
                             >
                         </div>
@@ -1953,10 +1969,6 @@
                         <input type="checkbox" id="swingDisarmedCb" style="width:16px;height:16px;accent-color:#ffc107;" disabled>
                         <span style="color:#ffc107;">Swing Up while Disarmed</span>
                     </label>
-                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
-                        <input type="checkbox" id="imuFlipCb" style="width:16px;height:16px;accent-color:#ff7043;">
-                        <span style="color:#ff7043;">IMU 180° Yaw Flip (NVS)</span>
-                    </label>
                 </div>
             </div>
         </div>
@@ -2187,6 +2199,7 @@
             steerMaxTorque:  { el: document.getElementById('steerMaxTorque'),  val: document.getElementById('steerMaxTorqueVal'),  cmd: 'v', fmt: 2 },
             moveSpeed:       { el: document.getElementById('moveSpeed'),       val: document.getElementById('moveSpeedVal'),       cmd: 'M', fmt: 1 },
             movePitchGain:   { el: document.getElementById('movePitchGain'),   val: document.getElementById('movePitchGainVal'),   cmd: 'p', fmt: 1 },
+            moveRamp:        { el: document.getElementById('moveRamp'),        val: document.getElementById('moveRampVal'),        cmd: 'a', fmt: 3, suffix: 's' },
             ctrlFreq: { el: document.getElementById('ctrlFreq'), val: document.getElementById('ctrlFreqVal'), cmd: 'C', fmt: 0 },
             pitchOffset: { el: document.getElementById('pitchOffset'), val: document.getElementById('pitchOffsetVal'), cmd: 'O', fmt: 2, confirm: true },
             kSwing: { el: document.getElementById('kSwing'), val: document.getElementById('kSwingVal'), cmd: 'J', fmt: 2 },
@@ -2495,6 +2508,7 @@
             if (data.m2s !== undefined) { sliders.sideM2Ms.el.value     = data.m2s; sliders.sideM2Ms.val.textContent     = data.m2s.toFixed(0) + 'ms'; }
             if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(2); }
             if (data.p !== undefined) { sliders.movePitchGain.el.value = data.p; sliders.movePitchGain.val.textContent = data.p.toFixed(1); }
+            if (data.a !== undefined) { sliders.moveRamp.el.value = data.a; sliders.moveRamp.val.textContent = data.a.toFixed(3) + 's'; }
             if (data.armed !== undefined) {
                 isArmed = data.armed === 1;
                 updateArmUI();
@@ -2512,13 +2526,14 @@
                 const cb = document.getElementById('swingDisarmedCb');
                 if (cb) cb.checked = data.Y === 1;
             }
-            if (data.imuflip !== undefined) {
-                const cb = document.getElementById('imuFlipCb');
-                if (cb) cb.checked = data.imuflip === 1;
-            }
-            if (data.fw !== undefined) {
+            if (data.fw !== undefined || data.hash !== undefined) {
                 const chip = document.getElementById('fwChip');
-                if (chip) { chip.textContent = 'FW ' + data.fw; chip.style.display = 'block'; }
+                if (chip) {
+                    const h = data.hash || '';
+                    const fw = data.fw || '';
+                    chip.textContent = h ? (h + ' | ' + fw) : ('FW ' + fw);
+                    chip.style.display = 'block';
+                }
             }
             // Hardware status LEDs
             function setLed(id, val) {
@@ -2648,12 +2663,6 @@
         // Swing while disarmed checkbox — sends 'Y1'/'Y0' to firmware
         const swingDisarmedCb = document.getElementById('swingDisarmedCb');
         swingDisarmedCb.addEventListener('change', () => sendCmd('Y' + (swingDisarmedCb.checked ? '1' : '0')));
-
-        // IMU 180° yaw flip — sends 'F1'/'F0' to firmware, persists in NVS
-        const imuFlipEl = document.getElementById('imuFlipCb');
-        imuFlipEl.addEventListener('change', () => {
-            sendCmd('F' + (imuFlipEl.checked ? '1' : '0'));
-        });
 
         // Brake landing checkbox — sends 'P1'/'P0' to firmware
         function mapMoveCmd(cmd) {
