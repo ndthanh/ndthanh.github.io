@@ -1982,12 +1982,44 @@
                 <div class="ctrl-mode-toggle">
                     <button id="modeDpad" class="active">D-PAD</button>
                     <button id="modeJoy">JOYSTICK</button>
+                    <button id="modeGyro">GYRO</button>
                 </div>
 
                 <!-- Joystick (hidden by default) -->
                 <div class="joystick-wrap" id="joystickWrap" style="display:none;">
                     <canvas id="joystickCanvas" width="240" height="240"></canvas>
                     <div class="joystick-xy" id="joystickXY">X: 0.00 | Y: 0.00</div>
+                </div>
+
+                <!-- Gyro control (hidden by default) -->
+                <div id="gyroWrap" style="display:none;flex-direction:column;align-items:center;gap:10px;padding:10px 0;">
+                    <!-- How-to annotation -->
+                    <div style="background:rgba(79,195,247,0.08);border:1px solid rgba(79,195,247,0.25);border-radius:10px;padding:10px 14px;font-size:11px;color:rgba(255,255,255,0.75);text-align:center;max-width:280px;line-height:1.6;">
+                        <div style="font-size:13px;margin-bottom:6px;">📱 Cầm điện thoại <strong style="color:#4fc3f7;">nằm ngang</strong> (như cái khay)</div>
+                        <div>↕ Nghiêng <strong>đầu/đuôi</strong> → Tiến / Lùi</div>
+                        <div>↔ Nghiêng <strong>trái/phải</strong> → Quẹo trái / Quẹo phải</div>
+                        <div style="margin-top:4px;color:rgba(255,255,255,0.45);font-size:10px;">Vùng chết ±5° — Góc tối đa ±30°</div>
+                    </div>
+                    <!-- Live tilt values -->
+                    <div style="display:flex;gap:20px;">
+                        <div style="text-align:center;">
+                            <div style="font-size:10px;color:rgba(255,255,255,0.45);margin-bottom:2px;">TIẾN / LÙI (β)</div>
+                            <div id="gyroBeta" style="font-size:22px;font-weight:700;color:#4fc3f7;font-family:monospace;">0.0°</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:10px;color:rgba(255,255,255,0.45);margin-bottom:2px;">TRÁI / PHẢI (γ)</div>
+                            <div id="gyroGamma" style="font-size:22px;font-weight:700;color:#ffc107;font-family:monospace;">0.0°</div>
+                        </div>
+                    </div>
+                    <!-- Tilt bars -->
+                    <div style="width:240px;">
+                        <div style="position:relative;height:12px;background:rgba(255,255,255,0.07);border-radius:6px;overflow:hidden;margin-bottom:6px;">
+                            <div id="gyroBarFwd" style="position:absolute;top:0;height:100%;width:0%;background:#4fc3f7;border-radius:6px;transition:width 0.1s,left 0.1s;"></div>
+                        </div>
+                        <div style="position:relative;height:12px;background:rgba(255,255,255,0.07);border-radius:6px;overflow:hidden;">
+                            <div id="gyroBarSteer" style="position:absolute;top:0;height:100%;width:0%;background:#ffc107;border-radius:6px;transition:width 0.1s,left 0.1s;"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- D-pad -->
@@ -3017,22 +3049,90 @@
             canvas.addEventListener('touchmove', moveDrag, { passive: false });
             canvas.addEventListener('touchend', endDrag);
 
+            // ==================== GYRO CONTROL ====================
+            let gyroInterval = null;
+            let betaVal = 0, gammaVal = 0;
+            const GYRO_DEAD = 5, GYRO_MAX = 30;
+            const gyroBetaEl  = document.getElementById('gyroBeta');
+            const gyroGammaEl = document.getElementById('gyroGamma');
+            const gyroBarFwd   = document.getElementById('gyroBarFwd');
+            const gyroBarSteer = document.getElementById('gyroBarSteer');
+
+            function normTilt(v) {
+                if (Math.abs(v) < GYRO_DEAD) return 0;
+                return Math.sign(v) * Math.min(Math.abs(v) - GYRO_DEAD, GYRO_MAX - GYRO_DEAD) / (GYRO_MAX - GYRO_DEAD);
+            }
+            function setBar(el, val) { // val -1..1
+                const pct = Math.abs(val) * 50;
+                el.style.left  = val >= 0 ? '50%' : (50 - pct) + '%';
+                el.style.width = pct + '%';
+            }
+            function onOrientation(e) {
+                betaVal  = e.beta  || 0;
+                gammaVal = e.gamma || 0;
+                if (gyroBetaEl)  gyroBetaEl.textContent  = betaVal.toFixed(1)  + '°';
+                if (gyroGammaEl) gyroGammaEl.textContent = gammaVal.toFixed(1) + '°';
+                if (gyroBarFwd)   setBar(gyroBarFwd,   normTilt(betaVal));
+                if (gyroBarSteer) setBar(gyroBarSteer, normTilt(gammaVal));
+            }
+            function gyroSend() {
+                if (!ble_connected) return;
+                let fwd   = normTilt(betaVal);
+                let steer = normTilt(gammaVal);
+                if (invertDriveEl.checked)  fwd   = -fwd;
+                if (invertSteerEl.checked)  steer = -steer;
+                const spd = parseFloat(sliders.moveSpeed.el.value) || 500;
+                if (Math.abs(fwd) < 0.01 && Math.abs(steer) < 0.01) sendCmd('x');
+                else sendCmd('Joy' + Math.round(fwd * spd) + ',' + steer.toFixed(3));
+            }
+            async function startGyro() {
+                if (typeof DeviceOrientationEvent !== 'undefined' &&
+                    typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    try {
+                        const p = await DeviceOrientationEvent.requestPermission();
+                        if (p !== 'granted') { alert('Cần quyền truy cập cảm biến chuyển động (Settings → Safari → Motion & Orientation Access)'); return false; }
+                    } catch(e) { return false; }
+                }
+                betaVal = 0; gammaVal = 0;
+                window.addEventListener('deviceorientation', onOrientation);
+                gyroInterval = setInterval(gyroSend, 100);
+                return true;
+            }
+            function stopGyro() {
+                if (gyroInterval) { clearInterval(gyroInterval); gyroInterval = null; }
+                window.removeEventListener('deviceorientation', onOrientation);
+                sendCmd('x');
+            }
+
             // ---- mode toggle ----
             let joyMode = false;
-            function setMode(joy) {
-                joyMode = joy;
-                modeDpadBtn.classList.toggle('active', !joy);
-                modeJoyBtn.classList.toggle('active', joy);
-                dpadWrap.style.display = joy ? 'none' : '';
-                joystickWrap.style.display = joy ? 'flex' : 'none';
-                localStorage.setItem('ctrlMode', joy ? 'joy' : 'dpad');
-                if (!joy && joyInterval) { clearInterval(joyInterval); joyInterval = null; sendCmd('x'); }
+            const modeGyroBtn = document.getElementById('modeGyro');
+            const gyroWrap = document.getElementById('gyroWrap');
+            function setMode(mode) { // 'dpad' | 'joy' | 'gyro'
+                joyMode = (mode === 'joy');
+                modeDpadBtn.classList.toggle('active', mode === 'dpad');
+                modeJoyBtn.classList.toggle('active', mode === 'joy');
+                modeGyroBtn.classList.toggle('active', mode === 'gyro');
+                dpadWrap.style.display = mode === 'dpad' ? '' : 'none';
+                joystickWrap.style.display = mode === 'joy' ? 'flex' : 'none';
+                gyroWrap.style.display = mode === 'gyro' ? 'flex' : 'none';
+                localStorage.setItem('ctrlMode', mode);
+                if (mode !== 'joy' && joyInterval) { clearInterval(joyInterval); joyInterval = null; }
+                if (mode !== 'gyro') { stopGyro(); }
+                if (mode !== 'dpad' && mode !== 'joy') sendCmd('x');
             }
-            modeDpadBtn.addEventListener('click', () => setMode(false));
-            modeJoyBtn.addEventListener('click', () => setMode(true));
+            modeDpadBtn.addEventListener('click', () => setMode('dpad'));
+            modeJoyBtn.addEventListener('click', () => setMode('joy'));
+            modeGyroBtn.addEventListener('click', async () => {
+                if (modeGyroBtn.classList.contains('active')) { setMode('dpad'); return; }
+                const ok = await startGyro();
+                if (ok) setMode('gyro');
+            });
 
             // restore saved mode
-            if (localStorage.getItem('ctrlMode') === 'joy') setMode(true);
+            const savedMode = localStorage.getItem('ctrlMode');
+            if (savedMode === 'joy') setMode('joy');
+            else setMode('dpad');
 
             // ---- disabled state (mirror enableControls) ----
             // patch into enableControls via MutationObserver on btnFwd.disabled
