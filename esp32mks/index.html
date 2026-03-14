@@ -2589,9 +2589,14 @@
                 const cb = document.getElementById('imuYawFlipCb');
                 if (cb) cb.checked = data.yf === 1;
             }
-            if (data.fw !== undefined) {
+            if (data.fw !== undefined || data.hash !== undefined) {
                 const chip = document.getElementById('fwChip');
-                if (chip) { chip.textContent = 'FW ' + data.fw; chip.style.display = 'block'; }
+                if (chip) {
+                    const h = data.hash || '';
+                    const fw = data.fw || '';
+                    chip.textContent = h ? (h + ' | ' + fw) : ('FW ' + fw);
+                    chip.style.display = 'block';
+                }
             }
             // Hardware status LEDs
             function setLed(id, val) {
