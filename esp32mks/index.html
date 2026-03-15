@@ -1711,6 +1711,34 @@
                     </div>
 
                     <div class="sec">
+                        <div class="sec-title">Snap-Up (Reverse → Snap → LQR)</div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Reverse Torque V (h)</span><span
+                                    id="snapRevVVal"
+                                    class="pg-val"
+                                >0.60</span></div>
+                            <input type="range" id="snapRevV" class="slider"
+                                min="0" max="5" step="0.1" value="0.6" disabled>
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Reverse Duration ms (i)</span><span
+                                    id="snapRevMsVal"
+                                    class="pg-val"
+                                >100ms</span></div>
+                            <input type="range" id="snapRevMs" class="slider"
+                                min="20" max="400" step="10" value="100" disabled>
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Snap Duration ms (m)</span><span
+                                    id="snapMsVal"
+                                    class="pg-val"
+                                >150ms</span></div>
+                            <input type="range" id="snapMs" class="slider"
+                                min="50" max="500" step="10" value="150" disabled>
+                        </div>
+                    </div>
+
+                    <div class="sec">
                         <div class="sec-title">Side Recover (sideways → pitch-fall → swing-up)</div>
                         <div class="pg">
                             <div class="pg-label"><span>Roll Angle °</span><span
@@ -1990,6 +2018,7 @@
                     <button id="armBtn" class="tbtn tbtn-arm ctrl-big-btn" disabled>DISARMED</button>
                     <button id="swingBtn" class="tbtn tbtn-swing ctrl-big-btn" disabled>SWING UP</button>
                     <button id="standUpBtn" class="tbtn ctrl-big-btn" style="background:rgba(156,39,176,0.15);color:#ce93d8;border:1px solid rgba(156,39,176,0.4);" disabled>STAND UP</button>
+                    <button id="snapUpBtn" class="tbtn ctrl-big-btn" style="background:rgba(255,152,0,0.15);color:#ffb74d;border:1px solid rgba(255,152,0,0.4);" disabled>SNAP UP</button>
                     <button id="sideRcvrBtn" class="tbtn tbtn-sidercvr ctrl-big-btn" disabled>SIDE RCVR</button>
                     <button id="zeroBtn" class="tbtn tbtn-zero ctrl-big-btn" disabled>Zero</button>
                 </div>
@@ -2267,6 +2296,7 @@
         const swingBtn = document.getElementById('swingBtn');
         const standUpBtn = document.getElementById('standUpBtn');
         const sideRcvrBtn  = document.getElementById('sideRcvrBtn');
+        const snapUpBtn = document.getElementById('snapUpBtn');
         const zeroBtn = document.getElementById('zeroBtn');
         // Controller tab status cards
         const ctrlConnCard = document.getElementById('ctrlConnCard');
@@ -2316,7 +2346,10 @@
             sideM1Torque: { el: document.getElementById('sideM1Torque'), val: document.getElementById('sideM1TorqueVal'), cmd: 'N', fmt: 2 },
             sideM1Ms:     { el: document.getElementById('sideM1Ms'),     val: document.getElementById('sideM1MsVal'),     cmd: 'P', fmt: 0, suffix: 'ms' },
             sideM2Torque: { el: document.getElementById('sideM2Torque'), val: document.getElementById('sideM2TorqueVal'), cmd: 'D', fmt: 2 },
-            sideM2Ms:     { el: document.getElementById('sideM2Ms'),     val: document.getElementById('sideM2MsVal'),     cmd: 'Z', fmt: 0, suffix: 'ms' }
+            sideM2Ms:     { el: document.getElementById('sideM2Ms'),     val: document.getElementById('sideM2MsVal'),     cmd: 'Z', fmt: 0, suffix: 'ms' },
+            snapRevV:  { el: document.getElementById('snapRevV'),  val: document.getElementById('snapRevVVal'),  cmd: 'h', fmt: 2 },
+            snapRevMs: { el: document.getElementById('snapRevMs'), val: document.getElementById('snapRevMsVal'), cmd: 'i', fmt: 0, suffix: 'ms' },
+            snapMs:    { el: document.getElementById('snapMs'),    val: document.getElementById('snapMsVal'),    cmd: 'm', fmt: 0, suffix: 'ms' }
         };
 
         if (!navigator.bluetooth) {
@@ -2373,6 +2406,7 @@
             btnRight.disabled = !enabled;
             btnStop.disabled = !enabled;
             telemetryToggle.disabled = !enabled;
+            snapUpBtn.disabled = !enabled;
             swingDisarmedCb.disabled = !enabled;
             imuYawFlipCb.disabled = !enabled;
             if (!enabled) { telemetryOn = false; updateTelemetryToggleUI(); }
@@ -2385,8 +2419,8 @@
             ctrlArmCard.classList.toggle('armed', isArmed);
         }
 
-        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'STAND UP', 'SIDE RCVR'];
-        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-swing', 'state-siderecover'];
+        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'STAND UP', 'SIDE RCVR', 'SNAP UP'];
+        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-swing', 'state-siderecover', 'state-swing'];
 
         function updateStateUI() {
             const s = Math.min(robotState, STATE_NAMES.length - 1);
@@ -2412,6 +2446,7 @@
             swingBtn.classList.toggle('active', robotState === 1);
             standUpBtn.classList.toggle('active', robotState === 3);
             sideRcvrBtn.classList.toggle('active', robotState === 4);
+            snapUpBtn.classList.toggle('active', robotState === 5);
             ctrlStateVal.textContent = stateName;
             ctrlStateCard.className = 'ctrl-card ' + (STATE_CSS[s] || '');
 
@@ -2613,6 +2648,9 @@
             if (data.m1s !== undefined) { sliders.sideM1Ms.el.value     = data.m1s; sliders.sideM1Ms.val.textContent     = data.m1s.toFixed(0) + 'ms'; }
             if (data.m2t !== undefined) { sliders.sideM2Torque.el.value = data.m2t; sliders.sideM2Torque.val.textContent = data.m2t.toFixed(2); }
             if (data.m2s !== undefined) { sliders.sideM2Ms.el.value     = data.m2s; sliders.sideM2Ms.val.textContent     = data.m2s.toFixed(0) + 'ms'; }
+            if (data.sv !== undefined) { sliders.snapRevV.el.value  = data.sv; sliders.snapRevV.val.textContent  = data.sv.toFixed(2); }
+            if (data.si !== undefined) { sliders.snapRevMs.el.value = data.si; sliders.snapRevMs.val.textContent = data.si.toFixed(0) + 'ms'; }
+            if (data.sd !== undefined) { sliders.snapMs.el.value    = data.sd; sliders.snapMs.val.textContent    = data.sd.toFixed(0) + 'ms'; }
             if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(2); }
             if (data.p  !== undefined) { sliders.movePitchGain.el.value = data.p;  sliders.movePitchGain.val.textContent = data.p.toFixed(1); }
             if (data.Vf !== undefined) { sliders.velMaxRads.el.value = data.Vf;  sliders.velMaxRads.val.textContent = data.Vf.toFixed(1); }
@@ -2746,6 +2784,10 @@
 
         sideRcvrBtn.addEventListener('click', async () => {
             await sendCmd('R0');
+        });
+
+        snapUpBtn.addEventListener('click', async () => {
+            await sendCmd('g0');
         });
 
         // Zero button
