@@ -1788,6 +1788,22 @@
                                 disabled
                             >
                         </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Swing Duration ms (d)</span><span
+                                    id="swingUpMsVal"
+                                    class="pg-val"
+                                >2000ms</span></div>
+                            <input
+                                type="range"
+                                id="swingUpMs"
+                                class="slider"
+                                min="500"
+                                max="6000"
+                                step="100"
+                                value="2000"
+                                disabled
+                            >
+                        </div>
                     </div>
 
                     <div class="sec">
@@ -2275,6 +2291,7 @@
             pitchOffset: { el: document.getElementById('pitchOffset'), val: document.getElementById('pitchOffsetVal'), cmd: 'O', fmt: 2, confirm: true },
             kSwing: { el: document.getElementById('kSwing'), val: document.getElementById('kSwingVal'), cmd: 'J', fmt: 2 },
             swingMax: { el: document.getElementById('swingMax'), val: document.getElementById('swingMaxVal'), cmd: 'H', fmt: 1 },
+            swingUpMs: { el: document.getElementById('swingUpMs'), val: document.getElementById('swingUpMsVal'), cmd: 'd', fmt: 0, suffix: 'ms' },
             crawlVelGain:   { el: document.getElementById('crawlVelGain'),   val: document.getElementById('crawlVelGainVal'),   cmd: 'c', fmt: 3 },
             crawlMaxTorque: { el: document.getElementById('crawlMaxTorque'), val: document.getElementById('crawlMaxTorqueVal'), cmd: 'o', fmt: 2 },
             standUpTorque:  { el: document.getElementById('standUpTorque'),  val: document.getElementById('standUpTorqueVal'),  cmd: 'e', fmt: 2 },
@@ -2568,6 +2585,7 @@
             }
             if (data.J !== undefined) { sliders.kSwing.el.value = data.J; sliders.kSwing.val.textContent = data.J.toFixed(2); }
             if (data.H !== undefined) { sliders.swingMax.el.value = data.H; sliders.swingMax.val.textContent = data.H.toFixed(1); }
+            if (data.su !== undefined) { sliders.swingUpMs.el.value = data.su; sliders.swingUpMs.val.textContent = data.su.toFixed(0) + 'ms'; }
             if (data.c !== undefined) { sliders.crawlVelGain.el.value = data.c; sliders.crawlVelGain.val.textContent = data.c.toFixed(3); }
             if (data.o !== undefined) { sliders.crawlMaxTorque.el.value = data.o; sliders.crawlMaxTorque.val.textContent = data.o.toFixed(2); }
             if (data.e !== undefined) { sliders.standUpTorque.el.value = data.e; sliders.standUpTorque.val.textContent = data.e.toFixed(2); }
