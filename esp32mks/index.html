@@ -2731,12 +2731,12 @@
                 const cb = document.getElementById('imuYawFlipCb');
                 if (cb) cb.checked = data.yf === 1;
             }
-            if (data.fw !== undefined || data.hash !== undefined) {
+            if (data.hash !== undefined) {
                 const chip = document.getElementById('fwChip');
-                if (chip) {
-                    const h = data.hash || '';
-                    const fw = data.fw || '';
-                    chip.textContent = h ? (h + ' | ' + fw) : ('FW ' + fw);
+                if (chip && data.hash) {
+                    // Only update if log-based display hasn't set a richer string already
+                    if (!chip.textContent.includes(' | '))
+                        chip.textContent = data.hash;
                     chip.style.display = 'block';
                 }
             }
@@ -4085,8 +4085,17 @@
         }
 
         function onLogNotify(event) {
-            const text = new TextDecoder().decode(event.target.value);
-            logAppend(text.trim());
+            const text = new TextDecoder().decode(event.target.value).trim();
+            logAppend(text);
+            // Extract firmware hash from "FW:XXXXXXX DATE" log message sent on every BLE connect
+            const m = text.match(/^FW:([0-9a-f]+)\s+(.+)$/);
+            if (m) {
+                const chip = document.getElementById('fwChip');
+                if (chip) {
+                    chip.textContent = m[1] + ' | ' + m[2];
+                    chip.style.display = 'block';
+                }
+            }
         }
 
         logClearBtn.addEventListener('click', () => {
