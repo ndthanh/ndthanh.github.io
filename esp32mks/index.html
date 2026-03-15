@@ -1293,6 +1293,7 @@
             <button class="tab-btn" data-tab="controller">Controller</button>
             <button class="tab-btn" data-tab="ota">OTA</button>
             <button class="tab-btn" data-tab="macro">Macro</button>
+            <button class="tab-btn" data-tab="prog">Prog</button>
             <button class="tab-btn" data-tab="log">Log</button>
             <div id="statusBadge" class="status-badge"><span id="statusText">OFFLINE</span></div>
             <button id="connectBtn" class="tbtn tbtn-connect">Connect</button>
@@ -2220,6 +2221,49 @@
             </div>
         </div>
 
+        <!-- TAB: PROG -->
+        <div id="tabProg" class="tab-content">
+            <div class="macro-panel">
+                <div class="macro-controls">
+                    <button id="playProgBtn" class="tbtn tbtn-play" disabled>&#9654; PLAY</button>
+                    <button id="stopProgBtn" class="tbtn" style="background:rgba(220,53,69,0.15);color:#f87171;border:1px solid rgba(220,53,69,0.4);" disabled>&#9632; STOP</button>
+                    <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,0.6);">
+                        Loop
+                        <input type="number" id="progLoopCount" value="1" min="1" max="99" style="width:42px;padding:3px 5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#fff;font-size:12px;text-align:center;" disabled>
+                        &times;
+                    </label>
+                    <div class="toolbar-spacer"></div>
+                    <button id="addProgStepBtn" class="tbtn" style="background:rgba(25,135,84,0.15);color:#20c997;border:1px solid rgba(25,135,84,0.4);" disabled>+ Add Step</button>
+                </div>
+
+                <div id="progStatus" class="macro-status">Add steps, then PLAY from FALLEN+ARMED state</div>
+
+                <div id="progStepList" style="overflow-y:auto;flex:1;padding:4px 0;">
+                    <table id="progTable" style="width:100%;border-collapse:collapse;font-size:12px;">
+                        <thead>
+                            <tr style="color:rgba(255,255,255,0.4);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">
+                                <th style="padding:4px 6px;text-align:center;width:28px;">#</th>
+                                <th style="padding:4px 6px;text-align:center;">L (V)</th>
+                                <th style="padding:4px 6px;text-align:center;">R (V)</th>
+                                <th style="padding:4px 6px;text-align:center;">Dur (ms)</th>
+                                <th style="padding:4px 6px;text-align:center;width:28px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="progTableBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="macro-save-area">
+                    <div class="sec-title">Saved Sequences</div>
+                    <div class="macro-save-row">
+                        <input type="text" id="progSaveName" class="macro-save-input" placeholder="Sequence name" maxlength="40">
+                        <button id="progSaveBtn" class="tbtn" style="background:linear-gradient(135deg,#0d6efd,#6610f2);color:white;flex-shrink:0">Save</button>
+                    </div>
+                    <div id="progSavedList" class="macro-saved-list"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- TAB: LOG -->
         <div id="tabLog" class="tab-content">
             <div style="display:flex;flex-direction:column;height:100%;padding:12px;gap:10px;box-sizing:border-box;">
@@ -2297,6 +2341,10 @@
         const standUpBtn = document.getElementById('standUpBtn');
         const sideRcvrBtn  = document.getElementById('sideRcvrBtn');
         const snapUpBtn = document.getElementById('snapUpBtn');
+        const playProgBtn = document.getElementById('playProgBtn');
+        const stopProgBtn = document.getElementById('stopProgBtn');
+        const addProgStepBtn = document.getElementById('addProgStepBtn');
+        const progLoopCount = document.getElementById('progLoopCount');
         const zeroBtn = document.getElementById('zeroBtn');
         // Controller tab status cards
         const ctrlConnCard = document.getElementById('ctrlConnCard');
@@ -2407,6 +2455,10 @@
             btnStop.disabled = !enabled;
             telemetryToggle.disabled = !enabled;
             snapUpBtn.disabled = !enabled;
+            playProgBtn.disabled = !enabled;
+            stopProgBtn.disabled = !enabled;
+            addProgStepBtn.disabled = !enabled;
+            progLoopCount.disabled = !enabled;
             swingDisarmedCb.disabled = !enabled;
             imuYawFlipCb.disabled = !enabled;
             if (!enabled) { telemetryOn = false; updateTelemetryToggleUI(); }
@@ -2419,8 +2471,8 @@
             ctrlArmCard.classList.toggle('armed', isArmed);
         }
 
-        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'STAND UP', 'SIDE RCVR', 'SNAP UP'];
-        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-swing', 'state-siderecover', 'state-swing'];
+        const STATE_NAMES = ['FALLEN', 'SWING UP', 'BALANCING', 'STAND UP', 'SIDE RCVR', 'SNAP UP', 'PROG'];
+        const STATE_CSS   = ['', 'state-swing', 'state-balance', 'state-swing', 'state-siderecover', 'state-swing', 'state-swing'];
 
         function updateStateUI() {
             const s = Math.min(robotState, STATE_NAMES.length - 1);
@@ -2447,6 +2499,7 @@
             standUpBtn.classList.toggle('active', robotState === 3);
             sideRcvrBtn.classList.toggle('active', robotState === 4);
             snapUpBtn.classList.toggle('active', robotState === 5);
+            playProgBtn.classList.toggle('active', robotState === 6);
             ctrlStateVal.textContent = stateName;
             ctrlStateCard.className = 'ctrl-card ' + (STATE_CSS[s] || '');
 
@@ -2462,7 +2515,7 @@
 
         // ==================== TABS ====================
         const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabMap = { tuner: 'tabTuner', controller: 'tabController', ota: 'tabOta', macro: 'tabMacro', log: 'tabLog' };
+        const tabMap = { tuner: 'tabTuner', controller: 'tabController', ota: 'tabOta', macro: 'tabMacro', prog: 'tabProg', log: 'tabLog' };
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -2651,6 +2704,7 @@
             if (data.sv !== undefined) { sliders.snapRevV.el.value  = data.sv; sliders.snapRevV.val.textContent  = data.sv.toFixed(2); }
             if (data.si !== undefined) { sliders.snapRevMs.el.value = data.si; sliders.snapRevMs.val.textContent = data.si.toFixed(0) + 'ms'; }
             if (data.sd !== undefined) { sliders.snapMs.el.value    = data.sd; sliders.snapMs.val.textContent    = data.sd.toFixed(0) + 'ms'; }
+            if (data.ps !== undefined) highlightProgStep(data.ps);
             if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(2); }
             if (data.p  !== undefined) { sliders.movePitchGain.el.value = data.p;  sliders.movePitchGain.val.textContent = data.p.toFixed(1); }
             if (data.Vf !== undefined) { sliders.velMaxRads.el.value = data.Vf;  sliders.velMaxRads.val.textContent = data.Vf.toFixed(1); }
@@ -2789,6 +2843,156 @@
         snapUpBtn.addEventListener('click', async () => {
             await sendCmd('g0');
         });
+
+        // ==================== PROG TAB ====================
+        const PROG_STORAGE_KEY = 'balancebot_prog';
+        let progPlaying = false;
+        let progAbortCtrl = { aborted: false };
+
+        function getProgProfiles() {
+            try { return JSON.parse(localStorage.getItem(PROG_STORAGE_KEY)) || []; } catch { return []; }
+        }
+        function saveProgProfiles(p) { localStorage.setItem(PROG_STORAGE_KEY, JSON.stringify(p)); }
+
+        function getProgSteps() {
+            const rows = document.querySelectorAll('#progTableBody tr');
+            const steps = [];
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const L = parseFloat(inputs[0].value) || 0;
+                const R = parseFloat(inputs[1].value) || 0;
+                const dur = parseInt(inputs[2].value) || 100;
+                steps.push({ L, R, dur });
+            });
+            return steps;
+        }
+
+        function addProgStepRow(L = 0, R = 0, dur = 100) {
+            const tbody = document.getElementById('progTableBody');
+            const idx = tbody.rows.length;
+            const tr = document.createElement('tr');
+            tr.style.cssText = 'border-bottom:1px solid rgba(255,255,255,0.05);';
+            tr.innerHTML = `
+                <td style="padding:4px 6px;text-align:center;color:rgba(255,255,255,0.35);font-size:11px;">${idx + 1}</td>
+                <td style="padding:3px 4px;"><input type="number" value="${L.toFixed(1)}" min="-9" max="9" step="0.1" style="width:52px;padding:3px 5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#fff;font-size:12px;text-align:center;"></td>
+                <td style="padding:3px 4px;"><input type="number" value="${R.toFixed(1)}" min="-9" max="9" step="0.1" style="width:52px;padding:3px 5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#fff;font-size:12px;text-align:center;"></td>
+                <td style="padding:3px 4px;"><input type="number" value="${dur}" min="5" max="5000" step="5" style="width:60px;padding:3px 5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#fff;font-size:12px;text-align:center;"></td>
+                <td style="padding:3px 4px;text-align:center;"><button onclick="deleteProgRow(this)" style="background:rgba(220,53,69,0.2);color:#f87171;border:1px solid rgba(220,53,69,0.3);border-radius:4px;padding:2px 7px;font-size:12px;cursor:pointer;">&#215;</button></td>`;
+            tbody.appendChild(tr);
+            updateProgRowNumbers();
+        }
+
+        function deleteProgRow(btn) {
+            btn.closest('tr').remove();
+            updateProgRowNumbers();
+        }
+        window.deleteProgRow = deleteProgRow;
+
+        function updateProgRowNumbers() {
+            document.querySelectorAll('#progTableBody tr').forEach((tr, i) => {
+                tr.cells[0].textContent = i + 1;
+            });
+        }
+
+        function highlightProgStep(stepIdx) {
+            document.querySelectorAll('#progTableBody tr').forEach((tr, i) => {
+                tr.classList.toggle('playing', i === stepIdx && robotState === 6);
+            });
+        }
+
+        function loadProgSteps(steps) {
+            document.getElementById('progTableBody').innerHTML = '';
+            steps.forEach(s => addProgStepRow(s.L, s.R, s.dur));
+        }
+
+        async function playSequence() {
+            if (!charCmd || progPlaying) return;
+            const steps = getProgSteps();
+            if (steps.length === 0) return;
+            progPlaying = true;
+            progAbortCtrl = { aborted: false };
+            const loops = Math.max(1, parseInt(progLoopCount.value) || 1);
+            playProgBtn.textContent = '⬛ STOP';
+            playProgBtn.classList.add('active');
+            document.getElementById('progStatus').textContent = 'Sending sequence…';
+
+            for (let loop = 0; loop < loops && !progAbortCtrl.aborted; loop++) {
+                // Upload steps
+                for (let i = 0; i < steps.length && !progAbortCtrl.aborted; i++)
+                    await sendCmd(`j${i} ${steps[i].L.toFixed(2)} ${steps[i].R.toFixed(2)} ${steps[i].dur}`);
+                if (progAbortCtrl.aborted) break;
+                // Trigger
+                await sendCmd(`j${steps.length}`);
+                document.getElementById('progStatus').textContent = `Loop ${loop + 1}/${loops} — running…`;
+
+                if (loop < loops - 1 && !progAbortCtrl.aborted) {
+                    // Wait for sequence to finish (state leaves PROG_PLAY=6) — timeout 15s
+                    const deadline = Date.now() + 15000;
+                    while (Date.now() < deadline && !progAbortCtrl.aborted && robotState === 6)
+                        await new Promise(r => setTimeout(r, 50));
+                    if (robotState !== 0) break; // only loop from FALLEN
+                    await new Promise(r => setTimeout(r, 300));
+                }
+            }
+
+            progPlaying = false;
+            playProgBtn.textContent = '▶ PLAY';
+            playProgBtn.classList.remove('active');
+            document.querySelectorAll('#progTableBody tr').forEach(tr => tr.classList.remove('playing'));
+            if (!progAbortCtrl.aborted)
+                document.getElementById('progStatus').textContent = 'Done.';
+        }
+
+        function stopProgSequence() {
+            progAbortCtrl.aborted = true;
+        }
+
+        playProgBtn.addEventListener('click', async () => {
+            if (progPlaying) stopProgSequence();
+            else await playSequence();
+        });
+
+        stopProgBtn.addEventListener('click', () => stopProgSequence());
+
+        addProgStepBtn.addEventListener('click', () => addProgStepRow(0, 0, 100));
+
+        // Save
+        document.getElementById('progSaveBtn').addEventListener('click', () => {
+            const name = document.getElementById('progSaveName').value.trim();
+            const steps = getProgSteps();
+            if (!name || steps.length === 0) return;
+            const profiles = getProgProfiles();
+            profiles.unshift({ name, steps, ts: Date.now() });
+            saveProgProfiles(profiles);
+            document.getElementById('progSaveName').value = '';
+            renderProgSaved();
+        });
+
+        function renderProgSaved() {
+            const profiles = getProgProfiles();
+            const el = document.getElementById('progSavedList');
+            if (profiles.length === 0) {
+                el.innerHTML = '<span style="font-size:10px;color:rgba(255,255,255,0.2)">No saved sequences</span>';
+                return;
+            }
+            el.innerHTML = profiles.map((p, i) => `
+                <div class="macro-saved-item">
+                    <span class="macro-saved-item-name" onclick="loadProgProfile(${i})" title="${p.steps.length} steps · ${(p.steps.reduce((s,st)=>s+st.dur,0)/1000).toFixed(1)}s">${esc(p.name)}</span>
+                    <button class="macro-saved-item-del" onclick="deleteProgProfile(${i})">✕</button>
+                </div>`).join('');
+        }
+        window.loadProgProfile = function(i) {
+            const p = getProgProfiles()[i];
+            if (p) loadProgSteps(p.steps);
+        };
+        window.deleteProgProfile = function(i) {
+            const profiles = getProgProfiles();
+            profiles.splice(i, 1);
+            saveProgProfiles(profiles);
+            renderProgSaved();
+        };
+
+        renderProgSaved();
 
         // Zero button
         const zeroInfo = document.getElementById('zeroInfo');
