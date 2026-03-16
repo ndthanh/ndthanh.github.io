@@ -1676,9 +1676,9 @@
                     </div>
 
                     <div class="sec">
-                        <div class="sec-title">Stand-Up (Fallen → torque push to upright)</div>
+                        <div class="sec-title">Stand-Up — Open Loop</div>
                         <div class="pg">
-                            <div class="pg-label"><span>Push Torque (e)</span><span
+                            <div class="pg-label"><span>Torque V (e)</span><span
                                     id="standUpTorqueVal"
                                     class="pg-val"
                                 >5.50</span></div>
@@ -1687,7 +1687,7 @@
                                 id="standUpTorque"
                                 class="slider"
                                 min="0"
-                                max="9"
+                                max="12"
                                 step="0.1"
                                 value="5.5"
                                 disabled
@@ -1703,7 +1703,7 @@
                                 id="standUpMs"
                                 class="slider"
                                 min="50"
-                                max="500"
+                                max="800"
                                 step="10"
                                 value="150"
                                 disabled
@@ -1711,70 +1711,37 @@
                         </div>
                     </div>
 
-
                     <div class="sec">
-                        <div class="sec-title">Swing-Up (PD)</div>
+                        <div class="sec-title">Swing-Up — Open Loop</div>
                         <div class="pg">
-                            <div class="pg-label"><span>K_theta — angle gain (J)</span><span
-                                    id="kSwingVal"
-                                    class="pg-val"
-                                >4.00</span></div>
-                            <input
-                                type="range"
-                                id="kSwing"
-                                class="slider"
-                                min="0.5"
-                                max="15"
-                                step="0.25"
-                                value="4.0"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>K_vel — velocity damping (K)</span><span
-                                    id="kVelVal"
-                                    class="pg-val"
-                                >1.00</span></div>
-                            <input
-                                type="range"
-                                id="kVel"
-                                class="slider"
-                                min="0"
-                                max="5"
-                                step="0.1"
-                                value="1.0"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Swing Max V</span><span
+                            <div class="pg-label"><span>Torque V (H)</span><span
                                     id="swingMaxVal"
                                     class="pg-val"
-                                >5.0</span></div>
+                                >8.0</span></div>
                             <input
                                 type="range"
                                 id="swingMax"
                                 class="slider"
-                                min="2"
-                                max="10"
+                                min="1"
+                                max="12"
                                 step="0.5"
-                                value="5.0"
+                                value="8.0"
                                 disabled
                             >
                         </div>
                         <div class="pg">
-                            <div class="pg-label"><span>Swing Duration ms (d)</span><span
+                            <div class="pg-label"><span>Duration ms (d)</span><span
                                     id="swingUpMsVal"
                                     class="pg-val"
-                                >2000ms</span></div>
+                                >500ms</span></div>
                             <input
                                 type="range"
                                 id="swingUpMs"
                                 class="slider"
                                 min="50"
-                                max="6000"
+                                max="2000"
                                 step="50"
-                                value="2000"
+                                value="500"
                                 disabled
                             >
                         </div>
@@ -2308,8 +2275,6 @@
             velFfGate:       { el: document.getElementById('velFfGate'),       val: document.getElementById('velFfGateVal'),       cmd: 'w', fmt: 1 },
             ctrlFreq: { el: document.getElementById('ctrlFreq'), val: document.getElementById('ctrlFreqVal'), cmd: 'C', fmt: 0 },
             pitchOffset: { el: document.getElementById('pitchOffset'), val: document.getElementById('pitchOffsetVal'), cmd: 'O', fmt: 2, confirm: true },
-            kSwing: { el: document.getElementById('kSwing'), val: document.getElementById('kSwingVal'), cmd: 'J', fmt: 2 },
-            kVel:   { el: document.getElementById('kVel'),   val: document.getElementById('kVelVal'),   cmd: 'K', fmt: 2 },
             swingMax: { el: document.getElementById('swingMax'), val: document.getElementById('swingMaxVal'), cmd: 'H', fmt: 1 },
             swingUpMs: { el: document.getElementById('swingUpMs'), val: document.getElementById('swingUpMsVal'), cmd: 'd', fmt: 0, suffix: 'ms' },
             crawlVelGain:   { el: document.getElementById('crawlVelGain'),   val: document.getElementById('crawlVelGainVal'),   cmd: 'c', fmt: 3 },
@@ -2582,8 +2547,6 @@
                 lastOffset = data.O;
                 ctrlOffsetVal.textContent = (data.O >= 0 ? '+' : '') + data.O.toFixed(2) + '\u00B0';
             }
-            if (data.J !== undefined) { sliders.kSwing.el.value = data.J; sliders.kSwing.val.textContent = data.J.toFixed(2); }
-            if (data.K !== undefined) { sliders.kVel.el.value = data.K; sliders.kVel.val.textContent = data.K.toFixed(2); }
             if (data.H !== undefined) { sliders.swingMax.el.value = data.H; sliders.swingMax.val.textContent = data.H.toFixed(1); }
             if (data.su !== undefined) { sliders.swingUpMs.el.value = data.su; sliders.swingUpMs.val.textContent = data.su.toFixed(0) + 'ms'; }
             if (data.c !== undefined) { sliders.crawlVelGain.el.value = data.c; sliders.crawlVelGain.val.textContent = data.c.toFixed(3); }
