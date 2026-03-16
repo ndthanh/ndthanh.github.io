@@ -1873,7 +1873,7 @@
                                 <span
                                     class="mini-chart-label"
                                     style="color:#ff6b6b"
-                                >Torque (V)</span>
+                                >Current (A)</span>
                                 <span
                                     id="liveTorque"
                                     class="mini-chart-val"
@@ -2511,7 +2511,7 @@
 
             mcuTimeMs += dtUs / 1000;
             livePitch.textContent = pitch.toFixed(2) + '\u00B0';
-            liveTorque.textContent = torque.toFixed(2) + 'V';
+            liveTorque.textContent = torque.toFixed(3) + 'A';
             liveVel.textContent = wheelVel.toFixed(1);
             liveWpos.textContent = wheelPos.toFixed(1);
             chartDt.textContent = 'dt ' + dtUs + '\u00B5s';
