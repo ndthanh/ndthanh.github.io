@@ -2393,23 +2393,8 @@
         function updateStateUI() {
             const s = Math.min(robotState, STATE_NAMES.length - 1);
 
-            // Compute fallen direction sub-state (uses latest pitch/roll data)
-            let stateName = STATE_NAMES[s] || String(robotState);
-            if (robotState === 0) {
-                const p = lastPitch || 0;
-                const r = lastRollAngle;
-                if (Math.abs(r) > 60) {
-                    fallenDir = r > 0 ? 3 : 4;
-                    stateName  = r > 0 ? 'FALLEN LEFT' : 'FALLEN RIGHT';
-                } else if (Math.abs(p) > 30) {
-                    fallenDir = p > 0 ? 2 : 1;
-                    stateName  = p > 0 ? 'FALLEN BWD'  : 'FALLEN FWD';
-                } else {
-                    fallenDir = 0;
-                }
-            } else {
-                fallenDir = 0;
-            }
+            const stateName = STATE_NAMES[s] || String(robotState);
+            fallenDir = 0;
 
             swingBtn.classList.toggle('active', robotState === 1);
             standUpBtn.classList.toggle('active', robotState === 3);
@@ -2417,14 +2402,10 @@
             ctrlStateVal.textContent = stateName;
             ctrlStateCard.className = 'ctrl-card ' + (STATE_CSS[s] || '');
 
-            // D-pad hints: highlight button(s) relevant to current fall direction
-            const pitchFallen = robotState === 0 && (fallenDir === 1 || fallenDir === 2);
-            const leftFallen  = robotState === 0 && fallenDir === 3;
-            const rightFallen = robotState === 0 && fallenDir === 4;
-            btnFwd.classList.toggle('dpad-hint',   pitchFallen);
-            btnBack.classList.toggle('dpad-hint',  pitchFallen);
-            btnLeft.classList.toggle('dpad-hint',  leftFallen);
-            btnRight.classList.toggle('dpad-hint', rightFallen);
+            btnFwd.classList.remove('dpad-hint');
+            btnBack.classList.remove('dpad-hint');
+            btnLeft.classList.remove('dpad-hint');
+            btnRight.classList.remove('dpad-hint');
         }
 
         // ==================== TABS ====================
