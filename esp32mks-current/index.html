@@ -2587,34 +2587,34 @@
         let statusResolve = null;
 
         // Map BLE status JSON keys to slider definitions
+        function setSlider(s, v) { s.el.value = v; s.val.textContent = v.toFixed(s.fmt) + (s.suffix || ''); }
         function updateSlidersFromData(data) {
-            if (data.A !== undefined) { sliders.k1.el.value = data.A; sliders.k1.val.textContent = data.A.toFixed(2); }
-            if (data.B !== undefined) { sliders.k2.el.value = data.B; sliders.k2.val.textContent = data.B.toFixed(3); }
-            if (data.V !== undefined) { sliders.k3.el.value = data.V; sliders.k3.val.textContent = data.V.toFixed(2); }
-            if (data.Vb !== undefined) { sliders.k3Brake.el.value = data.Vb; sliders.k3Brake.val.textContent = data.Vb.toFixed(2); }
-            if (data.W !== undefined) { sliders.k4.el.value = data.W; sliders.k4.val.textContent = data.W.toFixed(2); }
-            if (data.T !== undefined) { sliders.maxTorque.el.value = data.T; sliders.maxTorque.val.textContent = data.T.toFixed(1); }
-            if (data.S !== undefined) { sliders.slew.el.value = data.S; sliders.slew.val.textContent = data.S.toFixed(0); }
-            if (data.G !== undefined) { sliders.steerGain.el.value = data.G; sliders.steerGain.val.textContent = data.G.toFixed(3); }
-            if (data.I !== undefined) { sliders.steerKi.el.value = data.I; sliders.steerKi.val.textContent = data.I.toFixed(4); }
-            if (data.X !== undefined) { sliders.steerScale.el.value = data.X; sliders.steerScale.val.textContent = data.X.toFixed(2); }
-            if (data.Q !== undefined) { sliders.steerLpf.el.value = data.Q; sliders.steerLpf.val.textContent = data.Q.toFixed(2); }
-            if (data.M !== undefined) { sliders.moveSpeed.el.value = data.M; sliders.moveSpeed.val.textContent = data.M.toFixed(1); }
-            if (data.C !== undefined) { sliders.ctrlFreq.el.value = data.C; sliders.ctrlFreq.val.textContent = data.C.toFixed(0); }
+            if (data.A  !== undefined) setSlider(sliders.k1, data.A);
+            if (data.B  !== undefined) setSlider(sliders.k2, data.B);
+            if (data.V  !== undefined) setSlider(sliders.k3, data.V);
+            if (data.Vb !== undefined) setSlider(sliders.k3Brake, data.Vb);
+            if (data.W  !== undefined) setSlider(sliders.k4, data.W);
+            if (data.T  !== undefined) setSlider(sliders.maxTorque, data.T);
+            if (data.S  !== undefined) setSlider(sliders.slew, data.S);
+            if (data.G  !== undefined) setSlider(sliders.steerGain, data.G);
+            if (data.I  !== undefined) setSlider(sliders.steerKi, data.I);
+            if (data.X  !== undefined) setSlider(sliders.steerScale, data.X);
+            if (data.Q  !== undefined) setSlider(sliders.steerLpf, data.Q);
+            if (data.M  !== undefined) setSlider(sliders.moveSpeed, data.M);
+            if (data.C  !== undefined) setSlider(sliders.ctrlFreq, data.C);
             if (data.O !== undefined) {
-                sliders.pitchOffset.el.value = data.O;
-                sliders.pitchOffset.val.textContent = data.O.toFixed(2);
+                setSlider(sliders.pitchOffset, data.O);
                 lastOffset = data.O;
                 ctrlOffsetVal.textContent = (data.O >= 0 ? '+' : '') + data.O.toFixed(2) + '\u00B0';
             }
-            if (data.J !== undefined) { sliders.kSwing.el.value = data.J; sliders.kSwing.val.textContent = data.J.toFixed(2); }
-            if (data.K !== undefined) { sliders.kVel.el.value = data.K; sliders.kVel.val.textContent = data.K.toFixed(2); }
-            if (data.H !== undefined) { sliders.swingMax.el.value = data.H; sliders.swingMax.val.textContent = data.H.toFixed(1); }
-            if (data.su !== undefined) { sliders.swingUpMs.el.value = data.su; sliders.swingUpMs.val.textContent = data.su.toFixed(0) + 'ms'; }
-            if (data.c !== undefined) { sliders.crawlVelGain.el.value = data.c; sliders.crawlVelGain.val.textContent = data.c.toFixed(3); }
-            if (data.o !== undefined) { sliders.crawlMaxTorque.el.value = data.o; sliders.crawlMaxTorque.val.textContent = data.o.toFixed(2); }
-            if (data.e !== undefined) { sliders.standUpTorque.el.value = data.e; sliders.standUpTorque.val.textContent = data.e.toFixed(2); }
-            if (data.n !== undefined) { sliders.standUpMs.el.value = data.n; sliders.standUpMs.val.textContent = data.n.toFixed(0) + 'ms'; }
+            if (data.J  !== undefined) setSlider(sliders.kSwing, data.J);
+            if (data.K  !== undefined) setSlider(sliders.kVel, data.K);
+            if (data.H  !== undefined) setSlider(sliders.swingMax, data.H);
+            if (data.su !== undefined) setSlider(sliders.swingUpMs, data.su);
+            if (data.c  !== undefined) setSlider(sliders.crawlVelGain, data.c);
+            if (data.o  !== undefined) setSlider(sliders.crawlMaxTorque, data.o);
+            if (data.e  !== undefined) setSlider(sliders.standUpTorque, data.e);
+            if (data.n  !== undefined) setSlider(sliders.standUpMs, data.n);
             if (data.ra  !== undefined) { lastRollAngle = data.ra; }
             if (data.i1 !== undefined || data.i2 !== undefined) {
                 const i1 = data.i1 !== undefined ? data.i1.toFixed(3) : '--';
@@ -2623,11 +2623,11 @@
                 if (el) el.textContent = i1 + ' / ' + i2 + ' A';
             }
             if (data.ps !== undefined) highlightProgStep(data.ps);
-            if (data.v !== undefined) { sliders.steerMaxTorque.el.value = data.v; sliders.steerMaxTorque.val.textContent = data.v.toFixed(2); }
-            if (data.p  !== undefined) { sliders.movePitchGain.el.value = data.p;  sliders.movePitchGain.val.textContent = data.p.toFixed(1); }
-            if (data.Vf !== undefined) { sliders.velMaxRads.el.value = data.Vf;  sliders.velMaxRads.val.textContent = data.Vf.toFixed(1); }
-            if (data.kv !== undefined) { sliders.kvForce.el.value    = data.kv; sliders.kvForce.val.textContent    = data.kv.toFixed(2); }
-            if (data.wg !== undefined) { sliders.velFfGate.el.value  = data.wg; sliders.velFfGate.val.textContent  = data.wg.toFixed(1); }
+            if (data.v  !== undefined) setSlider(sliders.steerMaxTorque, data.v);
+            if (data.p  !== undefined) setSlider(sliders.movePitchGain, data.p);
+            if (data.Vf !== undefined) setSlider(sliders.velMaxRads, data.Vf);
+            if (data.kv !== undefined) setSlider(sliders.kvForce, data.kv);
+            if (data.wg !== undefined) setSlider(sliders.velFfGate, data.wg);
             if (data.armed !== undefined) {
                 isArmed = data.armed === 1;
                 updateArmUI();
