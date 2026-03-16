@@ -3483,7 +3483,7 @@
             otaFetchStatus.textContent = 'Downloading...';
             otaFetchStatus.style.color = 'rgba(255,255,255,0.55)';
             try {
-                const resp = await fetch(url);
+                const resp = await fetch(url + '?cb=' + Date.now(), { cache: 'no-store' });
                 if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
                 const contentLength = resp.headers.get('Content-Length');
                 let data;
