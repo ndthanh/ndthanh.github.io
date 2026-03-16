@@ -1759,44 +1759,42 @@
                     </div>
 
                     <div class="sec">
-                        <div class="sec-title">Swing-Up — Open Loop</div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Torque V (H)</span><span
-                                    id="swingMaxVal"
-                                    class="pg-val"
-                                >3.0</span></div>
-                            <input
-                                type="range"
-                                id="swingMax"
-                                class="slider"
-                                min="1"
-                                max="12"
-                                step="0.1"
-                                value="3.0"
-                                disabled
-                            >
-                        </div>
-                        <div class="pg">
-                            <div class="pg-label"><span>Duration ms (d)</span><span
-                                    id="swingUpMsVal"
-                                    class="pg-val"
-                                >200ms</span></div>
-                            <input
-                                type="range"
-                                id="swingUpMs"
-                                class="slider"
-                                min="50"
-                                max="2000"
-                                step="50"
-                                value="200"
-                                disabled
-                            >
-                        </div>
+                        <div class="sec-title">Swing-Up</div>
+                        <!-- Mode toggle -->
                         <div class="pg" style="padding-top:4px;">
-                            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
-                                <input type="checkbox" id="swingDirInvCb" style="width:16px;height:16px;accent-color:#ff6b6b;" disabled>
-                                Invert Swing Dir (K)
-                            </label>
+                            <div style="display:flex;gap:6px;">
+                                <button id="swingModeOpenBtn" class="tbtn" style="flex:1;font-size:11px;background:rgba(255,193,7,0.3);border:1px solid rgba(255,193,7,0.6);" disabled onclick="setSwingMode(false)">Open Loop</button>
+                                <button id="swingModeEnergyBtn" class="tbtn" style="flex:1;font-size:11px;" disabled onclick="setSwingMode(true)">Energy Shape</button>
+                            </div>
+                        </div>
+                        <!-- Shared: Torque + Duration -->
+                        <div class="pg">
+                            <div class="pg-label"><span>Max Torque V (H)</span><span id="swingMaxVal" class="pg-val">3.0</span></div>
+                            <input type="range" id="swingMax" class="slider" min="1" max="12" step="0.1" value="3.0" disabled>
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span id="swingDurLabel">Duration ms (d)</span><span id="swingUpMsVal" class="pg-val">200ms</span></div>
+                            <input type="range" id="swingUpMs" class="slider" min="50" max="2000" step="50" value="200" disabled>
+                        </div>
+                        <!-- Open-loop only params -->
+                        <div id="swingOpenParams">
+                            <div class="pg" style="padding-top:4px;">
+                                <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
+                                    <input type="checkbox" id="swingDirInvCb" style="width:16px;height:16px;accent-color:#ff6b6b;" disabled>
+                                    Invert Swing Dir (K)
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Energy-shaping only params -->
+                        <div id="swingEnergyParams" style="display:none;">
+                            <div class="pg">
+                                <div class="pg-label"><span>k_theta (5)</span><span id="kThetaVal" class="pg-val">6.50</span></div>
+                                <input type="range" id="kTheta" class="slider" min="0" max="20" step="0.1" value="6.5" disabled>
+                            </div>
+                            <div class="pg">
+                                <div class="pg-label"><span>k_vel (6)</span><span id="kVelVal" class="pg-val">0.00</span></div>
+                                <input type="range" id="kVel" class="slider" min="0" max="5" step="0.05" value="0" disabled>
+                            </div>
                         </div>
                     </div>
 
@@ -2332,6 +2330,8 @@
             pitchOffset: { el: document.getElementById('pitchOffset'), val: document.getElementById('pitchOffsetVal'), cmd: 'O', fmt: 2, confirm: true },
             swingMax: { el: document.getElementById('swingMax'), val: document.getElementById('swingMaxVal'), cmd: 'H', fmt: 1 },
             swingUpMs: { el: document.getElementById('swingUpMs'), val: document.getElementById('swingUpMsVal'), cmd: 'd', fmt: 0, suffix: 'ms' },
+            kTheta: { el: document.getElementById('kTheta'), val: document.getElementById('kThetaVal'), cmd: '5', fmt: 2 },
+            kVel:   { el: document.getElementById('kVel'),   val: document.getElementById('kVelVal'),   cmd: '6', fmt: 2 },
             crawlVelGain:   { el: document.getElementById('crawlVelGain'),   val: document.getElementById('crawlVelGainVal'),   cmd: 'c', fmt: 3 },
             crawlMaxTorque: { el: document.getElementById('crawlMaxTorque'), val: document.getElementById('crawlMaxTorqueVal'), cmd: 'o', fmt: 2 },
             standUpTorque:  { el: document.getElementById('standUpTorque'),  val: document.getElementById('standUpTorqueVal'),  cmd: 'e', fmt: 2 },
@@ -2399,6 +2399,8 @@
             imuYawFlipCb.disabled = !enabled;
             document.getElementById('steerOpenLoopCb').disabled = !enabled;
             document.getElementById('swingDirInvCb').disabled = !enabled;
+            document.getElementById('swingModeOpenBtn').disabled = !enabled;
+            document.getElementById('swingModeEnergyBtn').disabled = !enabled;
             if (!enabled) { telemetryOn = false; updateTelemetryToggleUI(); }
         }
 
@@ -2645,6 +2647,11 @@
                 const cb = document.getElementById('swingDirInvCb');
                 if (cb) cb.checked = data.zi === 1;
             }
+            if (data.sem !== undefined) {
+                updateSwingModeUI(data.sem === 1);
+            }
+            if (data.kt !== undefined) { sliders.kTheta.el.value = data.kt; sliders.kTheta.val.textContent = data.kt.toFixed(2); }
+            if (data.kv !== undefined) { sliders.kVel.el.value   = data.kv; sliders.kVel.val.textContent   = data.kv.toFixed(2); }
             if (data.slg !== undefined) { sliders.steerOpenLeft.el.value = data.slg; sliders.steerOpenLeft.val.textContent = data.slg.toFixed(2); }
             if (data.srg !== undefined) { sliders.steerOpenRight.el.value = data.srg; sliders.steerOpenRight.val.textContent = data.srg.toFixed(2); }
             if (data.yf !== undefined) {
@@ -2942,6 +2949,26 @@
         // Invert swing-up direction checkbox — sends 'K1'/'K0' to firmware
         const swingDirInvCb = document.getElementById('swingDirInvCb');
         swingDirInvCb.addEventListener('change', () => sendCmd('K' + (swingDirInvCb.checked ? '1' : '0')));
+
+        // Swing mode toggle: Open Loop (J0) / Energy Shaping (J1)
+        function setSwingMode(energyMode) {
+            sendCmd('J' + (energyMode ? '1' : '0'));
+            updateSwingModeUI(energyMode);
+        }
+        function updateSwingModeUI(energyMode) {
+            const openBtn   = document.getElementById('swingModeOpenBtn');
+            const energyBtn = document.getElementById('swingModeEnergyBtn');
+            const openParams   = document.getElementById('swingOpenParams');
+            const energyParams = document.getElementById('swingEnergyParams');
+            const durLabel = document.getElementById('swingDurLabel');
+            openBtn.style.background   = !energyMode ? 'rgba(255,193,7,0.5)' : '';
+            openBtn.style.border       = !energyMode ? '1px solid rgba(255,193,7,0.9)' : '';
+            energyBtn.style.background = energyMode  ? 'rgba(100,200,100,0.5)' : '';
+            energyBtn.style.border     = energyMode  ? '1px solid rgba(100,200,100,0.9)' : '';
+            openParams.style.display   = !energyMode ? '' : 'none';
+            energyParams.style.display = energyMode  ? '' : 'none';
+            if (durLabel) durLabel.textContent = energyMode ? 'Timeout ms (d)' : 'Duration ms (d)';
+        }
 
         // IMU Yaw Flip 180° checkbox — sends 'y1'/'y0' to firmware, persisted to NVS
         const imuYawFlipCb = document.getElementById('imuYawFlipCb');
