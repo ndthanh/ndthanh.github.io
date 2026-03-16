@@ -2017,11 +2017,9 @@
                 <!-- Control buttons -->
                 <div class="ctrl-btns">
                     <button id="armBtn" class="tbtn tbtn-arm ctrl-big-btn" disabled>DISARMED</button>
-                    <button id="swingBtn" class="tbtn tbtn-swing ctrl-big-btn" disabled>SWING UP</button>
-                    <button id="standUpBtn" class="tbtn ctrl-big-btn" style="background:rgba(156,39,176,0.15);color:#ce93d8;border:1px solid rgba(156,39,176,0.4);" disabled>STAND UP</button>
-                    <button id="snapUpBtn" class="tbtn ctrl-big-btn" style="background:rgba(255,152,0,0.15);color:#ffb74d;border:1px solid rgba(255,152,0,0.4);" disabled>SNAP UP</button>
-                    <button id="sideRcvrBtn" class="tbtn tbtn-sidercvr ctrl-big-btn" disabled>SIDE RCVR</button>
                     <button id="zeroBtn" class="tbtn tbtn-zero ctrl-big-btn" disabled>Zero</button>
+                    <button id="standUpBtn" class="tbtn ctrl-big-btn" style="background:rgba(156,39,176,0.15);color:#ce93d8;border:1px solid rgba(156,39,176,0.4);" disabled>STAND UP</button>
+                    <button id="swingBtn" class="tbtn tbtn-swing ctrl-big-btn" disabled>SWING UP</button>
                 </div>
 
                 <!-- Control mode toggle -->
@@ -2339,8 +2337,6 @@
         const armBtn = document.getElementById('armBtn');
         const swingBtn = document.getElementById('swingBtn');
         const standUpBtn = document.getElementById('standUpBtn');
-        const sideRcvrBtn  = document.getElementById('sideRcvrBtn');
-        const snapUpBtn = document.getElementById('snapUpBtn');
         const playProgBtn = document.getElementById('playProgBtn');
         const stopProgBtn = document.getElementById('stopProgBtn');
         const addProgStepBtn = document.getElementById('addProgStepBtn');
@@ -2447,14 +2443,12 @@
             armBtn.disabled = !enabled;
             swingBtn.disabled = !enabled;
             standUpBtn.disabled = !enabled;
-            sideRcvrBtn.disabled  = !enabled;
             btnFwd.disabled = !enabled;
             btnBack.disabled = !enabled;
             btnLeft.disabled = !enabled;
             btnRight.disabled = !enabled;
             btnStop.disabled = !enabled;
             telemetryToggle.disabled = !enabled;
-            snapUpBtn.disabled = !enabled;
             playProgBtn.disabled = !enabled;
             stopProgBtn.disabled = !enabled;
             addProgStepBtn.disabled = !enabled;
@@ -2497,8 +2491,6 @@
 
             swingBtn.classList.toggle('active', robotState === 1);
             standUpBtn.classList.toggle('active', robotState === 3);
-            sideRcvrBtn.classList.toggle('active', robotState === 4);
-            snapUpBtn.classList.toggle('active', robotState === 5);
             playProgBtn.classList.toggle('active', robotState === 6);
             ctrlStateVal.textContent = stateName;
             ctrlStateCard.className = 'ctrl-card ' + (STATE_CSS[s] || '');
@@ -2834,14 +2826,6 @@
 
         standUpBtn.addEventListener('click', async () => {
             await sendCmd('u0');
-        });
-
-        sideRcvrBtn.addEventListener('click', async () => {
-            await sendCmd('R0');
-        });
-
-        snapUpBtn.addEventListener('click', async () => {
-            await sendCmd('g0');
         });
 
         // ==================== PROG TAB ====================
