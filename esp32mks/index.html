@@ -481,6 +481,15 @@
             display: block;
         }
 
+        /* ===== CHART PAIR (side-by-side) ===== */
+        .chart-pair {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            gap: 4px;
+            min-height: 0;
+        }
+
         /* ===== OTA TAB ===== */
         .ota-panel {
             max-width: 500px;
@@ -1717,7 +1726,7 @@
                             <div class="pg-label"><span>Torque V (H)</span><span
                                     id="swingMaxVal"
                                     class="pg-val"
-                                >8.0</span></div>
+                                >3.0</span></div>
                             <input
                                 type="range"
                                 id="swingMax"
@@ -1725,7 +1734,7 @@
                                 min="1"
                                 max="12"
                                 step="0.5"
-                                value="8.0"
+                                value="3.0"
                                 disabled
                             >
                         </div>
@@ -1733,7 +1742,7 @@
                             <div class="pg-label"><span>Duration ms (d)</span><span
                                     id="swingUpMsVal"
                                     class="pg-val"
-                                >500ms</span></div>
+                                >200ms</span></div>
                             <input
                                 type="range"
                                 id="swingUpMs"
@@ -1741,7 +1750,7 @@
                                 min="50"
                                 max="2000"
                                 step="50"
-                                value="500"
+                                value="200"
                                 disabled
                             >
                         </div>
@@ -1826,21 +1835,21 @@
                             </div>
                             <div class="mini-chart-canvas"><canvas id="canvasPitch"></canvas></div>
                         </div>
-                        <div
-                            class="mini-chart"
-                            id="chartTorque"
-                        >
-                            <div class="mini-chart-header">
-                                <span
-                                    class="mini-chart-label"
-                                    style="color:#ff6b6b"
-                                >Torque (V)</span>
-                                <span
-                                    id="liveTorque"
-                                    class="mini-chart-val"
-                                >--</span>
+                        <div class="chart-pair">
+                            <div class="mini-chart" id="chartM1">
+                                <div class="mini-chart-header">
+                                    <span class="mini-chart-label" style="color:#ff6b6b">Motor L</span>
+                                    <span id="liveM1" class="mini-chart-val">--</span>
+                                </div>
+                                <div class="mini-chart-canvas"><canvas id="canvasM1"></canvas></div>
                             </div>
-                            <div class="mini-chart-canvas"><canvas id="canvasTorque"></canvas></div>
+                            <div class="mini-chart" id="chartM2">
+                                <div class="mini-chart-header">
+                                    <span class="mini-chart-label" style="color:#ff9f43">Motor R</span>
+                                    <span id="liveM2" class="mini-chart-val">--</span>
+                                </div>
+                                <div class="mini-chart-canvas"><canvas id="canvasM2"></canvas></div>
+                            </div>
                         </div>
                         <div
                             class="mini-chart"
@@ -2391,7 +2400,8 @@
         const chartDt = document.getElementById('chartDt');
         const chartPitchEl = document.getElementById('chartPitch');
         const livePitch = document.getElementById('livePitch');
-        const liveTorque = document.getElementById('liveTorque');
+        const liveM1 = document.getElementById('liveM1');
+        const liveM2 = document.getElementById('liveM2');
         const liveVel = document.getElementById('liveVel');
         const liveWpos = document.getElementById('liveWpos');
 
@@ -2430,28 +2440,32 @@
 
         const charts = {
             pitch: makeMiniChart('canvasPitch', '#4dabf7', false),
-            torque: makeMiniChart('canvasTorque', '#ff6b6b', false),
+            m1: makeMiniChart('canvasM1', '#ff6b6b', false),
+            m2: makeMiniChart('canvasM2', '#ff9f43', false),
             vel: makeMiniChart('canvasVel', '#51cf66', false),
             wpos: makeMiniChart('canvasWpos', '#fcc419', true)
         };
 
         function onTelemetry(event) {
             const dv = event.target.value;
-            if (dv.byteLength < 13) return; // accept 13-byte (old fw) or 14-byte (new fw)
+            if (dv.byteLength < 16) return; // 16-byte struct: pitch/rate/vel/pos/m1/m2/dt/flags/roll
             lastTelemetryMs = Date.now();
             // Clear stale indicator when data resumes
             ctrlStateCard.classList.remove('state-stale');
-            const pitch = dv.getInt16(0, true) / 100;
+            const pitch    = dv.getInt16(0, true) / 100;
             const pitchRate = dv.getInt16(2, true) / 10;
             const wheelVel = dv.getInt16(4, true) / 10;
             const wheelPos = dv.getInt16(6, true) / 100;
-            const torque = dv.getInt16(8, true) / 100;
-            const dtUs = dv.getUint16(10, true);
-            const flags = dv.getUint8(12);
+            const m1       = dv.getInt16(8, true) / 100;   // motor1_voltage (LEFT)
+            const m2       = dv.getInt16(10, true) / 100;  // motor2_voltage (RIGHT)
+            const dtUs     = dv.getUint16(12, true);
+            const flags    = dv.getUint8(14);
+            const roll     = dv.getInt8(15);
 
             mcuTimeMs += dtUs / 1000;
             livePitch.textContent = pitch.toFixed(2) + '\u00B0';
-            liveTorque.textContent = torque.toFixed(2) + 'V';
+            liveM1.textContent = m1.toFixed(2) + 'V';
+            liveM2.textContent = m2.toFixed(2) + 'V';
             liveVel.textContent = wheelVel.toFixed(1);
             liveWpos.textContent = wheelPos.toFixed(1);
             chartDt.textContent = 'dt ' + dtUs + '\u00B5s';
@@ -2464,17 +2478,14 @@
                 updateArmUI();
             }
 
-            // Update roll angle from byte 13 (new fw only, 14-byte packet)
-            if (dv.byteLength >= 14) {
-                lastRollAngle = dv.getInt8(13); // roll_angle clamped ±127°
-            }
+            lastRollAngle = roll;
 
             // Update state + sub-state at 10Hz from telemetry flags (bits 4-2 = state 0-7)
             const telState = (flags >> 2) & 0x07;
             robotState = telState;
             updateStateUI(); // always refresh: sub-state name, d-pad hints, fallenDir
 
-            const values = { pitch, torque, vel: wheelVel, wpos: wheelPos };
+            const values = { pitch, m1, m2, vel: wheelVel, wpos: wheelPos };
             Object.entries(charts).forEach(([key, c]) => {
                 c.data.labels.push(mcuTimeMs);
                 c.data.datasets[0].data.push(values[key]);
@@ -2494,7 +2505,8 @@
                 c.update();
             });
             livePitch.textContent = '--';
-            liveTorque.textContent = '--';
+            liveM1.textContent = '--';
+            liveM2.textContent = '--';
             liveVel.textContent = '--';
             liveWpos.textContent = '--';
             chartDt.textContent = '';
