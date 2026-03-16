@@ -1792,6 +1792,12 @@
                                 disabled
                             >
                         </div>
+                        <div class="pg" style="padding-top:4px;">
+                            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
+                                <input type="checkbox" id="swingDirInvCb" style="width:16px;height:16px;accent-color:#ff6b6b;" disabled>
+                                Invert Swing Dir (K)
+                            </label>
+                        </div>
                     </div>
 
                     <div class="sec">
@@ -2392,6 +2398,7 @@
             swingDisarmedCb.disabled = !enabled;
             imuYawFlipCb.disabled = !enabled;
             document.getElementById('steerOpenLoopCb').disabled = !enabled;
+            document.getElementById('swingDirInvCb').disabled = !enabled;
             if (!enabled) { telemetryOn = false; updateTelemetryToggleUI(); }
         }
 
@@ -2633,6 +2640,10 @@
             if (data.ol !== undefined) {
                 const cb = document.getElementById('steerOpenLoopCb');
                 if (cb) cb.checked = data.ol === 1;
+            }
+            if (data.zi !== undefined) {
+                const cb = document.getElementById('swingDirInvCb');
+                if (cb) cb.checked = data.zi === 1;
             }
             if (data.slg !== undefined) { sliders.steerOpenLeft.el.value = data.slg; sliders.steerOpenLeft.val.textContent = data.slg.toFixed(2); }
             if (data.srg !== undefined) { sliders.steerOpenRight.el.value = data.srg; sliders.steerOpenRight.val.textContent = data.srg.toFixed(2); }
@@ -2927,6 +2938,10 @@
         // Open-loop steering checkbox — sends '21'/'20' to firmware
         const steerOpenLoopCb = document.getElementById('steerOpenLoopCb');
         steerOpenLoopCb.addEventListener('change', () => sendCmd('2' + (steerOpenLoopCb.checked ? '1' : '0')));
+
+        // Invert swing-up direction checkbox — sends 'K1'/'K0' to firmware
+        const swingDirInvCb = document.getElementById('swingDirInvCb');
+        swingDirInvCb.addEventListener('change', () => sendCmd('K' + (swingDirInvCb.checked ? '1' : '0')));
 
         // IMU Yaw Flip 180° checkbox — sends 'y1'/'y0' to firmware, persisted to NVS
         const imuYawFlipCb = document.getElementById('imuYawFlipCb');
