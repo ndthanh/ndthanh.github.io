@@ -1528,6 +1528,44 @@
                                 disabled
                             >
                         </div>
+                        <div class="pg" style="padding-top:4px;">
+                            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
+                                <input type="checkbox" id="steerOpenLoopCb" style="width:16px;height:16px;accent-color:#4fc3f7;" disabled>
+                                Open Loop Steering (2)
+                            </label>
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Motor L Gain (3)</span><span
+                                    id="steerOpenLeftVal"
+                                    class="pg-val"
+                                >1.00</span></div>
+                            <input
+                                type="range"
+                                id="steerOpenLeft"
+                                class="slider"
+                                min="0"
+                                max="5"
+                                step="0.05"
+                                value="1"
+                                disabled
+                            >
+                        </div>
+                        <div class="pg">
+                            <div class="pg-label"><span>Motor R Gain (4)</span><span
+                                    id="steerOpenRightVal"
+                                    class="pg-val"
+                                >1.00</span></div>
+                            <input
+                                type="range"
+                                id="steerOpenRight"
+                                class="slider"
+                                min="0"
+                                max="5"
+                                step="0.05"
+                                value="1"
+                                disabled
+                            >
+                        </div>
                         <div class="pg">
                             <div class="pg-label"><span>Move Speed</span><span
                                     id="moveSpeedVal"
@@ -2277,6 +2315,8 @@
             steerScale: { el: document.getElementById('steerScale'), val: document.getElementById('steerScaleVal'), cmd: 'X', fmt: 2 },
             steerLpf:        { el: document.getElementById('steerLpf'),        val: document.getElementById('steerLpfVal'),        cmd: 'Q', fmt: 2 },
             steerMaxTorque:  { el: document.getElementById('steerMaxTorque'),  val: document.getElementById('steerMaxTorqueVal'),  cmd: 'v', fmt: 2 },
+            steerOpenLeft:   { el: document.getElementById('steerOpenLeft'),   val: document.getElementById('steerOpenLeftVal'),   cmd: '3', fmt: 2 },
+            steerOpenRight:  { el: document.getElementById('steerOpenRight'),  val: document.getElementById('steerOpenRightVal'),  cmd: '4', fmt: 2 },
             moveSpeed:       { el: document.getElementById('moveSpeed'),       val: document.getElementById('moveSpeedVal'),       cmd: 'M', fmt: 1 },
             movePitchGain:   { el: document.getElementById('movePitchGain'),   val: document.getElementById('movePitchGainVal'),   cmd: 'p', fmt: 1 },
             velMaxRads:      { el: document.getElementById('velMaxRads'),      val: document.getElementById('velMaxRadsVal'),      cmd: 'F', fmt: 1 },
@@ -2351,6 +2391,7 @@
             progLoopCount.disabled = !enabled;
             swingDisarmedCb.disabled = !enabled;
             imuYawFlipCb.disabled = !enabled;
+            document.getElementById('steerOpenLoopCb').disabled = !enabled;
             if (!enabled) { telemetryOn = false; updateTelemetryToggleUI(); }
         }
 
@@ -2589,6 +2630,12 @@
                 const cb = document.getElementById('swingDisarmedCb');
                 if (cb) cb.checked = data.Y === 1;
             }
+            if (data.ol !== undefined) {
+                const cb = document.getElementById('steerOpenLoopCb');
+                if (cb) cb.checked = data.ol === 1;
+            }
+            if (data.slg !== undefined) { sliders.steerOpenLeft.el.value = data.slg; sliders.steerOpenLeft.val.textContent = data.slg.toFixed(2); }
+            if (data.srg !== undefined) { sliders.steerOpenRight.el.value = data.srg; sliders.steerOpenRight.val.textContent = data.srg.toFixed(2); }
             if (data.yf !== undefined) {
                 const cb = document.getElementById('imuYawFlipCb');
                 if (cb) cb.checked = data.yf === 1;
@@ -2876,6 +2923,10 @@
         // Swing while disarmed checkbox — sends 'Y1'/'Y0' to firmware
         const swingDisarmedCb = document.getElementById('swingDisarmedCb');
         swingDisarmedCb.addEventListener('change', () => sendCmd('Y' + (swingDisarmedCb.checked ? '1' : '0')));
+
+        // Open-loop steering checkbox — sends '21'/'20' to firmware
+        const steerOpenLoopCb = document.getElementById('steerOpenLoopCb');
+        steerOpenLoopCb.addEventListener('change', () => sendCmd('2' + (steerOpenLoopCb.checked ? '1' : '0')));
 
         // IMU Yaw Flip 180° checkbox — sends 'y1'/'y0' to firmware, persisted to NVS
         const imuYawFlipCb = document.getElementById('imuYawFlipCb');
