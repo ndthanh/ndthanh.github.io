@@ -1327,15 +1327,15 @@
                             <div class="pg-label"><span>K1 (Angle, deg→A)</span><span
                                     id="k1Val"
                                     class="pg-val"
-                                >0.05</span></div>
+                                >0.005</span></div>
                             <input
                                 type="range"
                                 id="k1"
                                 class="slider"
                                 min="0"
-                                max="0.5"
-                                step="0.001"
-                                value="0.05"
+                                max="0.1"
+                                step="0.0001"
+                                value="0.005"
                                 disabled
                             >
                         </div>
@@ -1343,15 +1343,15 @@
                             <div class="pg-label"><span>K2 (Rate, deg/s→A)</span><span
                                     id="k2Val"
                                     class="pg-val"
-                                >0.001</span></div>
+                                >0.0000</span></div>
                             <input
                                 type="range"
                                 id="k2"
                                 class="slider"
                                 min="0"
-                                max="0.02"
-                                step="0.0001"
-                                value="0.001"
+                                max="0.005"
+                                step="0.00001"
+                                value="0"
                                 disabled
                             >
                         </div>
@@ -1359,15 +1359,15 @@
                             <div class="pg-label"><span>K3 (Velocity, rad/s→A)</span><span
                                     id="k3Val"
                                     class="pg-val"
-                                >0.03</span></div>
+                                >0.000</span></div>
                             <input
                                 type="range"
                                 id="k3"
                                 class="slider"
                                 min="0"
-                                max="0.3"
-                                step="0.001"
-                                value="0.03"
+                                max="0.05"
+                                step="0.0001"
+                                value="0"
                                 disabled
                             >
                         </div>
@@ -1375,15 +1375,15 @@
                             <div class="pg-label"><span>K3 Brake (q)</span><span
                                     id="k3BrakeVal"
                                     class="pg-val"
-                                >0.05</span></div>
+                                >0.000</span></div>
                             <input
                                 type="range"
                                 id="k3Brake"
                                 class="slider"
                                 min="0"
-                                max="0.3"
-                                step="0.001"
-                                value="0.05"
+                                max="0.05"
+                                step="0.0001"
+                                value="0"
                                 disabled
                             >
                         </div>
@@ -1391,15 +1391,15 @@
                             <div class="pg-label"><span>K4 (Position, rad→A)</span><span
                                     id="k4Val"
                                     class="pg-val"
-                                >0.10</span></div>
+                                >0.000</span></div>
                             <input
                                 type="range"
                                 id="k4"
                                 class="slider"
                                 min="0"
-                                max="1"
-                                step="0.005"
-                                value="0.10"
+                                max="0.2"
+                                step="0.001"
+                                value="0"
                                 disabled
                             >
                         </div>
@@ -1411,15 +1411,15 @@
                             <div class="pg-label"><span>Max Torque (A)</span><span
                                     id="maxTorqueVal"
                                     class="pg-val"
-                                >0.80</span></div>
+                                >0.050</span></div>
                             <input
                                 type="range"
                                 id="maxTorque"
                                 class="slider"
-                                min="0.1"
-                                max="3"
-                                step="0.05"
-                                value="0.8"
+                                min="0.001"
+                                max="0.5"
+                                step="0.001"
+                                value="0.05"
                                 disabled
                             >
                         </div>
@@ -1507,15 +1507,15 @@
                             <div class="pg-label"><span>Steer Max Torque (v, A)</span><span
                                     id="steerMaxTorqueVal"
                                     class="pg-val"
-                                >0.30</span></div>
+                                >0.030</span></div>
                             <input
                                 type="range"
                                 id="steerMaxTorque"
                                 class="slider"
                                 min="0"
-                                max="1"
-                                step="0.01"
-                                value="0.3"
+                                max="0.2"
+                                step="0.001"
+                                value="0.03"
                                 disabled
                             >
                         </div>
@@ -1667,15 +1667,15 @@
                             <div class="pg-label"><span>Max Torque (o, A)</span><span
                                     id="crawlMaxTorqueVal"
                                     class="pg-val"
-                                >0.50</span></div>
+                                >0.050</span></div>
                             <input
                                 type="range"
                                 id="crawlMaxTorque"
                                 class="slider"
-                                min="0"
-                                max="2"
-                                step="0.05"
-                                value="0.5"
+                                min="0.001"
+                                max="0.5"
+                                step="0.001"
+                                value="0.05"
                                 disabled
                             >
                         </div>
@@ -1687,15 +1687,15 @@
                             <div class="pg-label"><span>Push Torque (e, A)</span><span
                                     id="standUpTorqueVal"
                                     class="pg-val"
-                                >1.00</span></div>
+                                >0.100</span></div>
                             <input
                                 type="range"
                                 id="standUpTorque"
                                 class="slider"
-                                min="0"
-                                max="3"
-                                step="0.05"
-                                value="1.0"
+                                min="0.001"
+                                max="0.5"
+                                step="0.001"
+                                value="0.1"
                                 disabled
                             >
                         </div>
@@ -1756,15 +1756,15 @@
                             <div class="pg-label"><span>Swing Max A</span><span
                                     id="swingMaxVal"
                                     class="pg-val"
-                                >2.0</span></div>
+                                >0.50</span></div>
                             <input
                                 type="range"
                                 id="swingMax"
                                 class="slider"
-                                min="0.2"
-                                max="3"
-                                step="0.1"
-                                value="2.0"
+                                min="0.01"
+                                max="1"
+                                step="0.01"
+                                value="0.5"
                                 disabled
                             >
                         </div>
