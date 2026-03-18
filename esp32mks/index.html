@@ -3590,7 +3590,7 @@
         let wifiOtaFirmwareData = null;
 
         function enableWifiOta() {
-            if (!bleDevice || !bleDevice.gatt.connected) {
+            if (!charCmd) {
                 alert('Connect via BLE first (BLE is needed for Step 1 only)');
                 return;
             }
