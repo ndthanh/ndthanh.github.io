@@ -497,6 +497,11 @@
             width: 100%;
         }
 
+        .wifi-step { display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; }
+        .step-num  { background:#1976D2; color:#fff; border-radius:50%; min-width:24px; height:24px;
+                     display:flex; align-items:center; justify-content:center;
+                     font-weight:bold; flex-shrink:0; margin-top:2px; font-size:13px; }
+
         .ota-file-drop {
             border: 2px dashed rgba(255, 255, 255, 0.15);
             border-radius: 12px;
@@ -2053,6 +2058,57 @@
             id="tabOta"
             class="tab-content"
         >
+            <!-- WiFi OTA section -->
+            <div id="wifiOtaSection" style="border:1px solid #1976D2;border-radius:8px;padding:16px;margin-bottom:24px;background:rgba(25,118,210,0.08)">
+              <div class="sec-title" style="margin-bottom:14px;color:#90CAF9">&#x26A1; WiFi OTA <span style="font-size:12px;font-weight:normal;color:#888">(faster than BLE)</span></div>
+
+              <div class="wifi-step">
+                <span class="step-num">1</span>
+                <div>
+                  <b>Enable WiFi AP on robot</b> <span style="color:#888;font-size:12px">(requires BLE connection)</span><br>
+                  <button id="wifiOtaEnableBtn" onclick="enableWifiOta()" style="margin-top:6px;background:#1976D2;color:#fff;border:none;border-radius:4px;padding:6px 16px;cursor:pointer;font-size:13px">Enable WiFi AP</button>
+                  <span id="wifiOtaStatus" style="margin-left:10px;color:#888;font-size:13px">&#x2014;</span>
+                </div>
+              </div>
+
+              <div class="wifi-step">
+                <span class="step-num">2</span>
+                <div>
+                  <b>Download firmware</b> <span style="color:#FF8F00;font-size:12px">&#x26A0; Do this BEFORE switching WiFi</span><br>
+                  <div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                    <button onclick="fetchWifiOtaFirmware('latest')" style="background:#1976D2;color:#fff;border:none;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:13px">&#x2B07; Latest</button>
+                    <button onclick="fetchWifiOtaFirmware('stable')" style="background:#388E3C;color:#fff;border:none;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:13px">&#x2B07; Stable</button>
+                    <span id="wifiOtaFwStatus" style="color:#888;font-size:13px">No firmware loaded</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="wifi-step">
+                <span class="step-num">3</span>
+                <div>
+                  <b>Connect your device to robot&#x2019;s WiFi:</b><br>
+                  <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">
+                    <code style="background:rgba(255,255,255,0.08);padding:3px 8px;border-radius:3px;border:1px solid rgba(255,255,255,0.15);font-size:13px">SSID: <b>BalanceBot-OTA</b></code>
+                    <code style="background:rgba(255,255,255,0.08);padding:3px 8px;border-radius:3px;border:1px solid rgba(255,255,255,0.15);font-size:13px">Password: <b>12345678</b></code>
+                  </div>
+                  <div style="margin-top:5px;color:#FF8F00;font-size:12px">Internet may be lost after switching &#x2014; that&#x2019;s OK, firmware is already downloaded in Step 2.</div>
+                </div>
+              </div>
+
+              <div class="wifi-step">
+                <span class="step-num">4</span>
+                <div>
+                  <b>Flash firmware via WiFi</b><br>
+                  <button id="wifiFlashBtn" onclick="flashViaWifi()" disabled style="margin-top:6px;background:#E65100;color:#fff;border:none;border-radius:4px;padding:6px 16px;cursor:pointer;font-size:13px">&#x26A1; Flash via WiFi</button>
+                  <div id="wifiFlashProgress" style="display:none;margin-top:8px;align-items:center;gap:8px">
+                    <progress id="wifiFlashBar" value="0" max="100" style="width:180px;height:14px;vertical-align:middle"></progress>
+                    <span id="wifiFlashPct" style="font-size:13px;margin-left:6px">0%</span>
+                  </div>
+                  <div id="wifiFlashMsg" style="margin-top:6px;font-weight:bold;font-size:13px"></div>
+                </div>
+              </div>
+            </div>
+
             <div class="ota-panel">
                 <div
                     class="sec-title"
@@ -2665,6 +2721,14 @@
                     if (!chip.textContent.includes(' | '))
                         chip.textContent = data.hash;
                     chip.style.display = 'block';
+                }
+            }
+            // WiFi OTA status
+            if (data.wota !== undefined && data.wota) {
+                const el = document.getElementById('wifiOtaStatus');
+                if (el && !el.textContent.includes('AP active')) {
+                    el.textContent = '\u2705 AP active \u2014 IP: 192.168.4.1';
+                    el.style.color = '#4CAF50';
                 }
             }
             // Hardware status LEDs
@@ -3518,6 +3582,90 @@
         }
 
         // Download firmware from GitHub
+        // ==================== WiFi OTA ====================
+        const WIFI_OTA_FW_URLS = {
+            latest: 'https://raw.githubusercontent.com/ndthanh/ndthanh.github.io/master/esp32mks/firmware.bin',
+            stable: 'https://raw.githubusercontent.com/ndthanh/ndthanh.github.io/master/esp32mks/stable.bin'
+        };
+        let wifiOtaFirmwareData = null;
+
+        function enableWifiOta() {
+            if (!bleDevice || !bleDevice.gatt.connected) {
+                alert('Connect via BLE first (BLE is needed for Step 1 only)');
+                return;
+            }
+            sendCmd('11');
+            const el = document.getElementById('wifiOtaStatus');
+            el.textContent = 'Activating\u2026';
+            el.style.color = '#FF8F00';
+        }
+
+        async function fetchWifiOtaFirmware(type) {
+            const statusEl = document.getElementById('wifiOtaFwStatus');
+            statusEl.textContent = 'Downloading\u2026';
+            statusEl.style.color = '#FF8F00';
+            try {
+                const resp = await fetch(WIFI_OTA_FW_URLS[type]);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const total = parseInt(resp.headers.get('content-length') || '0');
+                const reader = resp.body.getReader();
+                const chunks = []; let received = 0;
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    chunks.push(value); received += value.length;
+                    statusEl.textContent = total
+                        ? `Downloading\u2026 ${(received/1024).toFixed(1)} / ${(total/1024).toFixed(1)} KB`
+                        : `Downloading\u2026 ${(received/1024).toFixed(1)} KB`;
+                }
+                const buf = new Uint8Array(received);
+                let off = 0; for (const c of chunks) { buf.set(c, off); off += c.length; }
+                wifiOtaFirmwareData = buf;
+                statusEl.textContent = `\u2705 ${type} ready \u2014 ${(received/1024).toFixed(1)} KB`;
+                statusEl.style.color = '#4CAF50';
+                document.getElementById('wifiFlashBtn').disabled = false;
+            } catch (e) {
+                statusEl.textContent = `\u274C Download failed: ${e.message}`;
+                statusEl.style.color = '#f44336';
+            }
+        }
+
+        async function flashViaWifi() {
+            if (!wifiOtaFirmwareData) { alert('Download firmware first (Step 2)'); return; }
+            const flashBtn = document.getElementById('wifiFlashBtn');
+            const msgEl    = document.getElementById('wifiFlashMsg');
+            const barEl    = document.getElementById('wifiFlashBar');
+            const pctEl    = document.getElementById('wifiFlashPct');
+            const progEl   = document.getElementById('wifiFlashProgress');
+            flashBtn.disabled = true;
+            progEl.style.display = 'flex';
+            msgEl.textContent = '';
+            const fd = new FormData();
+            fd.append('firmware', new Blob([wifiOtaFirmwareData], {type: 'application/octet-stream'}), 'firmware.bin');
+            try {
+                await new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.upload.onprogress = e => {
+                        if (e.lengthComputable) {
+                            const p = Math.round(e.loaded / e.total * 100);
+                            barEl.value = p; pctEl.textContent = `${p}%`;
+                        }
+                    };
+                    xhr.onload  = () => xhr.status === 200 ? resolve() : reject(new Error(xhr.responseText || `HTTP ${xhr.status}`));
+                    xhr.onerror = () => reject(new Error('Connection error \u2014 are you on BalanceBot-OTA WiFi?'));
+                    xhr.open('POST', 'http://192.168.4.1/update');
+                    xhr.send(fd);
+                });
+                msgEl.textContent = '\u2705 Flash complete! Robot rebooting\u2026';
+                msgEl.style.color = '#4CAF50';
+            } catch (e) {
+                msgEl.textContent = `\u274C ${e.message}`;
+                msgEl.style.color = '#f44336';
+                flashBtn.disabled = false;
+            }
+        }
+        // =============================================
+
         const FW_URLS = {
             latest: 'https://raw.githubusercontent.com/ndthanh/ndthanh.github.io/master/esp32mks/firmware.bin',
             stable: 'https://raw.githubusercontent.com/ndthanh/ndthanh.github.io/master/esp32mks/stable.bin'
