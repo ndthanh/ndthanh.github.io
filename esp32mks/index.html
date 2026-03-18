@@ -497,10 +497,28 @@
             width: 100%;
         }
 
-        .wifi-step { display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; }
-        .step-num  { background:#1976D2; color:#fff; border-radius:50%; min-width:24px; height:24px;
+        .wifi-ota-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .wifi-step { display:flex; align-items:flex-start; gap:12px; margin-bottom:16px; }
+        .wifi-step:last-child { margin-bottom: 0; }
+        .step-num  { background: rgba(13,110,253,0.25); color: #0d6efd;
+                     border: 1px solid rgba(13,110,253,0.5);
+                     border-radius: 50%; min-width: 22px; height: 22px;
                      display:flex; align-items:center; justify-content:center;
-                     font-weight:bold; flex-shrink:0; margin-top:2px; font-size:13px; }
+                     font-weight:bold; flex-shrink:0; margin-top:1px; font-size:11px; }
+        .wifi-btn  { padding: 5px 14px; border: none; border-radius: 5px; font-size: 12px;
+                     cursor: pointer; font-weight: 600; transition: opacity 0.2s; }
+        .wifi-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .wifi-btn-blue   { background: rgba(13,110,253,0.8); color: #fff; }
+        .wifi-btn-green  { background: rgba(25,135,84,0.8);  color: #fff; }
+        .wifi-btn-orange { background: rgba(220,120,20,0.85); color: #fff; }
+        .wifi-code { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+                     border-radius: 4px; padding: 2px 8px; font-size: 12px; font-family: monospace; }
 
         .ota-file-drop {
             border: 2px dashed rgba(255, 255, 255, 0.15);
@@ -2059,26 +2077,26 @@
             class="tab-content"
         >
             <!-- WiFi OTA section -->
-            <div id="wifiOtaSection" style="border:1px solid #1976D2;border-radius:8px;padding:16px;margin-bottom:24px;background:rgba(25,118,210,0.08)">
-              <div class="sec-title" style="margin-bottom:14px;color:#90CAF9">&#x26A1; WiFi OTA <span style="font-size:12px;font-weight:normal;color:#888">(faster than BLE)</span></div>
+            <div id="wifiOtaSection" class="wifi-ota-panel">
+              <div class="sec-title" style="margin-bottom:14px">&#x26A1; WiFi OTA <span style="font-size:9px;font-weight:normal;opacity:0.5;letter-spacing:0">(faster than BLE)</span></div>
 
               <div class="wifi-step">
                 <span class="step-num">1</span>
                 <div>
-                  <b>Enable WiFi AP on robot</b> <span style="color:#888;font-size:12px">(requires BLE connection)</span><br>
-                  <button id="wifiOtaEnableBtn" onclick="enableWifiOta()" style="margin-top:6px;background:#1976D2;color:#fff;border:none;border-radius:4px;padding:6px 16px;cursor:pointer;font-size:13px">Enable WiFi AP</button>
-                  <span id="wifiOtaStatus" style="margin-left:10px;color:#888;font-size:13px">&#x2014;</span>
+                  <div style="font-size:13px;font-weight:600;margin-bottom:6px">Enable WiFi AP on robot <span style="font-weight:400;opacity:0.45;font-size:11px">(BLE required)</span></div>
+                  <button id="wifiOtaEnableBtn" class="wifi-btn wifi-btn-blue" onclick="enableWifiOta()">Enable WiFi AP</button>
+                  <span id="wifiOtaStatus" style="margin-left:10px;font-size:12px;opacity:0.45">&#x2014;</span>
                 </div>
               </div>
 
               <div class="wifi-step">
                 <span class="step-num">2</span>
                 <div>
-                  <b>Download firmware</b> <span style="color:#FF8F00;font-size:12px">&#x26A0; Do this BEFORE switching WiFi</span><br>
-                  <div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                    <button onclick="fetchWifiOtaFirmware('latest')" style="background:#1976D2;color:#fff;border:none;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:13px">&#x2B07; Latest</button>
-                    <button onclick="fetchWifiOtaFirmware('stable')" style="background:#388E3C;color:#fff;border:none;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:13px">&#x2B07; Stable</button>
-                    <span id="wifiOtaFwStatus" style="color:#888;font-size:13px">No firmware loaded</span>
+                  <div style="font-size:13px;font-weight:600;margin-bottom:6px">Download firmware <span style="color:#ffc107;font-size:11px;font-weight:400">&#x26A0; do this BEFORE switching WiFi</span></div>
+                  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                    <button class="wifi-btn wifi-btn-blue" onclick="fetchWifiOtaFirmware('latest')">&#x2B07; Latest</button>
+                    <button class="wifi-btn wifi-btn-green" onclick="fetchWifiOtaFirmware('stable')">&#x2B07; Stable</button>
+                    <span id="wifiOtaFwStatus" style="font-size:12px;opacity:0.45">No firmware loaded</span>
                   </div>
                 </div>
               </div>
@@ -2086,25 +2104,25 @@
               <div class="wifi-step">
                 <span class="step-num">3</span>
                 <div>
-                  <b>Connect your device to robot&#x2019;s WiFi:</b><br>
-                  <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">
-                    <code style="background:rgba(255,255,255,0.08);padding:3px 8px;border-radius:3px;border:1px solid rgba(255,255,255,0.15);font-size:13px">SSID: <b>BalanceBot-OTA</b></code>
-                    <code style="background:rgba(255,255,255,0.08);padding:3px 8px;border-radius:3px;border:1px solid rgba(255,255,255,0.15);font-size:13px">Password: <b>12345678</b></code>
+                  <div style="font-size:13px;font-weight:600;margin-bottom:6px">Connect device to robot&#x2019;s WiFi</div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:5px">
+                    <span class="wifi-code">SSID: <b>BalanceBot-OTA</b></span>
+                    <span class="wifi-code">Password: <b>12345678</b></span>
                   </div>
-                  <div style="margin-top:5px;color:#FF8F00;font-size:12px">Internet may be lost after switching &#x2014; that&#x2019;s OK, firmware is already downloaded in Step 2.</div>
+                  <div style="color:#ffc107;font-size:11px">Internet may be lost &#x2014; OK, firmware already downloaded in Step 2.</div>
                 </div>
               </div>
 
               <div class="wifi-step">
                 <span class="step-num">4</span>
                 <div>
-                  <b>Flash firmware via WiFi</b><br>
-                  <button id="wifiFlashBtn" onclick="flashViaWifi()" disabled style="margin-top:6px;background:#E65100;color:#fff;border:none;border-radius:4px;padding:6px 16px;cursor:pointer;font-size:13px">&#x26A1; Flash via WiFi</button>
-                  <div id="wifiFlashProgress" style="display:none;margin-top:8px;align-items:center;gap:8px">
-                    <progress id="wifiFlashBar" value="0" max="100" style="width:180px;height:14px;vertical-align:middle"></progress>
-                    <span id="wifiFlashPct" style="font-size:13px;margin-left:6px">0%</span>
+                  <div style="font-size:13px;font-weight:600;margin-bottom:6px">Flash via WiFi</div>
+                  <button id="wifiFlashBtn" class="wifi-btn wifi-btn-orange" onclick="flashViaWifi()" disabled>&#x26A1; Flash via WiFi</button>
+                  <div id="wifiFlashProgress" style="display:none;align-items:center;gap:8px;margin-top:8px">
+                    <progress id="wifiFlashBar" value="0" max="100" style="width:160px;height:12px;vertical-align:middle"></progress>
+                    <span id="wifiFlashPct" style="font-size:12px">0%</span>
                   </div>
-                  <div id="wifiFlashMsg" style="margin-top:6px;font-weight:bold;font-size:13px"></div>
+                  <div id="wifiFlashMsg" style="margin-top:6px;font-size:12px;font-weight:600"></div>
                 </div>
               </div>
             </div>
@@ -4190,6 +4208,11 @@
                     chip.textContent = m[1] + ' | ' + m[2];
                     chip.style.display = 'block';
                 }
+            }
+            // WiFi AP ready confirmation from BLE log
+            if (text.includes('WiFi AP ready')) {
+                const el = document.getElementById('wifiOtaStatus');
+                if (el) { el.textContent = '\u2705 AP active \u2014 IP: 192.168.4.1'; el.style.opacity = '1'; el.style.color = '#4CAF50'; }
             }
         }
 
