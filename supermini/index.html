@@ -2547,6 +2547,7 @@
         function onStatusNotify(event) {
             try {
                 const data = JSON.parse(new TextDecoder().decode(event.target.value));
+                window.__robotState = data;
                 updateSlidersFromData(data);
                 if (statusResolve) { statusResolve(data); statusResolve = null; }
             } catch (e) { }
