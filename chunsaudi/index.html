@@ -1,20 +1,11 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
   <meta charset="UTF-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
   <title>Chun Car</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      touch-action: none;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background: #111;
@@ -25,219 +16,336 @@
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 24px 20px 16px;
+      padding: 20px 16px 16px;
       overflow: hidden;
       user-select: none;
+      touch-action: none;
     }
 
-    header {
-      text-align: center;
-    }
+    /* ── Header ── */
+    header { text-align: center; width: 100%; }
+    h1 { font-size: 1.1rem; letter-spacing: 3px; color: #888; font-weight: 600; }
+    #status { font-size: 0.78rem; margin-top: 5px; color: #f0a500; min-height: 1.1em; }
 
-    h1 {
-      font-size: 1.2rem;
-      letter-spacing: 3px;
-      color: #bbb;
-      font-weight: 600;
+    /* ── Buttons row ── */
+    #btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+      justify-content: center;
     }
-
-    #status {
-      font-size: 0.8rem;
-      margin-top: 6px;
-      color: #f0a500;
-    }
-
-    #connect-btn {
-      margin-top: 10px;
-      padding: 8px 20px;
+    .ctrl-btn {
+      padding: 6px 18px;
       border: none;
-      border-radius: 20px;
-      background: #f0a500;
-      color: #111;
+      border-radius: 16px;
+      font-size: 0.78rem;
       font-weight: 700;
-      font-size: 0.85rem;
       cursor: pointer;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       display: none;
     }
+    #connect-btn  { background: #f0a500; color: #111; }
+    #disconnect-btn { background: #333; color: #aaa; border: 1px solid #444; }
+    #connect-btn:active    { background: #c07800; }
+    #disconnect-btn:active { background: #444; }
 
-    #connect-btn:active {
-      background: #c07800;
-    }
-
+    /* ── Joystick area ── */
     #joystick-area {
+      flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      flex: 1;
       width: 100%;
     }
 
+    /* Base circle */
     #base {
       position: relative;
-      width: 230px;
-      height: 230px;
+      width: 300px;
+      height: 300px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.04);
-      border: 2px solid rgba(255, 255, 255, 0.12);
+      background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%);
+      border: 2px solid rgba(255,255,255,0.1);
+      touch-action: none;
     }
 
+    /* Thumb – always centered via transform, offset via CSS var */
     #thumb {
       position: absolute;
-      width: 84px;
-      height: 84px;
+      width: 90px;
+      height: 90px;
       border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #f0a500, #b06000);
-      box-shadow: 0 4px 18px rgba(240, 165, 0, 0.45);
+      background: radial-gradient(circle at 35% 35%, #f0a500, #a05000);
+      box-shadow: 0 4px 20px rgba(240,165,0,0.4);
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px)));
       pointer-events: none;
       transition: box-shadow 0.1s;
+      will-change: transform;
+    }
+    #thumb.active { box-shadow: 0 4px 30px rgba(240,165,0,0.85); }
+
+    /* D-pad arrows — inside the base at 4 edges */
+    .arrow {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.25);
+      font-size: 1.1rem;
+      pointer-events: none;  /* touch handled by base */
+      transition: color 0.1s;
+    }
+    .arrow.lit { color: rgba(240,165,0,0.85); }
+    #arr-up    { top: 10px;    left: 50%; transform: translateX(-50%); }
+    #arr-down  { bottom: 10px; left: 50%; transform: translateX(-50%); }
+    #arr-left  { left: 10px;  top: 50%;  transform: translateY(-50%); }
+    #arr-right { right: 10px; top: 50%;  transform: translateY(-50%); }
+
+    /* Outer ring indicator */
+    #outer-ring {
+      position: absolute;
+      inset: 18px;
+      border-radius: 50%;
+      border: 1.5px dashed rgba(255,255,255,0.07);
+      pointer-events: none;
     }
 
-    #thumb.active {
-      box-shadow: 0 4px 28px rgba(240, 165, 0, 0.9);
-    }
-
+    /* Values */
     #vals {
-      font-size: 0.72rem;
-      color: #444;
+      font-size: 0.7rem;
+      color: #333;
       font-family: monospace;
       text-align: center;
+      height: 1em;
     }
 
-    footer {
-      font-size: 0.65rem;
-      color: #2a2a2a;
-      text-align: center;
-    }
+    footer { font-size: 0.6rem; color: #222; text-align: center; }
   </style>
 </head>
-
 <body>
 
-  <header>
-    <h1>CHUN CAR</h1>
-    <div id="status">Nhấn Connect để kết nối BLE</div>
-    <button id="connect-btn">Connect Joystick</button>
-  </header>
-
-  <div id="joystick-area">
-    <div id="base">
-      <div id="thumb"></div>
-    </div>
+<header>
+  <h1>CHUN CAR</h1>
+  <div id="status">Nhấn Connect để kết nối BLE</div>
+  <div id="btn-row">
+    <button class="ctrl-btn" id="connect-btn">Connect</button>
+    <button class="ctrl-btn" id="disconnect-btn">Disconnect</button>
   </div>
+</header>
 
-  <div id="vals">X: 0 &nbsp; Y: 0</div>
-  <footer>Web Bluetooth · ESP32 · Tank Drive</footer>
+<div id="joystick-area">
+  <div id="base">
+    <div id="outer-ring"></div>
 
-  <script>
-    const SERVICE_UUID = 'e4cc0001-87a4-412c-bc97-3a1535abcdef';
-    const RX_CHAR_UUID = 'e4cc0002-87a4-412c-bc97-3a1535abcdef';
+    <!-- D-pad arrows (visual only, touch handled by base) -->
+    <div class="arrow" id="arr-up">▲</div>
+    <div class="arrow" id="arr-down">▼</div>
+    <div class="arrow" id="arr-left">◀</div>
+    <div class="arrow" id="arr-right">▶</div>
 
-    const statusEl = document.getElementById('status');
-    const btn = document.getElementById('connect-btn');
-    const base = document.getElementById('base');
-    const thumb = document.getElementById('thumb');
-    const valsEl = document.getElementById('vals');
+    <div id="thumb"></div>
+  </div>
+</div>
 
-    let rxChar = null;
-    let sendTimer = null;
-    let joyX = 0, joyY = 0;
+<div id="vals">X: 0 &nbsp; Y: 0</div>
+<footer>Web Bluetooth · ESP32 · RC Car</footer>
 
-    if (!navigator.bluetooth) {
-      statusEl.textContent = '❌ Không hỗ trợ Web Bluetooth';
+<script>
+// ── BLE config ─────────────────────────────────────────────────────────────
+const SERVICE_UUID = 'e4cc0001-87a4-412c-bc97-3a1535abcdef';
+const RX_CHAR_UUID = 'e4cc0002-87a4-412c-bc97-3a1535abcdef';
+
+const statusEl     = document.getElementById('status');
+const connectBtn   = document.getElementById('connect-btn');
+const disconnectBtn= document.getElementById('disconnect-btn');
+const base         = document.getElementById('base');
+const thumb        = document.getElementById('thumb');
+const valsEl       = document.getElementById('vals');
+const arrows       = {
+  up:    document.getElementById('arr-up'),
+  down:  document.getElementById('arr-down'),
+  left:  document.getElementById('arr-left'),
+  right: document.getElementById('arr-right'),
+};
+
+let rxChar     = null;
+let sendTimer  = null;
+let bleDevice  = null;
+let joyX = 0, joyY = 0;
+
+const RADIUS      = 150;   // base radius px (300/2)
+const DPAD_ZONE   = 0.68;  // outer zone threshold (68% of radius → d-pad snap)
+const DEAD        = 4;     // dead-zone %
+
+// ── Web Bluetooth check ────────────────────────────────────────────────────
+if (!navigator.bluetooth) {
+  statusEl.textContent = '❌ Cần Chrome/Bluefy hỗ trợ Web Bluetooth';
+  statusEl.style.color = '#f44336';
+} else {
+  connectBtn.style.display = 'inline-block';
+}
+
+// ── Connect ────────────────────────────────────────────────────────────────
+connectBtn.addEventListener('click', async () => {
+  try {
+    statusEl.textContent = 'Đang quét BLE...';
+    statusEl.style.color = '#f0a500';
+
+    bleDevice = await navigator.bluetooth.requestDevice({
+      filters: [{ services: [SERVICE_UUID] }],
+    });
+    bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+    statusEl.textContent = 'Đang kết nối...';
+    const server  = await bleDevice.gatt.connect();
+    const service = await server.getPrimaryService(SERVICE_UUID);
+    rxChar = await service.getCharacteristic(RX_CHAR_UUID);
+
+    statusEl.textContent = '● ' + (bleDevice.name || 'Chun-Car');
+    statusEl.style.color = '#4caf50';
+    connectBtn.style.display    = 'none';
+    disconnectBtn.style.display = 'inline-block';
+
+    sendTimer = setInterval(sendJoy, 50);  // 20 Hz
+
+  } catch (err) {
+    if (err.name !== 'NotFoundError') {
+      statusEl.textContent = 'Lỗi: ' + err.message;
       statusEl.style.color = '#f44336';
     } else {
-      btn.style.display = 'inline-block';
+      statusEl.textContent = 'Huỷ quét';
+      statusEl.style.color = '#888';
     }
+  }
+});
 
-    btn.addEventListener('click', async () => {
-      try {
-        statusEl.textContent = 'Đang quét BLE...';
+// ── Disconnect ─────────────────────────────────────────────────────────────
+disconnectBtn.addEventListener('click', () => {
+  if (bleDevice && bleDevice.gatt.connected) bleDevice.gatt.disconnect();
+});
 
-        const device = await navigator.bluetooth.requestDevice({
-          filters: [{ services: [SERVICE_UUID] }],
-          optionalServices: [SERVICE_UUID]
-        });
+function onDisconnected() {
+  clearInterval(sendTimer);
+  rxChar = null;
+  joyX = joyY = 0;
+  resetThumb();
+  statusEl.textContent = 'Mất kết nối – nhấn Connect lại';
+  statusEl.style.color = '#f44336';
+  connectBtn.style.display    = 'inline-block';
+  disconnectBtn.style.display = 'none';
+}
 
-        device.addEventListener('gattserverdisconnected', onDisconnected);
+// ── Send joystick data ─────────────────────────────────────────────────────
+function sendJoy() {
+  if (!rxChar) return;
+  rxChar.writeValueWithoutResponse(new Int8Array([joyX, joyY]).buffer).catch(() => {});
+}
 
-        const server = await device.gatt.connect();
-        const service = await server.getPrimaryService(SERVICE_UUID);
-        rxChar = await service.getCharacteristic(RX_CHAR_UUID);
+// ── Joystick logic ─────────────────────────────────────────────────────────
+let activeId = null;
 
-        statusEl.textContent = '● Đã kết nối: ' + device.name;
-        statusEl.style.color = '#4caf50';
+function getCenter() {
+  const r = base.getBoundingClientRect();
+  return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+}
 
-        sendTimer = setInterval(sendJoy, 50);
+function setThumb(dx, dy) {
+  // Clamp to circle
+  const dist = Math.hypot(dx, dy);
+  if (dist > RADIUS) { const s = RADIUS / dist; dx *= s; dy *= s; }
 
-      } catch (err) {
-        statusEl.textContent = 'Lỗi: ' + err.message;
-        statusEl.style.color = '#f44336';
-      }
-    });
+  // Move thumb via CSS custom properties (no transform conflict)
+  thumb.style.setProperty('--dx', dx + 'px');
+  thumb.style.setProperty('--dy', dy + 'px');
 
-    function onDisconnected() {
-      clearInterval(sendTimer);
-      rxChar = null;
-      statusEl.textContent = 'Mất kết nối';
-    }
+  const ratio = Math.hypot(dx, dy) / RADIUS;
 
-    function sendJoy() {
-      if (!rxChar) return;
-      const buf = new Int8Array([joyX, joyY]);
-      rxChar.writeValueWithoutResponse(buf.buffer).catch(() => { });
-    }
+  let nx, ny;
+  if (ratio > DPAD_ZONE) {
+    // D-pad zone: snap to nearest cardinal direction
+    const angle = Math.atan2(-dy, dx);  // dy inverted: up = positive y-axis
+    const deg   = angle * 180 / Math.PI;
+    if      (deg >  45 && deg <= 135)  { nx =   0; ny =  100; }  // up
+    else if (deg > 135 || deg <= -135) { nx = -100; ny =    0; }  // left
+    else if (deg > -135 && deg <= -45) { nx =   0; ny = -100; }  // down
+    else                               { nx =  100; ny =    0; }  // right
 
-    // joystick
-    const RADIUS = 115;
-    let activeId = null;
+    // Highlight arrow
+    clearArrows();
+    if (ny === 100)  arrows.up.classList.add('lit');
+    if (ny === -100) arrows.down.classList.add('lit');
+    if (nx === -100) arrows.left.classList.add('lit');
+    if (nx === 100)  arrows.right.classList.add('lit');
+  } else {
+    // Analog zone
+    nx = Math.round(dx / RADIUS * 100);
+    ny = Math.round(-dy / RADIUS * 100);
+    if (Math.abs(nx) < DEAD) nx = 0;
+    if (Math.abs(ny) < DEAD) ny = 0;
+    clearArrows();
+  }
 
-    function getCenter() {
-      const r = base.getBoundingClientRect();
-      return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
-    }
+  joyX = nx; joyY = ny;
+  valsEl.innerHTML = 'X: ' + nx + ' &nbsp; Y: ' + ny;
+}
 
-    function updateThumb(px, py) {
-      const { cx, cy } = getCenter();
-      let dx = px - cx;
-      let dy = py - cy;
-      const dist = Math.hypot(dx, dy);
-      if (dist > RADIUS) { const s = RADIUS / dist; dx *= s; dy *= s; }
+function clearArrows() {
+  Object.values(arrows).forEach(a => a.classList.remove('lit'));
+}
 
-      thumb.style.left = (RADIUS + dx) + 'px';
-      thumb.style.top = (RADIUS + dy) + 'px';
-      thumb.style.transform = 'none';
+function resetThumb() {
+  thumb.style.setProperty('--dx', '0px');
+  thumb.style.setProperty('--dy', '0px');
+  thumb.classList.remove('active');
+  clearArrows();
+  joyX = joyY = 0;
+  valsEl.innerHTML = 'X: 0 &nbsp; Y: 0';
+}
 
-      joyX = Math.round(dx / RADIUS * 100);
-      joyY = Math.round(-dy / RADIUS * 100);
+// ── Touch events ───────────────────────────────────────────────────────────
+base.addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (activeId !== null) return;
+  const t = e.changedTouches[0];
+  activeId = t.identifier;
+  thumb.classList.add('active');
+  const { cx, cy } = getCenter();
+  setThumb(t.clientX - cx, t.clientY - cy);
+}, { passive: false });
 
-      valsEl.innerHTML = 'X: ' + joyX + ' Y: ' + joyY;
-    }
+base.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const { cx, cy } = getCenter();
+  for (const t of e.changedTouches) {
+    if (t.identifier === activeId) setThumb(t.clientX - cx, t.clientY - cy);
+  }
+}, { passive: false });
 
-    function resetThumb() {
-      thumb.style.left = '50%';
-      thumb.style.top = '50%';
-      thumb.style.transform = 'translate(-50%, -50%)';
-      joyX = joyY = 0;
-    }
+base.addEventListener('touchend', e => {
+  for (const t of e.changedTouches) {
+    if (t.identifier === activeId) { activeId = null; resetThumb(); }
+  }
+});
+base.addEventListener('touchcancel', () => { activeId = null; resetThumb(); });
 
-    base.addEventListener('touchstart', e => {
-      const t = e.changedTouches[0];
-      activeId = t.identifier;
-      updateThumb(t.clientX, t.clientY);
-    });
-
-    base.addEventListener('touchmove', e => {
-      for (const t of e.changedTouches)
-        if (t.identifier === activeId) updateThumb(t.clientX, t.clientY);
-    });
-
-    base.addEventListener('touchend', () => resetThumb());
-  </script>
-
+// ── Mouse fallback (desktop testing) ──────────────────────────────────────
+let mouseDown = false;
+base.addEventListener('mousedown', e => {
+  mouseDown = true;
+  thumb.classList.add('active');
+  const { cx, cy } = getCenter();
+  setThumb(e.clientX - cx, e.clientY - cy);
+});
+window.addEventListener('mousemove', e => {
+  if (!mouseDown) return;
+  const { cx, cy } = getCenter();
+  setThumb(e.clientX - cx, e.clientY - cy);
+});
+window.addEventListener('mouseup', () => { if (mouseDown) { mouseDown = false; resetThumb(); } });
+</script>
 </body>
-
 </html>
