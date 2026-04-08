@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0"
+  >
+  <title>Chun Car</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      touch-action: none;
+    }
+
+    body {
+      background: #111;
+      color: #eee;
+      font-family: 'Segoe UI', sans-serif;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 20px 16px;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    header {
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.2rem;
+      letter-spacing: 3px;
+      color: #bbb;
+      font-weight: 600;
+    }
+
+    #status {
+      font-size: 0.8rem;
+      margin-top: 6px;
+      color: #f0a500;
+    }
+
+    #connect-btn {
+      margin-top: 10px;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 20px;
+      background: #f0a500;
+      color: #111;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      letter-spacing: 1px;
+      display: none;
+    }
+
+    #connect-btn:active {
+      background: #c07800;
+    }
+
+    #joystick-area {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      width: 100%;
+    }
+
+    #base {
+      position: relative;
+      width: 230px;
+      height: 230px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+    }
+
+    #thumb {
+      position: absolute;
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #f0a500, #b06000);
+      box-shadow: 0 4px 18px rgba(240, 165, 0, 0.45);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      transition: box-shadow 0.1s;
+    }
+
+    #thumb.active {
+      box-shadow: 0 4px 28px rgba(240, 165, 0, 0.9);
+    }
+
+    #vals {
+      font-size: 0.72rem;
+      color: #444;
+      font-family: monospace;
+      text-align: center;
+    }
+
+    footer {
+      font-size: 0.65rem;
+      color: #2a2a2a;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>CHUN CAR</h1>
+    <div id="status">Nhấn Connect để kết nối BLE</div>
+    <button id="connect-btn">Connect Joystick</button>
+  </header>
+
+  <div id="joystick-area">
+    <div id="base">
+      <div id="thumb"></div>
+    </div>
+  </div>
+
+  <div id="vals">X: 0 &nbsp; Y: 0</div>
+  <footer>Web Bluetooth · ESP32 · Tank Drive</footer>
+
+  <script>
+    const SERVICE_UUID = 'e4cc0001-87a4-412c-bc97-3a1535abcdef';
+    const RX_CHAR_UUID = 'e4cc0002-87a4-412c-bc97-3a1535abcdef';
+
+    const statusEl = document.getElementById('status');
+    const btn = document.getElementById('connect-btn');
+    const base = document.getElementById('base');
+    const thumb = document.getElementById('thumb');
+    const valsEl = document.getElementById('vals');
+
+    let rxChar = null;
+    let sendTimer = null;
+    let joyX = 0, joyY = 0;
+
+    if (!navigator.bluetooth) {
+      statusEl.textContent = '❌ Không hỗ trợ Web Bluetooth';
+      statusEl.style.color = '#f44336';
+    } else {
+      btn.style.display = 'inline-block';
+    }
+
+    btn.addEventListener('click', async () => {
+      try {
+        statusEl.textContent = 'Đang quét BLE...';
+
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [{ services: [SERVICE_UUID] }],
+          optionalServices: [SERVICE_UUID]
+        });
+
+        device.addEventListener('gattserverdisconnected', onDisconnected);
+
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(SERVICE_UUID);
+        rxChar = await service.getCharacteristic(RX_CHAR_UUID);
+
+        statusEl.textContent = '● Đã kết nối: ' + device.name;
+        statusEl.style.color = '#4caf50';
+
+        sendTimer = setInterval(sendJoy, 50);
+
+      } catch (err) {
+        statusEl.textContent = 'Lỗi: ' + err.message;
+        statusEl.style.color = '#f44336';
+      }
+    });
+
+    function onDisconnected() {
+      clearInterval(sendTimer);
+      rxChar = null;
+      statusEl.textContent = 'Mất kết nối';
+    }
+
+    function sendJoy() {
+      if (!rxChar) return;
+      const buf = new Int8Array([joyX, joyY]);
+      rxChar.writeValueWithoutResponse(buf.buffer).catch(() => { });
+    }
+
+    // joystick
+    const RADIUS = 115;
+    let activeId = null;
+
+    function getCenter() {
+      const r = base.getBoundingClientRect();
+      return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+    }
+
+    function updateThumb(px, py) {
+      const { cx, cy } = getCenter();
+      let dx = px - cx;
+      let dy = py - cy;
+      const dist = Math.hypot(dx, dy);
+      if (dist > RADIUS) { const s = RADIUS / dist; dx *= s; dy *= s; }
+
+      thumb.style.left = (RADIUS + dx) + 'px';
+      thumb.style.top = (RADIUS + dy) + 'px';
+      thumb.style.transform = 'none';
+
+      joyX = Math.round(dx / RADIUS * 100);
+      joyY = Math.round(-dy / RADIUS * 100);
+
+      valsEl.innerHTML = 'X: ' + joyX + ' Y: ' + joyY;
+    }
+
+    function resetThumb() {
+      thumb.style.left = '50%';
+      thumb.style.top = '50%';
+      thumb.style.transform = 'translate(-50%, -50%)';
+      joyX = joyY = 0;
+    }
+
+    base.addEventListener('touchstart', e => {
+      const t = e.changedTouches[0];
+      activeId = t.identifier;
+      updateThumb(t.clientX, t.clientY);
+    });
+
+    base.addEventListener('touchmove', e => {
+      for (const t of e.changedTouches)
+        if (t.identifier === activeId) updateThumb(t.clientX, t.clientY);
+    });
+
+    base.addEventListener('touchend', () => resetThumb());
+  </script>
+
+</body>
+
+</html>
