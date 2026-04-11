@@ -1327,11 +1327,7 @@
             <button class="tab-btn" data-tab="macro">Macro</button>
             <button class="tab-btn" data-tab="prog">Prog</button>
             <button class="tab-btn" data-tab="log">Log</button>
-            <div id="ps4Badge" style="display:flex;align-items:center;gap:5px;padding:3px 9px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);font-size:11px;white-space:nowrap;">
-                <span id="ps4Dot" style="width:8px;height:8px;border-radius:50%;background:#444;flex-shrink:0;transition:background .3s"></span>
-                <span id="ps4Label" style="color:rgba(255,255,255,0.45)">PS4: —</span>
-            </div>
-            <div id="statusBadge" class="status-badge"><span id="statusText">OFFLINE</span></div>
+<div id="statusBadge" class="status-badge"><span id="statusText">OFFLINE</span></div>
             <button id="connectBtn" class="tbtn tbtn-connect">Connect</button>
         </div>
 
@@ -2608,13 +2604,6 @@
 
             lastRollAngle = roll;
 
-            // PS4 active flag (bit 7)
-            const ps4Active = (flags & 0x80) !== 0;
-            const ps4Dot = document.getElementById('ps4Dot');
-            const ps4Lbl = document.getElementById('ps4Label');
-            if (ps4Dot) ps4Dot.style.background = ps4Active ? '#4caf50' : '#444';
-            if (ps4Lbl) { ps4Lbl.textContent = 'PS4: ' + (ps4Active ? 'ACTIVE' : '—'); ps4Lbl.style.color = ps4Active ? '#4caf50' : 'rgba(255,255,255,0.45)'; }
-
             // Update state + sub-state at 10Hz from telemetry flags (bits 4-2 = state 0-7)
             const telState = (flags >> 2) & 0x07;
             robotState = telState;
@@ -2772,13 +2761,6 @@
             if (data.hs1  !== undefined) setLed('ledS1',  data.hs1);
             if (data.hs2  !== undefined) setLed('ledS2',  data.hs2);
             if (data.hm   !== undefined) setLed('ledM',   data.hm);
-            // PS4 controller indicator
-            if (data.ps4 !== undefined) {
-                const dot = document.getElementById('ps4Dot');
-                const lbl = document.getElementById('ps4Label');
-                if (dot) dot.style.background = data.ps4 ? '#4caf50' : '#444';
-                if (lbl) { lbl.textContent = 'PS4: ' + (data.ps4 ? 'ACTIVE' : '—'); lbl.style.color = data.ps4 ? '#4caf50' : 'rgba(255,255,255,0.45)'; }
-            }
         }
 
         function onStatusNotify(event) {
