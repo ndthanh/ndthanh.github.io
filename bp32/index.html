@@ -2071,6 +2071,14 @@
                         <input type="checkbox" id="motor2FlipCb" style="width:16px;height:16px;accent-color:#80cbc4;" disabled>
                         <span style="color:#80cbc4;">Motor 2 Flip Direction</span>
                     </label>
+                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
+                        <input type="checkbox" id="ps4InvertMoveCb" style="width:16px;height:16px;accent-color:#64b5f6;" disabled>
+                        <span style="color:#64b5f6;">PS4 Invert Forward/Back</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
+                        <input type="checkbox" id="ps4InvertSteerCb" style="width:16px;height:16px;accent-color:#4db6ac;" disabled>
+                        <span style="color:#4db6ac;">PS4 Invert Left/Right</span>
+                    </label>
                 </div>
 
                 <!-- Save to NVS -->
@@ -2484,6 +2492,8 @@
             swingDisarmedCb.disabled = !enabled;
             imuYawFlipCb.disabled = !enabled;
             motor2FlipCb.disabled = !enabled;
+            ps4InvertMoveCb.disabled = !enabled;
+            ps4InvertSteerCb.disabled = !enabled;
             document.getElementById('saveNvsBtn').disabled = !enabled;
             document.getElementById('steerOpenLoopCb').disabled = !enabled;
             document.getElementById('swingDirInvCb').disabled = !enabled;
@@ -2748,6 +2758,12 @@
             }
             if (data.mf !== undefined) {
                 if (motor2FlipCb) motor2FlipCb.checked = data.mf === 1;
+            }
+            if (data.p4im !== undefined) {
+                if (ps4InvertMoveCb) ps4InvertMoveCb.checked = data.p4im === 1;
+            }
+            if (data.p4is !== undefined) {
+                if (ps4InvertSteerCb) ps4InvertSteerCb.checked = data.p4is === 1;
             }
             if (data.hash !== undefined) {
                 const chip = document.getElementById('fwChip');
@@ -3076,6 +3092,12 @@
         // Motor 2 Flip Direction checkbox — sends 'j1'/'j0' to firmware, persisted to NVS
         const motor2FlipCb = document.getElementById('motor2FlipCb');
         motor2FlipCb.addEventListener('change', () => sendCmd('j' + (motor2FlipCb.checked ? '1' : '0')));
+
+        // PS4 input invert checkboxes — apply only to Bluepad32 controller input
+        const ps4InvertMoveCb = document.getElementById('ps4InvertMoveCb');
+        const ps4InvertSteerCb = document.getElementById('ps4InvertSteerCb');
+        ps4InvertMoveCb.addEventListener('change', () => sendCmd('m' + (ps4InvertMoveCb.checked ? '1' : '0')));
+        ps4InvertSteerCb.addEventListener('change', () => sendCmd('h' + (ps4InvertSteerCb.checked ? '1' : '0')));
 
         // Save All Params to NVS button — sends 'Z' command
         document.getElementById('saveNvsBtn').addEventListener('click', () => {
