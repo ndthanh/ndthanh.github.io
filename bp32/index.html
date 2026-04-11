@@ -2088,6 +2088,12 @@
                         Save All Params to NVS
                     </button>
                 </div>
+                <div style="display:flex;justify-content:center;margin-top:10px;">
+                    <button id="clearFocCacheBtn" disabled
+                        style="padding:8px 18px;background:rgba(239,83,80,0.12);border:1px solid rgba(239,83,80,0.45);color:#ff8a80;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;letter-spacing:0.3px;">
+                        Clear FOC Cache
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -2495,6 +2501,7 @@
             ps4InvertMoveCb.disabled = !enabled;
             ps4InvertSteerCb.disabled = !enabled;
             document.getElementById('saveNvsBtn').disabled = !enabled;
+            document.getElementById('clearFocCacheBtn').disabled = !enabled;
             document.getElementById('steerOpenLoopCb').disabled = !enabled;
             document.getElementById('swingDirInvCb').disabled = !enabled;
             document.getElementById('swingModeOpenBtn').disabled = !enabled;
@@ -3102,6 +3109,10 @@
         // Save All Params to NVS button — sends 'Z' command
         document.getElementById('saveNvsBtn').addEventListener('click', () => {
             sendCmd('Z');
+        });
+        document.getElementById('clearFocCacheBtn').addEventListener('click', async () => {
+            await sendCmd('R1');
+            showProfileToast('FOC CACHE CLEARED - REBOOT ROBOT');
         });
 
         // Brake landing checkbox — sends 'P1'/'P0' to firmware
