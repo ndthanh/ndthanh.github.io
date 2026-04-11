@@ -2067,6 +2067,18 @@
                         <input type="checkbox" id="imuYawFlipCb" style="width:16px;height:16px;accent-color:#ce93d8;" disabled>
                         <span style="color:#ce93d8;">IMU Yaw Flip 180°</span>
                     </label>
+                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
+                        <input type="checkbox" id="motor2FlipCb" style="width:16px;height:16px;accent-color:#80cbc4;" disabled>
+                        <span style="color:#80cbc4;">Motor 2 Flip Direction</span>
+                    </label>
+                </div>
+
+                <!-- Save to NVS -->
+                <div style="display:flex;justify-content:center;margin-top:16px;">
+                    <button id="saveNvsBtn" disabled
+                        style="padding:8px 26px;background:rgba(255,183,77,0.15);border:1px solid rgba(255,183,77,0.6);color:#ffb74d;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;letter-spacing:0.3px;">
+                        Save All Params to NVS
+                    </button>
                 </div>
             </div>
         </div>
@@ -2471,6 +2483,8 @@
             progLoopCount.disabled = !enabled;
             swingDisarmedCb.disabled = !enabled;
             imuYawFlipCb.disabled = !enabled;
+            motor2FlipCb.disabled = !enabled;
+            document.getElementById('saveNvsBtn').disabled = !enabled;
             document.getElementById('steerOpenLoopCb').disabled = !enabled;
             document.getElementById('swingDirInvCb').disabled = !enabled;
             document.getElementById('swingModeOpenBtn').disabled = !enabled;
@@ -2731,6 +2745,9 @@
             if (data.yf !== undefined) {
                 const cb = document.getElementById('imuYawFlipCb');
                 if (cb) cb.checked = data.yf === 1;
+            }
+            if (data.mf !== undefined) {
+                if (motor2FlipCb) motor2FlipCb.checked = data.mf === 1;
             }
             if (data.hash !== undefined) {
                 const chip = document.getElementById('fwChip');
@@ -3055,6 +3072,15 @@
         // IMU Yaw Flip 180° checkbox — sends 'y1'/'y0' to firmware, persisted to NVS
         const imuYawFlipCb = document.getElementById('imuYawFlipCb');
         imuYawFlipCb.addEventListener('change', () => sendCmd('y' + (imuYawFlipCb.checked ? '1' : '0')));
+
+        // Motor 2 Flip Direction checkbox — sends 'j1'/'j0' to firmware, persisted to NVS
+        const motor2FlipCb = document.getElementById('motor2FlipCb');
+        motor2FlipCb.addEventListener('change', () => sendCmd('j' + (motor2FlipCb.checked ? '1' : '0')));
+
+        // Save All Params to NVS button — sends 'Z' command
+        document.getElementById('saveNvsBtn').addEventListener('click', () => {
+            sendCmd('Z');
+        });
 
         // Brake landing checkbox — sends 'P1'/'P0' to firmware
         function mapMoveCmd(cmd) {
