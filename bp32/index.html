@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BalBot BP32 Tuner</title>
+<style>
+:root{--bg:#111;--card:#1e1e1e;--border:#333;--accent:#2196F3;
+  --green:#4caf50;--red:#f44336;--yellow:#ff9800;--text:#ddd;--label:#888}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;font-size:14px}
+h1{padding:12px 16px;background:var(--card);border-bottom:1px solid var(--border);
+  font-size:16px;display:flex;align-items:center;gap:10px}
+#dot{width:10px;height:10px;border-radius:50%;background:var(--red);flex-shrink:0}
+#dot.ok{background:var(--green)}
+#ps4dot{width:10px;height:10px;border-radius:50%;background:#555;flex-shrink:0}
+#ps4dot.ok{background:var(--green)}
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{padding:8px 14px;cursor:pointer;color:var(--label);border-bottom:2px solid transparent;
+  font-size:13px;white-space:nowrap}
+.tab.active{color:var(--accent);border-color:var(--accent)}
+.page{display:none;padding:12px 16px;max-width:920px}
+.page.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:6px;
+  padding:12px;margin-bottom:12px}
+.card h3{font-size:11px;color:var(--label);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.param label{font-size:11px;color:var(--label);display:block;margin-bottom:3px}
+.param .row{display:flex;align-items:center;gap:6px}
+.param input[type=range]{flex:1;accent-color:var(--accent)}
+.param input[type=number]{width:80px;background:#2a2a2a;border:1px solid var(--border);
+  color:var(--text);padding:3px 6px;border-radius:4px;font-size:13px}
+.v{font-size:11px;color:#aaa;min-width:40px}
+.btn{padding:7px 14px;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600}
+.blu{background:var(--accent);color:#fff}
+.grn{background:var(--green);color:#fff}
+.red{background:var(--red);color:#fff}
+.yel{background:var(--yellow);color:#000}
+.gry{background:#444;color:#fff}
+.btn:disabled{opacity:.4;cursor:default}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap}
+#sbar{background:#1a1a1a;border:1px solid var(--border);border-radius:6px;
+  padding:8px 12px;font-size:12px;display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.stat{display:flex;flex-direction:column}
+.stat span:first-child{color:var(--label);font-size:10px}
+.stat .val{font-size:15px;font-weight:bold}
+.ok{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--yellow)}
+canvas{width:100%;height:200px;background:#111;border:1px solid var(--border);
+  border-radius:4px;display:block}
+#log{background:#0d0d0d;border:1px solid var(--border);border-radius:4px;
+  height:130px;overflow-y:auto;font-family:monospace;font-size:11px;padding:6px;color:#aaa}
+#log p{margin:0;padding:1px 0;border-bottom:1px solid #1a1a1a}
+/* D-pad */
+.dpad{display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(3,54px);gap:4px;margin:0 auto}
+.db{background:#2a2a2a;border:1px solid var(--border);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  cursor:pointer;user-select:none;touch-action:none}
+.db:active,.db.lit{background:var(--accent)}
+.de{background:transparent;border:none}
+/* PS4 indicator */
+.ps4-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;
+  border-radius:20px;background:#1a1a1a;border:1px solid var(--border);font-size:12px}
+/* OTA */
+progress{width:100%;height:14px}
+.ota-note{background:#1a2a1a;border:1px solid #2a4a2a;border-radius:4px;
+  padding:10px;font-size:12px;color:#8f8;margin-bottom:10px;line-height:1.6}
+.ota-drop{border:2px dashed var(--border);border-radius:6px;padding:18px;
+  text-align:center;cursor:pointer;font-size:12px;color:var(--label);transition:.2s}
+.ota-drop:hover,.ota-drop.drag{border-color:var(--accent);color:var(--accent)}
+.ota-drop.has-file{border-color:var(--green);color:var(--green)}
+.ota-log{background:#0d0d0d;border:1px solid var(--border);border-radius:4px;
+  height:100px;overflow-y:auto;font-family:monospace;font-size:11px;padding:6px;
+  color:#aaa;margin-top:8px}
+.ota-log p{margin:0;padding:1px 0;border-bottom:1px solid #1a1a1a}
+.ota-log p.ok{color:#4caf50}.ota-log p.err{color:#f44336}
+</style>
+</head>
+<body>
+
+<h1>
+  <span id="dot"></span> BalBot BP32 Tuner
+  <span class="ps4-badge" style="margin-left:8px">
+    <span id="ps4dot"></span><span id="ps4label">PS4: —</span>
+  </span>
+  <span id="fwhash" style="font-size:11px;color:#666;margin-left:auto"></span>
+</h1>
+
+<div class="tabs">
+  <div class="tab active" onclick="tab('tune',this)">LQR Tune</div>
+  <div class="tab" onclick="tab('control',this)">Control</div>
+  <div class="tab" onclick="tab('maneuver',this)">Maneuvers</div>
+  <div class="tab" onclick="tab('ota',this)">OTA</div>
+</div>
+
+<!-- ═══════════════════ TUNE ═══════════════════ -->
+<div id="tab-tune" class="page active">
+  <div id="sbar">
+    <div class="stat"><span>STATE</span><span class="val" id="s-state">—</span></div>
+    <div class="stat"><span>PITCH</span><span class="val" id="s-pitch">—</span></div>
+    <div class="stat"><span>RATE</span><span class="val" id="s-rate">—</span></div>
+    <div class="stat"><span>VEL</span><span class="val" id="s-vel">—</span></div>
+    <div class="stat"><span>ROLL</span><span class="val" id="s-roll">—</span></div>
+    <div class="stat"><span>TEMP</span><span class="val" id="s-temp">—</span></div>
+    <div class="stat"><span>HW</span><span class="val" id="s-hw">—</span></div>
+  </div>
+
+  <canvas id="chart"></canvas>
+
+  <div class="card" style="margin-top:12px">
+    <div class="row-btns">
+      <button class="btn blu" id="btn-conn" onclick="connect()">Connect BLE</button>
+      <button class="btn grn" id="btn-arm"  onclick="cmd('E1')" disabled>ARM</button>
+      <button class="btn red" id="btn-dis"  onclick="cmd('E0')" disabled>DISARM</button>
+      <button class="btn yel" onclick="cmd('z')" disabled id="btn-zero">Zero IMU</button>
+    </div>
+  </div>
+
+  <!-- LQR gains -->
+  <div class="card">
+    <h3>LQR Gains</h3>
+    <div class="grid">
+      <div class="param"><label>K1 — pitch (A) <span class="v" id="K1v"></span></label>
+        <div class="row"><input type="range" min="0" max="2" step="0.01" id="K1s" oninput="sl('K1','A')">
+        <input type="number" step="0.01" id="K1" onchange="ps('K1','A')"></div></div>
+
+      <div class="param"><label>K2 — rate (B) <span class="v" id="K2v"></span></label>
+        <div class="row"><input type="range" min="0" max="0.1" step="0.001" id="K2s" oninput="sl('K2','B')">
+        <input type="number" step="0.001" id="K2" onchange="ps('K2','B')"></div></div>
+
+      <div class="param"><label>K3 — vel moving (V) <span class="v" id="K3v"></span></label>
+        <div class="row"><input type="range" min="0" max="2" step="0.01" id="K3s" oninput="sl('K3','V')">
+        <input type="number" step="0.01" id="K3" onchange="ps('K3','V')"></div></div>
+
+      <div class="param"><label>K3 brake (q) <span class="v" id="K3bv"></span></label>
+        <div class="row"><input type="range" min="0" max="2" step="0.01" id="K3bs" oninput="sl('K3b','q')">
+        <input type="number" step="0.01" id="K3b" onchange="ps('K3b','q')"></div></div>
+
+      <div class="param"><label>K4 — position (W) <span class="v" id="K4v"></span></label>
+        <div class="row"><input type="range" min="0" max="5" step="0.02" id="K4s" oninput="sl('K4','W')">
+        <input type="number" step="0.02" id="K4" onchange="ps('K4','W')"></div></div>
+
+      <div class="param"><label>Max torque (T) V <span class="v" id="Tv"></span></label>
+        <div class="row"><input type="range" min="0.5" max="8" step="0.1" id="Ts" oninput="sl('T','T')">
+        <input type="number" step="0.1" id="T" onchange="ps('T','T')"></div></div>
+
+      <div class="param"><label>Torque slew (S) V/s <span class="v" id="Sv"></span></label>
+        <div class="row"><input type="range" min="0" max="2000" step="10" id="Ss" oninput="sl('S','S')">
+        <input type="number" step="10" id="S" onchange="ps('S','S')"></div></div>
+
+      <div class="param"><label>Pitch offset (O) deg <span class="v" id="Ov"></span></label>
+        <div class="row"><input type="range" min="-10" max="10" step="0.1" id="Os" oninput="sl('O','O')">
+        <input type="number" step="0.1" id="O" onchange="ps('O','O')"></div></div>
+    </div>
+  </div>
+
+  <!-- Velocity / move -->
+  <div class="card">
+    <h3>Velocity / Movement</h3>
+    <div class="grid">
+      <div class="param"><label>vel_max_rads (F) rad/s <span class="v" id="Fv"></span></label>
+        <div class="row"><input type="range" min="0" max="50" step="0.5" id="Fs" oninput="sl('F','F')">
+        <input type="number" step="0.5" id="F" onchange="ps('F','F')"></div></div>
+
+      <div class="param"><label>Kv_force (k) V/(rad/s) <span class="v" id="kv"></span></label>
+        <div class="row"><input type="range" min="0" max="2" step="0.01" id="ks" oninput="sl('k','k')">
+        <input type="number" step="0.01" id="k" onchange="ps('k','k')"></div></div>
+
+      <div class="param"><label>vel_ff_gate (w) deg <span class="v" id="wv"></span></label>
+        <div class="row"><input type="range" min="0" max="20" step="0.5" id="ws" oninput="sl('w','w')">
+        <input type="number" step="0.5" id="w" onchange="ps('w','w')"></div></div>
+
+      <div class="param"><label>move_pitch_gain (p) deg <span class="v" id="pv"></span></label>
+        <div class="row"><input type="range" min="0" max="20" step="0.5" id="ps2" oninput="sl('p','p')">
+        <input type="number" step="0.5" id="p" onchange="ps('p','p')"></div></div>
+
+      <div class="param"><label>move_ramp_tf (a) s <span class="v" id="av"></span></label>
+        <div class="row"><input type="range" min="0" max="0.5" step="0.005" id="as" oninput="sl('a','a')">
+        <input type="number" step="0.005" id="a" onchange="ps('a','a')"></div></div>
+
+      <div class="param"><label>move_speed_max (M) <span class="v" id="Mv"></span></label>
+        <div class="row"><input type="range" min="10" max="1000" step="10" id="Ms" oninput="sl('M','M')">
+        <input type="number" step="10" id="M" onchange="ps('M','M')"></div></div>
+    </div>
+  </div>
+
+  <!-- Steering -->
+  <div class="card">
+    <h3>Steering</h3>
+    <div class="grid">
+      <div class="param"><label>steer_kp (G) <span class="v" id="Gv"></span></label>
+        <div class="row"><input type="range" min="0" max="0.5" step="0.005" id="Gs" oninput="sl('G','G')">
+        <input type="number" step="0.005" id="G" onchange="ps('G','G')"></div></div>
+
+      <div class="param"><label>steer_ki (I) <span class="v" id="Iv"></span></label>
+        <div class="row"><input type="range" min="0" max="0.1" step="0.001" id="Is" oninput="sl('I','I')">
+        <input type="number" step="0.001" id="I" onchange="ps('I','I')"></div></div>
+
+      <div class="param"><label>steer_scale (X) rad/s <span class="v" id="Xv"></span></label>
+        <div class="row"><input type="range" min="0" max="30" step="0.5" id="Xs" oninput="sl('X','X')">
+        <input type="number" step="0.5" id="X" onchange="ps('X','X')"></div></div>
+
+      <div class="param"><label>steer_max (v) V <span class="v" id="vv"></span></label>
+        <div class="row"><input type="range" min="0" max="3" step="0.05" id="vs" oninput="sl('v','v')">
+        <input type="number" step="0.05" id="v" onchange="ps('v','v')"></div></div>
+
+      <div class="param"><label>steer_lpf (Q) s <span class="v" id="Qv"></span></label>
+        <div class="row"><input type="range" min="0" max="0.3" step="0.005" id="Qs" oninput="sl('Q','Q')">
+        <input type="number" step="0.005" id="Q" onchange="ps('Q','Q')"></div></div>
+    </div>
+    <div class="row-btns" style="margin-top:8px">
+      <button class="btn gry" onclick="cmd('y1')">Flip IMU Y</button>
+      <button class="btn gry" onclick="cmd('y0')">No Flip</button>
+      <button class="btn gry" onclick="cmd('C400')">400Hz</button>
+    </div>
+  </div>
+
+  <div class="card"><h3>Log</h3><div id="log"></div></div>
+</div>
+
+<!-- ═══════════════════ CONTROL ═══════════════════ -->
+<div id="tab-control" class="page">
+  <div class="card">
+    <h3>D-pad (Web BLE — active when PS4 not connected)</h3>
+    <div class="dpad" style="margin-bottom:12px">
+      <div class="de"></div>
+      <div class="db" id="d-fwd"   ontouchstart="dstart('fwd')" ontouchend="dstop()" onmousedown="dstart('fwd')" onmouseup="dstop()">▲</div>
+      <div class="de"></div>
+      <div class="db" id="d-left"  ontouchstart="dstart('left')" ontouchend="dstop()" onmousedown="dstart('left')" onmouseup="dstop()">◄</div>
+      <div class="db" onclick="cmd('x')" style="font-size:14px">■</div>
+      <div class="db" id="d-right" ontouchstart="dstart('right')" ontouchend="dstop()" onmousedown="dstart('right')" onmouseup="dstop()">►</div>
+      <div class="de"></div>
+      <div class="db" id="d-bwd"   ontouchstart="dstart('bwd')" ontouchend="dstop()" onmousedown="dstart('bwd')" onmouseup="dstop()">▼</div>
+      <div class="de"></div>
+    </div>
+    <div class="param" style="max-width:300px">
+      <label>Speed % of max: <span id="spct">50%</span></label>
+      <input type="range" min="5" max="100" value="50" step="5" id="spd"
+             oninput="document.getElementById('spct').textContent=this.value+'%'">
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:#888">
+      PS4 automatically overrides web control when connected.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MANEUVERS ═══════════════════ -->
+<div id="tab-maneuver" class="page">
+  <div class="card">
+    <h3>Swing-up</h3>
+    <div class="grid">
+      <div class="param"><label>Max torque (H) V <span class="v" id="Hv"></span></label>
+        <div class="row"><input type="range" min="0.5" max="8" step="0.1" id="Hs" oninput="sl('H','H')">
+        <input type="number" step="0.1" id="H" onchange="ps('H','H')"></div></div>
+      <div class="param"><label>Duration ms (d) <span class="v" id="dv"></span></label>
+        <div class="row"><input type="range" min="50" max="1000" step="10" id="ds" oninput="sl('d','d')">
+        <input type="number" step="10" id="d" onchange="ps('d','d')"></div></div>
+      <div class="param"><label>k_swing (5) <span class="v" id="k5v"></span></label>
+        <div class="row"><input type="range" min="0" max="10" step="0.1" id="k5s" oninput="sl('k5','5')">
+        <input type="number" step="0.1" id="k5" onchange="ps('k5','5')"></div></div>
+      <div class="param"><label>k_damping (6) <span class="v" id="k6v"></span></label>
+        <div class="row"><input type="range" min="0" max="2" step="0.05" id="k6s" oninput="sl('k6','6')">
+        <input type="number" step="0.05" id="k6" onchange="ps('k6','6')"></div></div>
+    </div>
+    <div class="row-btns" style="margin-top:10px">
+      <button class="btn grn" onclick="cmd('U')">Trigger Swing-up</button>
+      <button class="btn gry" onclick="cmd('J0')">Open-loop</button>
+      <button class="btn gry" onclick="cmd('J1')">Energy</button>
+      <button class="btn gry" onclick="cmd('K1')">Invert dir</button>
+      <button class="btn gry" onclick="cmd('K0')">Normal dir</button>
+      <button class="btn gry" onclick="cmd('Y1')">Allow disarmed</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Stand-up (backward push)</h3>
+    <div class="grid">
+      <div class="param"><label>Torque (e) V <span class="v" id="ev"></span></label>
+        <div class="row"><input type="range" min="1" max="12" step="0.5" id="es" oninput="sl('e2','e')">
+        <input type="number" step="0.5" id="e2" onchange="ps('e2','e')"></div></div>
+      <div class="param"><label>Duration ms (n) <span class="v" id="nv"></span></label>
+        <div class="row"><input type="range" min="50" max="500" step="10" id="ns" oninput="sl('n','n')">
+        <input type="number" step="10" id="n" onchange="ps('n','n')"></div></div>
+    </div>
+    <div class="row-btns" style="margin-top:10px">
+      <button class="btn grn" onclick="cmd('u')">Trigger Stand-up</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ OTA ═══════════════════ -->
+<div id="tab-ota" class="page">
+
+  <!-- BLE OTA -->
+  <div class="card">
+    <h3>BLE OTA Firmware Update</h3>
+    <div class="ota-drop" id="ota-drop">
+      <input type="file" id="ota-file" accept=".bin" style="display:none">
+      <div id="ota-drop-text">Click or drop firmware .bin</div>
+      <div id="ota-drop-size" style="font-size:11px;margin-top:3px"></div>
+    </div>
+    <div style="display:flex;gap:6px;margin:8px 0 2px;align-items:center">
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+      <span style="font-size:10px;color:var(--label)">or download</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:4px">
+      <button class="btn blu" id="btn-fetch-latest" style="flex:1;font-size:12px">&#8659; Latest</button>
+      <button class="btn gry" id="btn-fetch-stable" style="flex:1;font-size:12px">&#8659; Stable</button>
+    </div>
+    <div id="ota-fetch-status" style="font-size:11px;color:var(--label);min-height:14px;margin-bottom:4px"></div>
+    <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--label);margin-bottom:6px;cursor:pointer">
+      <input type="checkbox" id="ota-compress" checked style="accent-color:var(--accent)">
+      Use zlib compression (faster — uncheck if OTA hangs)
+    </label>
+    <progress id="ota-bar" value="0" max="100" style="display:none;margin-bottom:6px"></progress>
+    <div class="row-btns">
+      <button class="btn grn" id="btn-ota-flash" disabled>&#9889; Flash via BLE</button>
+    </div>
+    <div class="ota-log" id="ota-log"></div>
+  </div>
+
+  <!-- WiFi OTA -->
+  <div class="card">
+    <h3>WiFi OTA (faster)</h3>
+    <div class="ota-note">
+      1. Press <b>Start WiFi AP</b> below — robot creates hotspot<br>
+      2. Connect to <b>BalBotBP32-OTA</b> / password: <b>12345678</b><br>
+      3. Open <b>http://192.168.4.1</b> → select .bin → Flash
+    </div>
+    <div class="row-btns">
+      <button class="btn blu" id="btn-wifi-ota" onclick="cmd('11')" disabled>Start WiFi AP on Robot</button>
+    </div>
+    <div style="margin-top:8px;font-size:12px;color:#888" id="ota-status"></div>
+  </div>
+</div>
+
+<script>
+// ── BLE ──────────────────────────────────────────────────────────────────────
+const SVC     = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+const C_CMD   = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
+const C_STA   = 'beb5483e-36e1-4688-b7f5-ea07361b26a9';
+const C_DAT   = 'beb5483e-36e1-4688-b7f5-ea07361b26aa';
+const C_LOG   = 'beb5483e-36e1-4688-b7f5-ea07361b26ab';
+const OTA_SVC  = 'fb1e4001-54ae-4a28-9f74-dfccb248601d';
+const OTA_CTRL = 'fb1e4002-54ae-4a28-9f74-dfccb248601d';
+const OTA_DATA = 'fb1e4003-54ae-4a28-9f74-dfccb248601d';
+
+const OTA_CMD_BEGIN=0x01, OTA_CMD_END=0x02, OTA_CMD_ABORT=0x03, OTA_CMD_BEGIN_Z=0x05;
+const OTA_STATUS_OK=0x01, OTA_STATUS_ERROR=0x03;
+const OTA_CHUNK=512;
+
+let cmdChar, otaCtrlChar, otaDataChar, otaHasSvc=false;
+let connected=false, device=null;
+let otaFwData=null, otaUploading=false, otaDisconnResolve=null;
+
+async function connect() {
+  if (connected) { device && device.gatt.disconnect(); return; }
+  try {
+    device = await navigator.bluetooth.requestDevice({
+      filters: [{namePrefix:'BalBotBP32'},{namePrefix:'BalanceBot'}],
+      optionalServices:[SVC, OTA_SVC]
+    });
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+    const srv = await device.gatt.connect();
+    const svc = await srv.getPrimaryService(SVC);
+    cmdChar    = await svc.getCharacteristic(C_CMD);
+    const sta  = await svc.getCharacteristic(C_STA);
+    const dat  = await svc.getCharacteristic(C_DAT);
+    const lg   = await svc.getCharacteristic(C_LOG);
+
+    await sta.startNotifications(); sta.addEventListener('characteristicvaluechanged', onStatus);
+    await dat.startNotifications(); dat.addEventListener('characteristicvaluechanged', onData);
+    await lg.startNotifications();  lg.addEventListener('characteristicvaluechanged', onLog);
+
+    // OTA service (optional)
+    otaHasSvc = false;
+    try {
+      const otaSvc = await srv.getPrimaryService(OTA_SVC);
+      otaCtrlChar  = await otaSvc.getCharacteristic(OTA_CTRL);
+      otaDataChar  = await otaSvc.getCharacteristic(OTA_DATA);
+      await otaCtrlChar.startNotifications();
+      otaCtrlChar.addEventListener('characteristicvaluechanged', onOtaCtrlNotify);
+      otaHasSvc = true;
+      otaLog('OTA service ready','ok');
+    } catch(e) { otaLog('OTA service unavailable','err'); }
+
+    connected=true; setConn(true); log('Connected');
+    parseStatus(new TextDecoder().decode(await sta.readValue()));
+    updateOtaBtn();
+  } catch(e) { log('Error: '+e.message); }
+}
+
+function onDisconnected() {
+  if (otaDisconnResolve) { otaDisconnResolve(true); otaDisconnResolve=null; }
+  connected=false; device=null; cmdChar=null;
+  otaCtrlChar=null; otaDataChar=null; otaHasSvc=false;
+  otaUploading=false;
+  setConn(false); log('Disconnected'); updateOtaBtn();
+}
+
+function setConn(ok) {
+  document.getElementById('dot').className = ok ? 'ok' : '';
+  document.getElementById('btn-conn').textContent = ok ? 'Disconnect' : 'Connect BLE';
+  ['btn-arm','btn-dis','btn-zero','btn-wifi-ota'].forEach(id => {
+    const el=document.getElementById(id); if(el) el.disabled=!ok;
+  });
+}
+
+// ── BLE OTA ───────────────────────────────────────────────────────────────────
+const FW_URLS = {
+  latest: 'https://raw.githubusercontent.com/ndthanh/ndthanh.github.io/master/bp32/firmware.bin',
+  stable: 'https://raw.githubusercontent.com/ndthanh/ndthanh.github.io/master/bp32/stable.bin'
+};
+
+function updateOtaBtn() {
+  document.getElementById('btn-ota-flash').disabled = !otaHasSvc || !otaFwData || otaUploading;
+}
+
+function otaLog(msg, cls='') {
+  const el=document.getElementById('ota-log');
+  const p=document.createElement('p');
+  p.className=cls;
+  p.textContent='['+new Date().toLocaleTimeString()+'] '+msg;
+  el.appendChild(p); el.scrollTop=el.scrollHeight;
+}
+
+function onOtaCtrlNotify(e) {
+  const b=new Uint8Array(e.target.value.buffer);
+  if(b[0]===OTA_STATUS_ERROR) otaLog('Device reported flash ERROR','err');
+}
+
+function waitDisconn(ms=20000) {
+  return new Promise(res => {
+    otaDisconnResolve=res;
+    setTimeout(()=>{ if(otaDisconnResolve){otaDisconnResolve=null; res(false);} }, ms);
+  });
+}
+
+async function compressZlib(data) {
+  const cs=new CompressionStream('deflate');
+  const w=cs.writable.getWriter(); const r=cs.readable.getReader();
+  w.write(data); w.close();
+  const chunks=[]; while(true){const{done,value}=await r.read();if(done)break;chunks.push(value);}
+  const out=new Uint8Array(chunks.reduce((s,c)=>s+c.length,0));
+  let off=0; for(const c of chunks){out.set(c,off);off+=c.length;} return out;
+}
+
+// File drop
+const dropEl=document.getElementById('ota-drop');
+const fileEl=document.getElementById('ota-file');
+dropEl.addEventListener('click',()=>fileEl.click());
+dropEl.addEventListener('dragover',e=>{e.preventDefault();dropEl.classList.add('drag');});
+dropEl.addEventListener('dragleave',()=>dropEl.classList.remove('drag'));
+dropEl.addEventListener('drop',e=>{e.preventDefault();dropEl.classList.remove('drag');if(e.dataTransfer.files[0])loadOtaFile(e.dataTransfer.files[0]);});
+fileEl.addEventListener('change',()=>{if(fileEl.files[0])loadOtaFile(fileEl.files[0]);});
+
+function loadOtaFile(f) {
+  if(!f.name.endsWith('.bin')){otaLog('Need a .bin file','err');return;}
+  const fr=new FileReader();
+  fr.onload=e=>{
+    otaFwData=new Uint8Array(e.target.result);
+    document.getElementById('ota-drop-text').textContent=f.name;
+    document.getElementById('ota-drop-size').textContent=(otaFwData.length/1024).toFixed(1)+' KB';
+    dropEl.classList.add('has-file');
+    otaLog('File: '+f.name+' ('+otaFwData.length+' bytes)');
+    updateOtaBtn();
+  };
+  fr.readAsArrayBuffer(f);
+}
+
+async function fetchFw(type) {
+  const stEl=document.getElementById('ota-fetch-status');
+  const btn=document.getElementById('btn-fetch-'+(type==='latest'?'latest':'stable'));
+  btn.disabled=true; stEl.textContent='Downloading…';
+  try {
+    const resp=await fetch(FW_URLS[type]+'?cb='+Date.now(),{cache:'no-store'});
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    const total=parseInt(resp.headers.get('Content-Length')||'0');
+    const reader=resp.body.getReader(); const chunks=[]; let got=0;
+    while(true){const{done,value}=await reader.read();if(done)break;chunks.push(value);got+=value.length;
+      stEl.textContent='Downloading… '+(got/1024).toFixed(1)+(total?'/'+(total/1024).toFixed(1):'')+' KB';}
+    otaFwData=new Uint8Array(got); let pos=0;
+    for(const c of chunks){otaFwData.set(c,pos);pos+=c.length;}
+    document.getElementById('ota-drop-text').textContent=type+' firmware';
+    document.getElementById('ota-drop-size').textContent=(got/1024).toFixed(1)+' KB';
+    dropEl.classList.add('has-file');
+    stEl.textContent='✓ Ready — '+(got/1024).toFixed(1)+' KB';
+    otaLog('Downloaded '+type+' ('+got+' bytes)','ok');
+    updateOtaBtn();
+  } catch(e) { stEl.textContent='Error: '+e.message; otaLog('Download failed: '+e.message,'err'); }
+  btn.disabled=false;
+}
+document.getElementById('btn-fetch-latest').addEventListener('click',()=>fetchFw('latest'));
+document.getElementById('btn-fetch-stable').addEventListener('click',()=>fetchFw('stable'));
+
+document.getElementById('btn-ota-flash').addEventListener('click', startOta);
+
+async function startOta() {
+  if(!otaCtrlChar||!otaDataChar||!otaFwData) return;
+  otaUploading=true; updateOtaBtn();
+  const bar=document.getElementById('ota-bar');
+  bar.style.display='block'; bar.value=0;
+  try {
+    let toSend=otaFwData;
+    const useZ=typeof CompressionStream!=='undefined'&&document.getElementById('ota-compress').checked;
+    if(useZ){
+      otaLog('Compressing '+otaFwData.length+' bytes…');
+      toSend=await compressZlib(otaFwData);
+      otaLog('Compressed: '+toSend.length+' bytes ('+(100-toSend.length/otaFwData.length*100).toFixed(1)+'% smaller)','ok');
+    }
+    let beginCmd;
+    if(useZ){
+      beginCmd=new Uint8Array(9);
+      beginCmd[0]=OTA_CMD_BEGIN_Z;
+      const us=otaFwData.length, cs=toSend.length;
+      beginCmd[1]=us&0xff;beginCmd[2]=(us>>8)&0xff;beginCmd[3]=(us>>16)&0xff;beginCmd[4]=(us>>24)&0xff;
+      beginCmd[5]=cs&0xff;beginCmd[6]=(cs>>8)&0xff;beginCmd[7]=(cs>>16)&0xff;beginCmd[8]=(cs>>24)&0xff;
+    } else {
+      beginCmd=new Uint8Array(5);
+      beginCmd[0]=OTA_CMD_BEGIN;
+      const s=toSend.length;
+      beginCmd[1]=s&0xff;beginCmd[2]=(s>>8)&0xff;beginCmd[3]=(s>>16)&0xff;beginCmd[4]=(s>>24)&0xff;
+    }
+    otaLog('Starting OTA: '+toSend.length+' bytes'+(useZ?' (zlib)':''));
+    await otaCtrlChar.writeValueWithResponse(beginCmd);
+    await new Promise(r=>setTimeout(r,500));
+    const total=Math.ceil(toSend.length/OTA_CHUNK);
+    for(let i=0;i<total;i++){
+      const s=i*OTA_CHUNK, e=Math.min(s+OTA_CHUNK,toSend.length);
+      await otaDataChar.writeValueWithResponse(toSend.slice(s,e));
+      bar.value=Math.round((i+1)/total*100);
+      if(bar.value%10===0&&bar.value!==100) otaLog('Uploading… '+bar.value+'%');
+    }
+    otaLog('All data sent, finalizing…');
+    await new Promise(r=>setTimeout(r,500));
+    const disconnP=waitDisconn(20000);
+    await otaCtrlChar.writeValueWithResponse(new Uint8Array([OTA_CMD_END]));
+    otaLog('Waiting for reboot…');
+    const ok=await disconnP;
+    bar.value=100;
+    otaLog(ok?'OTA complete! Rebooted.':'WARNING: no disconnect after 20s — may have failed.',ok?'ok':'err');
+  } catch(e) {
+    otaLog('OTA failed: '+e.message,'err');
+    bar.value=0;
+    try{await otaCtrlChar.writeValueWithResponse(new Uint8Array([OTA_CMD_ABORT]));}catch(_){}
+  }
+  otaUploading=false; updateOtaBtn();
+}
+
+async function cmd(s) {
+  if (!connected||!cmdChar) return;
+  try { await cmdChar.writeValue(new TextEncoder().encode(s)); }
+  catch(e) { log('TX err: '+e); }
+}
+
+// ── Status JSON ───────────────────────────────────────────────────────────────
+function onStatus(e) { parseStatus(new TextDecoder().decode(e.target.value)); }
+
+function parseStatus(json) {
+  let s; try { s=JSON.parse(json); } catch(e) { return; }
+
+  const states=['FALLEN','SWING_UP','BALANCING','STAND_UP'];
+  const sel=document.getElementById('s-state');
+  sel.textContent=states[s.st]||s.st;
+  sel.className='val '+(s.st===2?'ok':s.st===0?'bad':'warn');
+
+  const pe=document.getElementById('s-pitch');
+  pe.textContent=(s.pitch!=null?s.pitch.toFixed(1):'—')+'°';
+  pe.className='val '+(Math.abs(s.pitch||0)<5?'ok':Math.abs(s.pitch||0)<15?'warn':'bad');
+
+  document.getElementById('s-rate').textContent=(s.pitch_rate!=null?s.pitch_rate.toFixed(1):'—')+'°/s';
+  document.getElementById('s-vel').textContent=(s.vel!=null?s.vel.toFixed(1):'—')+' r/s';
+  document.getElementById('s-roll').textContent=(s.ra!=null?s.ra.toFixed(1):'—')+'°';
+  document.getElementById('s-temp').textContent=(s.temp!=null?s.temp.toFixed(1):'—')+'°C';
+  const hw=(s.hs1?'S1 ':'')+(s.hs2?'S2 ':'')+(s.himu?'IMU ':'')+(s.hm?'MTR':'');
+  const hel=document.getElementById('s-hw');
+  hel.textContent=hw||'—'; hel.className='val '+(s.hs1&&s.hs2&&s.himu&&s.hm?'ok':'bad');
+  document.getElementById('fwhash').textContent=s.hash||'';
+
+  // PS4 indicator
+  const ps4=s.ps4===1;
+  document.getElementById('ps4dot').className=ps4?'ok':'';
+  document.getElementById('ps4label').textContent='PS4: '+(ps4?'connected':'—');
+
+  if(s.wota) document.getElementById('ota-status').textContent='WiFi OTA active — connect to BalBotBP32-OTA';
+
+  // Populate param controls (only if currently empty / at default)
+  const map={K1:s.A,K2:s.B,K3:s.V,K3b:s['Vb'],K4:s.W,T:s.T,S:s.S,O:s.O,
+             F:s.Vf,k:s.kv,w:s.wg,p:s.p,a:s.a,M:s.M,G:s.G,I:s.I,X:s.X,v:s.v,Q:s.Q,
+             H:s.H,d:s.su,k5:s.ks,k6:s.kd,e2:s.e,n:s.n};
+  Object.entries(map).forEach(([id,val])=>{
+    if(val==null)return;
+    const ni=document.getElementById(id);
+    const si=document.getElementById(id+'s');
+    const vi=document.getElementById(id+'v');
+    if(ni&&ni.value==='')ni.value=+val.toFixed(5);
+    if(si&&si.value===si.defaultValue)si.value=val;
+    if(vi)vi.textContent=+val.toFixed(4);
+  });
+}
+
+// ── Telemetry chart ───────────────────────────────────────────────────────────
+const ch={pitch:[],rate:[],vel:[]},MAX=120;
+function onData(e) {
+  const b=e.target.value,dv=new DataView(b.buffer);
+  const pitch=dv.getInt16(0,true)/100,rate=dv.getInt16(2,true)/10,vel=dv.getInt16(4,true)/10;
+  document.getElementById('s-pitch').textContent=pitch.toFixed(1)+'°';
+  document.getElementById('s-rate').textContent=rate.toFixed(1)+'°/s';
+  document.getElementById('s-vel').textContent=vel.toFixed(1)+' r/s';
+  const flags=dv.getUint8(14);
+  const state=(flags>>2)&7;
+  const states=['FALLEN','SWING_UP','BALANCING','STAND_UP'];
+  const se=document.getElementById('s-state');
+  se.textContent=states[state]||state;
+  se.className='val '+(state===2?'ok':state===0?'bad':'warn');
+  const roll=dv.getInt8(15);
+  document.getElementById('s-roll').textContent=roll+'°';
+  const ps4=(flags&0x80)!==0;
+  document.getElementById('ps4dot').className=ps4?'ok':'';
+  document.getElementById('ps4label').textContent='PS4: '+(ps4?'ACTIVE':'—');
+
+  ch.pitch.push(pitch);ch.rate.push(rate/5);ch.vel.push(vel);
+  if(ch.pitch.length>MAX){ch.pitch.shift();ch.rate.shift();ch.vel.shift();}
+  drawChart();
+}
+function drawChart(){
+  const c=document.getElementById('chart');
+  const W=c.offsetWidth,H=c.offsetHeight;
+  c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#111';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#333';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+  const n=ch.pitch.length;if(n<2)return;
+  const sc=(H/2)/30;
+  [[ch.pitch,'#2196F3'],[ch.rate,'#ff9800'],[ch.vel,'#4caf50']].forEach(([d,col])=>{
+    ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.beginPath();
+    d.forEach((v,i)=>{const x=(i/(MAX-1))*W,y=H/2-v*sc;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+    ctx.stroke();
+  });
+  ctx.font='11px sans-serif';
+  [['pitch','#2196F3',4],['rate/5','#ff9800',56],['vel','#4caf50',100]].forEach(([l,c,x])=>{
+    ctx.fillStyle=c;ctx.fillRect(x,4,10,10);
+    ctx.fillStyle='#aaa';ctx.fillText(l,x+13,13);
+  });
+}
+
+// ── Log ───────────────────────────────────────────────────────────────────────
+function onLog(e){log(new TextDecoder().decode(e.target.value));}
+function log(m){
+  const el=document.getElementById('log');
+  const p=document.createElement('p');
+  p.textContent=new Date().toLocaleTimeString()+' '+m;
+  el.appendChild(p);el.scrollTop=el.scrollHeight;
+  if(el.children.length>200)el.removeChild(el.firstChild);
+}
+
+// ── Param helpers ─────────────────────────────────────────────────────────────
+function sl(id,c){
+  const s=document.getElementById(id+'s'),n=document.getElementById(id),v=document.getElementById(id+'v');
+  if(!s)return;const val=parseFloat(s.value);
+  if(n)n.value=val;if(v)v.textContent=val;cmd(c+val);
+}
+function ps(id,c){
+  const n=document.getElementById(id),s=document.getElementById(id+'s'),v=document.getElementById(id+'v');
+  if(!n)return;const val=parseFloat(n.value);
+  if(s)s.value=val;if(v)v.textContent=val;cmd(c+val);
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function tab(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── D-pad ─────────────────────────────────────────────────────────────────────
+let dint=null;
+function dstart(dir){
+  document.querySelectorAll('.db').forEach(b=>b.classList.remove('lit'));
+  const el=document.getElementById('d-'+dir);if(el)el.classList.add('lit');
+  dsend(dir);dint=setInterval(()=>dsend(dir),100);
+}
+function dstop(){
+  clearInterval(dint);dint=null;
+  document.querySelectorAll('.db').forEach(b=>b.classList.remove('lit'));
+  cmd('x');
+}
+function dsend(dir){
+  const pct=parseFloat(document.getElementById('spd').value)/100;
+  const max=parseFloat(document.getElementById('M').value||500)*pct;
+  switch(dir){
+    case 'fwd':  cmd('Joy'+max+',0'); break;
+    case 'bwd':  cmd('Joy'+(-max)+',0'); break;
+    case 'left': cmd('Joy0,-1'); break;
+    case 'right':cmd('Joy0,1'); break;
+  }
+}
+</script>
+</body>
+</html>
