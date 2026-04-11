@@ -3478,9 +3478,10 @@
                 device.addEventListener('gattserverdisconnected', onDisconnected);
                 updateStatus('LINK...', false);
                 const server = await device.gatt.connect();
+                await sleep(250);
 
                 // Tuner service
-                const service = await server.getPrimaryService(SERVICE_UUID);
+                const service = await getPrimaryServiceWithRetry(server, SERVICE_UUID);
                 charCmd = await service.getCharacteristic(CHAR_CMD_UUID);
                 charStatus = await service.getCharacteristic(CHAR_STATUS_UUID);
                 charData = await service.getCharacteristic(CHAR_DATA_UUID);
@@ -3500,7 +3501,7 @@
                 // OTA service (optional)
                 otaHasService = false;
                 try {
-                    const otaService = await server.getPrimaryService(OTA_SERVICE_UUID);
+                    const otaService = await getPrimaryServiceWithRetry(server, OTA_SERVICE_UUID, 3, 120);
                     otaControlChar = await otaService.getCharacteristic(OTA_CONTROL_CHAR_UUID);
                     otaDataChar = await otaService.getCharacteristic(OTA_DATA_CHAR_UUID);
                     await otaControlChar.startNotifications();
@@ -3871,6 +3872,19 @@
 
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function getPrimaryServiceWithRetry(server, uuid, retries = 6, delayMs = 150) {
+            let lastErr = null;
+            for (let i = 0; i < retries; i++) {
+                try {
+                    return await server.getPrimaryService(uuid);
+                } catch (err) {
+                    lastErr = err;
+                    await sleep(delayMs);
+                }
+            }
+            throw lastErr;
         }
 
         // ==================== MACRO ====================
