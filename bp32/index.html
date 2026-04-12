@@ -2091,8 +2091,36 @@
                 <div style="display:flex;justify-content:center;margin-top:10px;">
                     <button id="clearFocCacheBtn" disabled
                         style="padding:8px 18px;background:rgba(239,83,80,0.12);border:1px solid rgba(239,83,80,0.45);color:#ff8a80;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;letter-spacing:0.3px;">
-                        Clear FOC Cache
+                        Clear Cache
                     </button>
+                </div>
+                <div style="width:100%;margin-top:18px;">
+                    <div class="sec-title" style="text-align:center;">FOC Calibration</div>
+                    <div class="ctrl-status" style="margin-top:8px;">
+                        <div class="ctrl-card">
+                            <div class="ctrl-card-label">Motor L</div>
+                            <div class="ctrl-card-val" id="focM1ZeroVal" style="color:#4fc3f7">-- rad</div>
+                            <div id="focM1DirVal" style="font-size:10px;color:rgba(255,255,255,0.45);margin-top:4px;">DIR --</div>
+                        </div>
+                        <div class="ctrl-card">
+                            <div class="ctrl-card-label">Motor R</div>
+                            <div class="ctrl-card-val" id="focM2ZeroVal" style="color:#ffb74d">-- rad</div>
+                            <div id="focM2DirVal" style="font-size:10px;color:rgba(255,255,255,0.45);margin-top:4px;">DIR --</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:12px;">
+                        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;">
+                            <input type="checkbox" id="focUseCacheCb" style="width:16px;height:16px;accent-color:#4fc3f7;" disabled>
+                            Use Cache
+                        </label>
+                        <button id="recalibrateFocBtn" disabled
+                            style="padding:8px 16px;background:rgba(79,195,247,0.12);border:1px solid rgba(79,195,247,0.45);color:#80deea;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;letter-spacing:0.3px;">
+                            Recalibrate FOC
+                        </button>
+                    </div>
+                    <div id="focModeInfo" style="margin-top:8px;font-size:10px;text-align:center;color:rgba(255,255,255,0.35);letter-spacing:0.3px;">
+                        Reboot required after changing cache mode or recalibration.
+                    </div>
                 </div>
             </div>
         </div>
@@ -2315,8 +2343,10 @@
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                     <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:0.5px;">BLE LOG</span>
                     <span id="logCount" style="font-size:10px;color:rgba(255,255,255,0.35);">0 messages</span>
+                    <span id="traceCount" style="font-size:10px;color:rgba(79,195,247,0.55);">0 traces</span>
                     <div style="flex:1"></div>
                     <button id="logClearBtn" class="tbtn" style="background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);font-size:11px;padding:4px 10px;">&#10005; Clear</button>
+                    <button id="traceDownloadBtn" class="tbtn" style="background:rgba(79,195,247,0.12);color:#4fc3f7;border:1px solid rgba(79,195,247,0.28);font-size:11px;padding:4px 10px;">TRACE JSON</button>
                     <button id="logDownloadBtn" class="tbtn" style="background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);font-size:11px;padding:4px 10px;">&#8659; Download</button>
                 </div>
                 <div id="logPanel" style="flex:1;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow-y:auto;padding:10px;font-family:'Courier New',monospace;font-size:11px;line-height:1.7;color:#ccc;white-space:pre-wrap;word-break:break-all;min-height:200px;">
@@ -2389,6 +2419,14 @@
         const addProgStepBtn = document.getElementById('addProgStepBtn');
         const progLoopCount = document.getElementById('progLoopCount');
         const zeroBtn = document.getElementById('zeroBtn');
+        const focUseCacheCb = document.getElementById('focUseCacheCb');
+        const recalibrateFocBtn = document.getElementById('recalibrateFocBtn');
+        const clearFocCacheBtn = document.getElementById('clearFocCacheBtn');
+        const focM1ZeroVal = document.getElementById('focM1ZeroVal');
+        const focM1DirVal = document.getElementById('focM1DirVal');
+        const focM2ZeroVal = document.getElementById('focM2ZeroVal');
+        const focM2DirVal = document.getElementById('focM2DirVal');
+        const focModeInfo = document.getElementById('focModeInfo');
         // Controller tab status cards
         const ctrlConnCard = document.getElementById('ctrlConnCard');
         const ctrlConnVal = document.getElementById('ctrlConnVal');
@@ -2501,12 +2539,26 @@
             ps4InvertMoveCb.disabled = !enabled;
             ps4InvertSteerCb.disabled = !enabled;
             document.getElementById('saveNvsBtn').disabled = !enabled;
-            document.getElementById('clearFocCacheBtn').disabled = !enabled;
+            clearFocCacheBtn.disabled = !enabled;
+            focUseCacheCb.disabled = !enabled;
+            recalibrateFocBtn.disabled = !enabled;
             document.getElementById('steerOpenLoopCb').disabled = !enabled;
             document.getElementById('swingDirInvCb').disabled = !enabled;
             document.getElementById('swingModeOpenBtn').disabled = !enabled;
             document.getElementById('swingModeEnergyBtn').disabled = !enabled;
             if (!enabled) { telemetryOn = false; updateTelemetryToggleUI(); }
+        }
+
+        function focDirText(dir) {
+            if (dir === 1) return 'DIR CW';
+            if (dir === -1) return 'DIR CCW';
+            return 'DIR --';
+        }
+
+        function focZeroText(val) {
+            return (typeof val === 'number' && isFinite(val) && val >= 0)
+                ? `${val.toFixed(4)} rad`
+                : '-- rad';
         }
 
         function updateArmUI() {
@@ -2771,6 +2823,20 @@
             }
             if (data.p4is !== undefined) {
                 if (ps4InvertSteerCb) ps4InvertSteerCb.checked = data.p4is === 1;
+            }
+            if (data.m1zea !== undefined) focM1ZeroVal.textContent = focZeroText(data.m1zea);
+            if (data.m2zea !== undefined) focM2ZeroVal.textContent = focZeroText(data.m2zea);
+            if (data.m1dir !== undefined) focM1DirVal.textContent = focDirText(data.m1dir);
+            if (data.m2dir !== undefined) focM2DirVal.textContent = focDirText(data.m2dir);
+            if (data.focu !== undefined) focUseCacheCb.checked = data.focu === 1;
+            if (data.focr === 1) {
+                focModeInfo.textContent = 'Recalibration scheduled — reboot robot to rebuild FOC cache.';
+            } else if (data.focv === 0) {
+                focModeInfo.textContent = 'No saved FOC cache. Next full calibration will create one.';
+            } else if (data.focu === 1) {
+                focModeInfo.textContent = 'Cache enabled. Next reboot may use saved FOC calibration.';
+            } else {
+                focModeInfo.textContent = 'Cache disabled. Robot will full-calibrate on boot.';
             }
             if (data.hash !== undefined) {
                 const chip = document.getElementById('fwChip');
@@ -3110,7 +3176,15 @@
         document.getElementById('saveNvsBtn').addEventListener('click', () => {
             sendCmd('Z');
         });
-        document.getElementById('clearFocCacheBtn').addEventListener('click', async () => {
+        focUseCacheCb.addEventListener('change', async () => {
+            await sendCmd(focUseCacheCb.checked ? 'R3' : 'R0');
+            showProfileToast(focUseCacheCb.checked ? 'USE CACHE ENABLED - REBOOT ROBOT' : 'USE CACHE DISABLED - REBOOT ROBOT');
+        });
+        recalibrateFocBtn.addEventListener('click', async () => {
+            await sendCmd('R2');
+            showProfileToast('FOC RECALIBRATION SCHEDULED - REBOOT ROBOT');
+        });
+        clearFocCacheBtn.addEventListener('click', async () => {
             await sendCmd('R1');
             showProfileToast('FOC CACHE CLEARED - REBOOT ROBOT');
         });
@@ -3578,6 +3652,12 @@
                 const el = document.getElementById(id);
                 if (el) el.classList.remove('ok','fail');
             });
+            focM1ZeroVal.textContent = '-- rad';
+            focM2ZeroVal.textContent = '-- rad';
+            focM1DirVal.textContent = 'DIR --';
+            focM2DirVal.textContent = 'DIR --';
+            focUseCacheCb.checked = false;
+            focModeInfo.textContent = 'Reboot required after changing cache mode or recalibration.';
             const fwChip = document.getElementById('fwChip');
             if (fwChip) fwChip.style.display = 'none';
             otaUploading = false;
@@ -4242,10 +4322,62 @@
         // ==================== BLE LOG ====================
         const logPanel = document.getElementById('logPanel');
         const logCount = document.getElementById('logCount');
+        const traceCount = document.getElementById('traceCount');
         const logClearBtn = document.getElementById('logClearBtn');
+        const traceDownloadBtn = document.getElementById('traceDownloadBtn');
         const logDownloadBtn = document.getElementById('logDownloadBtn');
         const logMessages = []; // { ts, text }
+        const traceAttempts = [];
+        const traceAttemptsById = new Map();
         let logInitialized = false;
+
+        function parseTraceValue(v) {
+            if (v === undefined) return v;
+            if (v === '') return '';
+            const n = Number(v);
+            return Number.isFinite(n) ? n : v;
+        }
+
+        function updateTraceCount() {
+            traceCount.textContent = `${traceAttempts.length} trace${traceAttempts.length !== 1 ? 's' : ''}`;
+        }
+
+        function traceAttemptFor(id) {
+            if (!traceAttemptsById.has(id)) {
+                const attempt = { id, start: null, samples: [], end: null, raw: [] };
+                traceAttemptsById.set(id, attempt);
+                traceAttempts.push(attempt);
+            }
+            return traceAttemptsById.get(id);
+        }
+
+        function parseTraceLine(text, ts) {
+            if (!text.startsWith('TRACE|')) return;
+            const parts = text.split('|');
+            const phase = parts[1] || '';
+            const fields = {};
+            for (let i = 2; i < parts.length; i++) {
+                const eq = parts[i].indexOf('=');
+                if (eq <= 0) continue;
+                const key = parts[i].slice(0, eq);
+                const value = parts[i].slice(eq + 1);
+                fields[key] = parseTraceValue(value);
+            }
+            if (fields.id === undefined) return;
+            const attempt = traceAttemptFor(fields.id);
+            const entry = { phase, ts, ...fields };
+            attempt.raw.push({ ts, text });
+            if (phase === 'START') {
+                attempt.start = entry;
+                if (typeof fields.k === 'string') attempt.kind = fields.k;
+                if (typeof fields.src === 'string') attempt.source = fields.src;
+            } else if (phase === 'S') {
+                attempt.samples.push(entry);
+            } else if (phase === 'END') {
+                attempt.end = entry;
+            }
+            updateTraceCount();
+        }
 
         function logAppend(text) {
             if (!logInitialized) {
@@ -4257,10 +4389,13 @@
             logMessages.push(msg);
 
             const color = text.startsWith('FALL') ? '#ff6b6b'
+                        : text.startsWith('TRACE|') ? '#4fc3f7'
                         : text.startsWith('PANIC') || text.includes('FAIL') ? '#ff9f43'
                         : text.startsWith('BOOT') ? '#74b9ff'
                         : text.startsWith('SWING') || text.startsWith('STAND_UP OK') ? '#55efc4'
                         : '#ccc';
+
+            parseTraceLine(text, ts);
 
             const line = document.createElement('div');
             line.style.cssText = `color:${color};padding:1px 0;`;
@@ -4291,9 +4426,24 @@
 
         logClearBtn.addEventListener('click', () => {
             logMessages.length = 0;
+            traceAttempts.length = 0;
+            traceAttemptsById.clear();
             logInitialized = false;
             logPanel.innerHTML = '<span style="color:rgba(255,255,255,0.2);">Cleared — waiting for BLE log messages…</span>';
             logCount.textContent = '0 messages';
+            updateTraceCount();
+        });
+
+        traceDownloadBtn.addEventListener('click', () => {
+            if (traceAttempts.length === 0) return;
+            const blob = new Blob([JSON.stringify(traceAttempts, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const dt = new Date().toISOString().slice(0,19).replace(/[:T]/g, '-');
+            a.href = url;
+            a.download = `balbot_trace_${dt}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
         });
 
         logDownloadBtn.addEventListener('click', () => {
@@ -4307,6 +4457,7 @@
             a.click();
             URL.revokeObjectURL(url);
         });
+        updateTraceCount();
     </script>
 </body>
 
