@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vietdach PDF tools</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23059669'/%3E%3Cpath d='M7 22c5-1 6-10 10-10 3 0 2 6 5 6 2 0 3-2 3-2' fill='none' stroke='white' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <script>
+      window.tailwind = { config: { darkMode: "class" } };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="overflow-hidden bg-white text-zinc-900 antialiased">
+    <div class="flex h-screen min-h-0 flex-col overflow-hidden">
+      <header class="flex h-14 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-4">
+        <div class="flex items-center gap-3">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white">
+            <i data-lucide="signature" class="h-5 w-5"></i>
+          </div>
+          <div>
+            <h1 class="text-sm font-semibold tracking-normal">Vietdach PDF tools</h1>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <select id="exportQuality" class="h-9 rounded-lg border border-zinc-200 bg-white px-2 text-sm" aria-label="Export quality">
+            <option value="0.75">Low</option>
+            <option value="1.25" selected>Medium</option>
+            <option value="2">High</option>
+          </select>
+          <button id="exportPdfBtn" class="btn-primary" type="button">
+            <i data-lucide="file-down" class="h-4 w-4"></i>
+            Export PDF
+          </button>
+        </div>
+      </header>
+
+      <main class="grid min-h-0 flex-1 overflow-hidden grid-cols-[260px_minmax(0,1fr)_340px]">
+        <aside class="flex min-h-0 flex-col overflow-hidden border-r border-zinc-200 bg-white">
+          <div class="space-y-3 p-3">
+            <label class="btn-secondary w-full cursor-pointer justify-center">
+              <i data-lucide="upload" class="h-4 w-4"></i>
+              Add PDF / Image
+              <input id="documentInput" class="hidden" type="file" accept="application/pdf,image/png,image/jpeg" multiple />
+            </label>
+            <button id="blankPageBtn" class="btn-ghost w-full justify-center" type="button">
+              <i data-lucide="file-plus-2" class="h-4 w-4"></i>
+              Blank Page
+            </button>
+          </div>
+          <div class="border-t border-zinc-200 px-3 py-2 text-xs font-medium uppercase text-zinc-500">Pages</div>
+          <div id="pageList" class="min-h-0 flex-1 space-y-2 overflow-y-auto p-3"></div>
+        </aside>
+
+        <section class="flex min-h-0 flex-col overflow-hidden bg-zinc-50">
+          <div class="flex h-12 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-3">
+            <div class="flex items-center gap-2">
+              <button id="selectToolBtn" class="btn-tool is-active" type="button" title="Select">
+                <i data-lucide="mouse-pointer-2" class="h-4 w-4"></i>
+              </button>
+              <button id="addTextBtn" class="btn-tool" type="button" title="Text">
+                <i data-lucide="type" class="h-4 w-4"></i>
+              </button>
+              <button id="addLineBtn" class="btn-tool" type="button" title="Line">
+                <i data-lucide="minus" class="h-4 w-4"></i>
+              </button>
+              <button id="addRectBtn" class="btn-tool" type="button" title="Rectangle">
+                <i data-lucide="square" class="h-4 w-4"></i>
+              </button>
+              <label class="color-control" title="Border color">
+                <span>Border</span>
+                <input id="strokeColorInput" type="color" value="#111827" />
+              </label>
+              <label class="color-control" title="Fill color">
+                <span>Fill</span>
+                <input id="fillColorInput" type="color" value="#ffffff" />
+              </label>
+              <label class="fill-toggle">
+                <input id="transparentFillInput" type="checkbox" checked />
+                <span>No fill</span>
+              </label>
+              <div class="mx-1 h-6 w-px bg-zinc-200"></div>
+              <button id="deleteBtn" class="btn-tool" type="button" title="Delete">
+                <i data-lucide="trash-2" class="h-4 w-4"></i>
+              </button>
+              <div class="mx-1 h-6 w-px bg-zinc-200"></div>
+              <button id="zoomOutBtn" class="btn-tool" type="button" title="Zoom out">
+                <i data-lucide="zoom-out" class="h-4 w-4"></i>
+              </button>
+              <select id="zoomSelect" class="toolbar-select" aria-label="Zoom">
+                <option value="0.75">75%</option>
+                <option value="1" selected>100%</option>
+                <option value="1.25">125%</option>
+                <option value="1.5">150%</option>
+                <option value="2">200%</option>
+              </select>
+              <button id="zoomInBtn" class="btn-tool" type="button" title="Zoom in">
+                <i data-lucide="zoom-in" class="h-4 w-4"></i>
+              </button>
+            </div>
+            <div id="statusText" class="truncate text-xs text-zinc-500">Ready</div>
+          </div>
+          <div id="canvasDropZone" class="pdf-workspace min-h-0 flex-1 overflow-auto">
+            <div id="documentPages" class="document-pages"></div>
+          </div>
+        </section>
+
+        <aside class="min-h-0 overflow-y-auto border-l border-zinc-200 bg-white">
+          <div class="space-y-4 p-4">
+            <section class="panel">
+              <div class="mb-3 flex items-center justify-between">
+                <h2 class="text-sm font-semibold">Signature</h2>
+                <span id="sigStats" class="text-xs text-zinc-500"></span>
+              </div>
+              <label class="btn-secondary w-full cursor-pointer justify-center">
+                <i data-lucide="image-up" class="h-4 w-4"></i>
+                Upload Signature
+                <input id="signatureInput" class="hidden" type="file" accept="image/png,image/jpeg" />
+              </label>
+
+              <div class="mt-4 space-y-3">
+                <div class="crop-box">
+                  <div class="preview-label">Crop</div>
+                  <canvas id="signatureCropCanvas" aria-label="Signature crop canvas"></canvas>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button id="autoCropBtn" class="btn-secondary justify-center" type="button" disabled>
+                    <i data-lucide="scan-line" class="h-4 w-4"></i>
+                    Auto crop
+                  </button>
+                  <button id="resetCropBtn" class="btn-secondary justify-center" type="button" disabled>
+                    <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+                    Reset crop
+                  </button>
+                </div>
+                <div class="preview-box checkerboard">
+                  <div class="preview-label">PNG</div>
+                  <img id="processedPreview" alt="Processed signature preview" draggable="true" />
+                </div>
+              </div>
+
+              <details class="advanced-panel mt-4">
+                <summary>Advanced …</summary>
+                <div class="mt-3 space-y-3">
+                  <label class="control-label" for="thresholdSlider">
+                    Threshold
+                    <span id="thresholdValue">18</span>
+                  </label>
+                  <input id="thresholdSlider" class="range" type="range" min="6" max="56" value="18" />
+
+                  <label class="control-label" for="backgroundSlider">
+                    Background removal
+                    <span id="backgroundValue">4</span>
+                  </label>
+                  <input id="backgroundSlider" class="range" type="range" min="0" max="10" value="4" />
+
+                  <label class="control-label" for="denoiseSlider">
+                    Denoise
+                    <span id="denoiseValue">1</span>
+                  </label>
+                  <input id="denoiseSlider" class="range" type="range" min="0" max="3" value="1" />
+
+                  <label class="toggle-row">
+                    <input id="boldToggle" type="checkbox" />
+                    <span>Giữ nét đậm hơn</span>
+                  </label>
+                  <label class="toggle-row">
+                    <input id="strongBgToggle" type="checkbox" />
+                    <span>Loại nền mạnh hơn</span>
+                  </label>
+                </div>
+              </details>
+
+              <div class="mt-4 grid grid-cols-2 gap-2">
+                <button id="addSignatureBtn" class="btn-primary justify-center" type="button" disabled>
+                  <i data-lucide="stamp" class="h-4 w-4"></i>
+                  Add
+                </button>
+                <button id="saveSignatureBtn" class="btn-secondary justify-center" type="button" disabled>
+                  <i data-lucide="save" class="h-4 w-4"></i>
+                  Save
+                </button>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="mb-3 flex items-center justify-between">
+                <h2 class="text-sm font-semibold">Saved</h2>
+                <button id="clearSignaturesBtn" class="btn-link" type="button">Clear</button>
+              </div>
+              <div id="savedSignatures" class="grid grid-cols-3 gap-2"></div>
+            </section>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="./src/app.js"></script>
+  </body>
+</html>
