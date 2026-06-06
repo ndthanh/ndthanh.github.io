@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lạm phát Hà Nội, TP.HCM và khung phân tích portfolio Việt Nam</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #18242f;
+      --muted: #5f6f7e;
+      --line: #d9e0e6;
+      --paper: #f7fafb;
+      --panel: #ffffff;
+      --band: #eaf2f5;
+      --blue: #245d8d;
+      --teal: #24706b;
+      --red: #ad4545;
+      --gold: #94630e;
+      --violet: #66518c;
+      --shadow: 0 8px 28px rgba(28, 45, 61, 0.08);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.55;
+      overflow-x: hidden;
+    }
+    a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    header {
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(226, 240, 244, 0.95), rgba(247, 250, 251, 0.98)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='260' viewBox='0 0 800 260'%3E%3Cg fill='none' stroke='%239ab2c2' stroke-width='2' opacity='.55'%3E%3Cpath d='M0 190 C95 140 140 155 230 122 S375 82 470 108 625 160 800 90'/%3E%3Cpath d='M0 225 C110 190 180 205 270 160 S405 120 505 142 635 205 800 150'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+    }
+    .hero { max-width: 1180px; margin: 0 auto; padding: 38px 24px 26px; }
+    h1 { margin: 0 0 12px; max-width: 920px; font-size: clamp(30px, 5vw, 56px); line-height: 1.05; letter-spacing: 0; }
+    h2 { margin: 36px 0 12px; font-size: clamp(23px, 3vw, 30px); letter-spacing: 0; }
+    h3 { margin: 0 0 8px; font-size: 18px; letter-spacing: 0; }
+    p { margin: 8px 0 12px; }
+    button, select {
+      font: inherit;
+      color: var(--ink);
+    }
+    button {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 9px 12px;
+      cursor: pointer;
+    }
+    button:hover, button.active { border-color: var(--blue); color: var(--blue); background: #f1f7fb; }
+    select {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 9px 10px;
+      min-width: 180px;
+    }
+    main { max-width: 1180px; margin: 0 auto; padding: 24px 24px 56px; overflow-x: hidden; }
+    .subhead { max-width: 870px; font-size: 18px; color: #334653; }
+    .meta { color: var(--muted); font-size: 14px; }
+    .nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+    .nav a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      padding: 8px 11px;
+      border: 1px solid rgba(36, 93, 141, 0.22);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.68);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .grid { display: grid; gap: 16px; }
+    .two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: 0 1px 2px rgba(20, 35, 50, 0.04);
+    }
+    .metric { min-height: 126px; display: flex; flex-direction: column; justify-content: space-between; }
+    .metric b { font-size: 30px; color: var(--blue); line-height: 1.1; }
+    .metric span { color: var(--muted); font-size: 13px; }
+    .callout {
+      border-left: 4px solid var(--gold);
+      background: #fff8e8;
+      padding: 12px 14px;
+      margin: 16px 0;
+      border-radius: 0 8px 8px 0;
+    }
+    .soft { background: #f0f6f8; border: 1px solid #d4e3ea; }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin: 10px 0 14px;
+    }
+    .segmented { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chartWrap {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+    .chartHead {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    svg { width: 100%; height: auto; display: block; touch-action: manipulation; }
+    .small { font-size: 13px; color: var(--muted); }
+    .tag {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      border: 1px solid var(--line);
+      background: #f7fafb;
+      color: #44515d;
+      white-space: nowrap;
+    }
+    .ok { color: #24704e; font-weight: 650; }
+    .warn { color: var(--gold); font-weight: 650; }
+    .risk { color: var(--red); font-weight: 650; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 11px;
+      vertical-align: top;
+      text-align: left;
+      font-size: 14px;
+    }
+    th { background: var(--band); font-weight: 650; }
+    tr:last-child td { border-bottom: 0; }
+    .tableScroll { max-width: 100%; overflow-x: auto; border-radius: 8px; }
+    details {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0;
+      overflow: hidden;
+    }
+    details + details { margin-top: 10px; }
+    summary {
+      cursor: pointer;
+      padding: 14px 16px;
+      font-weight: 650;
+    }
+    details > div { padding: 0 16px 16px; }
+    .sourceGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .sourceCard {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fff;
+    }
+    .sourceCard h3 { font-size: 16px; }
+    .sourceCard code {
+      display: block;
+      white-space: nowrap;
+      overflow-x: auto;
+      background: #edf2f5;
+      padding: 7px;
+      border-radius: 7px;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+    code { background: #edf2f5; padding: 2px 5px; border-radius: 5px; }
+    .pillRow { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .glossary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .term {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .term b { color: var(--blue); }
+    .backupPanel {
+      margin-top: 12px;
+      display: none;
+    }
+    .backupPanel.open { display: block; }
+    .tooltip {
+      position: fixed;
+      pointer-events: none;
+      transform: translate(-50%, -120%);
+      background: #172532;
+      color: #fff;
+      padding: 8px 9px;
+      border-radius: 7px;
+      font-size: 12px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transition: opacity .1s ease;
+      z-index: 10;
+      max-width: 220px;
+    }
+    .tooltip.show { opacity: 1; }
+    .sourceMark {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    footer {
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+      margin-top: 34px;
+      font-size: 13px;
+    }
+    @media (max-width: 900px) {
+      .two, .three, .sourceGrid, .glossary { grid-template-columns: 1fr; }
+      .chartHead { flex-direction: column; }
+      .toolbar { align-items: stretch; }
+      select, .toolbar button { width: 100%; }
+      .segmented { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+      .segmented button { width: 100%; }
+    }
+    @media (max-width: 620px) {
+      .hero { padding: 30px 16px 22px; }
+      main { padding: 18px 14px 42px; }
+      .nav { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+      .nav a { white-space: nowrap; }
+      h1 { font-size: 32px; }
+      .subhead { font-size: 16px; }
+      .card, .chartWrap { padding: 14px; }
+      th, td { font-size: 13px; padding: 9px; }
+      .segmented { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hero">
+      <h1>Lạm phát Hà Nội, TP.HCM và portfolio đầu tư Việt Nam</h1>
+      <p class="subhead">Báo cáo tương tác để kiểm tra nguồn dữ liệu, xem chuỗi CPI/lãi suất nền, và chuẩn bị backtest danh mục chứng khoán, vàng, gửi tiết kiệm, bất động sản từ đầu những năm 2000.</p>
+      <p class="meta">Cập nhật: 06/06/2026. Dữ liệu nhúng trong file lấy từ World Bank API và các nguồn thống kê chính thức được dẫn link để kiểm lại.</p>
+      <nav class="nav" aria-label="Điều hướng báo cáo">
+        <a href="#overview">Tổng quan</a>
+        <a href="#interactive">Biểu đồ</a>
+        <a href="#backup">Dữ liệu backup</a>
+        <a href="#sources">Nguồn</a>
+        <a href="#glossary">Thuật ngữ</a>
+        <a href="#workflow">Cách làm</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="overview" class="grid three" aria-label="Tổng quan nhanh">
+      <div class="card metric">
+        <span>Chuỗi CPI Việt Nam có thể dùng ngay</span>
+        <b>2000-2024</b>
+        <span>World Bank/GSO, dùng làm benchmark và deflator quốc gia.</span>
+      </div>
+      <div class="card metric">
+        <span>Lãi suất tiền gửi có thể dùng ngay</span>
+        <b>2000-2023</b>
+        <span>World Bank có chuỗi năm; nên bổ sung lãi suất 12 tháng theo ngân hàng nếu backtest chi tiết.</span>
+      </div>
+      <div class="card metric">
+        <span>CPI cấp thành phố</span>
+        <b>có nguồn, chưa sạch</b>
+        <span>Nằm trong niên giám/bản tin Hà Nội, TP.HCM và một số bảng PX-Web.</span>
+      </div>
+    </section>
+
+    <section>
+      <h2>Kết luận ngắn</h2>
+      <div class="card soft">
+        <p><strong>Có dữ liệu để làm bức tranh toàn cảnh, nhưng cần chia theo độ tin cậy.</strong> CPI Việt Nam và lãi suất tiền gửi có chuỗi sạch để dùng ngay. CPI Hà Nội/TP.HCM có nguồn chính thức nhưng cần trích xuất từ niên giám và nối lại gốc chỉ số. Bất động sản là phần yếu nhất vì thiếu chuỗi giao dịch công khai, dài hạn và đồng nhất.</p>
+        <p>Khuyến nghị thực tế: dựng bản phân tích cấp năm trước, dùng CPI Việt Nam làm baseline; sau đó thay dần bằng CPI Hà Nội/TP.HCM khi trích được từ niên giám. Với bất động sản, chọn một proxy cụ thể như giá căn hộ sơ cấp VND/m2, không trộn đất nền, nhà phố và căn hộ vào một chuỗi.</p>
+      </div>
+    </section>
+
+    <section id="interactive">
+      <h2>Biểu đồ tương tác</h2>
+      <div class="toolbar" aria-label="Điều khiển biểu đồ">
+        <div class="segmented">
+          <button class="active" data-chart="cpi">CPI Việt Nam</button>
+          <button data-chart="deposit">Lãi suất tiền gửi</button>
+          <button data-chart="realDeposit">Lãi suất thực</button>
+          <button data-chart="compare">So sánh CPI và tiền gửi</button>
+        </div>
+        <div>
+          <label class="small" for="rangeSelect">Giai đoạn</label>
+          <select id="rangeSelect">
+            <option value="2000-2024">2000-2024</option>
+            <option value="2007-2013">Cú sốc 2007-2013</option>
+            <option value="2014-2024">Ổn định hơn 2014-2024</option>
+            <option value="2020-2024">Sau Covid 2020-2024</option>
+          </select>
+        </div>
+      </div>
+      <div class="chartWrap">
+        <div class="chartHead">
+          <div>
+            <h3 id="chartTitle">CPI Việt Nam, tăng trưởng năm (%)</h3>
+            <p id="chartNote" class="small">Di chuột hoặc chạm lên điểm dữ liệu để xem con số và nguồn.</p>
+          </div>
+          <button id="toggleBackup">Xem dữ liệu backup</button>
+        </div>
+        <svg id="mainChart" viewBox="0 0 840 380" role="img" aria-label="Biểu đồ dữ liệu vĩ mô Việt Nam"></svg>
+        <div id="chartBackup" class="backupPanel">
+          <div class="toolbar">
+            <p class="small">Bảng này chính là dữ liệu đang vẽ trong biểu đồ. Có thể tải CSV để kiểm lại hoặc đưa vào Excel.</p>
+            <button id="downloadCurrent">Tải CSV biểu đồ hiện tại</button>
+          </div>
+          <div class="tableScroll">
+            <table id="currentDataTable"></table>
+          </div>
+        </div>
+      </div>
+      <div class="callout">
+        <strong>Điểm đọc nhanh:</strong> 2008 và 2011 là hai năm lạm phát rất cao trong chuỗi sau 2000. Nếu một danh mục sống sót tốt qua hai giai đoạn này, nó đáng được xem kỹ hơn.
+      </div>
+    </section>
+
+    <section id="backup">
+      <h2>Dữ liệu backup cho các con số</h2>
+      <details open>
+        <summary>Chuỗi CPI và lãi suất tiền gửi đã nhúng trong báo cáo</summary>
+        <div>
+          <div class="toolbar">
+            <p class="small">Nguồn: World Bank API. CPI dùng indicator <code>FP.CPI.TOTL.ZG</code>; lãi suất tiền gửi dùng <code>FR.INR.DPST</code>. Ô trống nghĩa là World Bank chưa có dữ liệu công khai tại thời điểm truy xuất.</p>
+            <button id="downloadAll">Tải toàn bộ CSV</button>
+          </div>
+          <div class="tableScroll">
+            <table id="allDataTable"></table>
+          </div>
+        </div>
+      </details>
+      <details>
+        <summary>Ma trận dữ liệu cần thu thập thêm cho Hà Nội, TP.HCM và tài sản đầu tư</summary>
+        <div class="tableScroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Hạng mục</th>
+                <th>Nguồn ưu tiên</th>
+                <th>Độ phủ kỳ vọng</th>
+                <th>Độ khó</th>
+                <th>Cách kiểm lại</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>CPI Hà Nội</td>
+                <td>Niên giám Thống kê Hà Nội, bản tin KT-XH tháng/quý, NSO/GSO PX-Web</td>
+                <td><span class="tag">năm/tháng tùy năm</span></td>
+                <td><span class="warn">trung bình</span></td>
+                <td>Mở mục <em>Chỉ số giá</em>; ghi rõ năm xuất bản, bảng, gốc so sánh. Chú thích Hà Nội mở rộng địa giới năm 2008.</td>
+              </tr>
+              <tr>
+                <td>CPI TP.HCM</td>
+                <td>Niên giám Thống kê TP.HCM, bản tin KT-XH tháng/quý, NSO/GSO PX-Web</td>
+                <td><span class="tag">năm/tháng tùy năm</span></td>
+                <td><span class="warn">trung bình</span></td>
+                <td>Mở mục <em>Chỉ số giá / Price index</em>; ưu tiên bảng bình quân năm nếu backtest theo năm.</td>
+              </tr>
+              <tr>
+                <td>Chứng khoán</td>
+                <td>HOSE/HNX, FiinPro, Vietstock, Investing, dữ liệu công ty chứng khoán</td>
+                <td><span class="tag">ngày/tháng</span></td>
+                <td><span class="warn">trung bình</span></td>
+                <td>Phân biệt price index với total return. Nếu dùng VN-Index thường, cần ghi rõ chưa tính cổ tức.</td>
+              </tr>
+              <tr>
+                <td>Vàng</td>
+                <td>Chỉ số giá vàng GSO; giá SJC/DOJI/PNJ nếu mô phỏng nhà đầu tư cá nhân</td>
+                <td><span class="tag">tháng/ngày</span></td>
+                <td><span class="warn">trung bình</span></td>
+                <td>GSO phù hợp làm chỉ số; SJC cần chọn giá mua, giá bán hoặc trung bình và tính spread.</td>
+              </tr>
+              <tr>
+                <td>Gửi tiết kiệm</td>
+                <td>World Bank, SBV, lãi suất niêm yết ngân hàng thương mại</td>
+                <td><span class="tag">năm/tháng</span></td>
+                <td><span class="ok">thấp-trung bình</span></td>
+                <td>Ghi kỳ hạn 6/12 tháng, ngân hàng, lãi nhập gốc hay không, trước/sau thuế.</td>
+              </tr>
+              <tr>
+                <td>Bất động sản</td>
+                <td>CBRE, Savills, Batdongsan/PropertyGuru, VARS, báo cáo CTCK</td>
+                <td><span class="tag">quý/năm</span></td>
+                <td><span class="risk">cao</span></td>
+                <td>Chọn proxy cụ thể: căn hộ sơ cấp, thứ cấp, đất nền hoặc nhà phố. Không trộn nhiều loại tài sản.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+
+    <section id="sources">
+      <h2>Nguồn để kiểm lại</h2>
+      <div class="sourceGrid">
+        <div class="sourceCard">
+          <h3>World Bank - CPI Việt Nam</h3>
+          <p>Dùng để kiểm lại chuỗi lạm phát CPI quốc gia trong báo cáo.</p>
+          <a href="https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=VN">Trang dữ liệu</a>
+          <code>https://api.worldbank.org/v2/country/VN/indicator/FP.CPI.TOTL.ZG?format=json&per_page=80</code>
+        </div>
+        <div class="sourceCard">
+          <h3>World Bank - Lãi suất tiền gửi</h3>
+          <p>Dùng để kiểm lại chuỗi lãi suất tiền gửi bình quân theo năm.</p>
+          <a href="https://data.worldbank.org/indicator/FR.INR.DPST?locations=VN">Trang dữ liệu</a>
+          <code>https://api.worldbank.org/v2/country/VN/indicator/FR.INR.DPST?format=json&per_page=80</code>
+        </div>
+        <div class="sourceCard">
+          <h3>NSO/GSO - Thống kê Giá</h3>
+          <p>Nguồn chính thức cho CPI, chỉ số giá vàng, USD, và các bảng giá theo tháng/năm.</p>
+          <a href="https://www.nso.gov.vn/gia/">https://www.nso.gov.vn/gia/</a>
+          <div class="sourceMark">Ưu tiên để đối chiếu với số quốc gia và phương pháp thống kê.</div>
+        </div>
+        <div class="sourceCard">
+          <h3>NSO/GSO - Phương pháp CPI</h3>
+          <p>Giải thích CPI, rổ hàng hóa, quyền số, và phạm vi tỉnh/thành phố.</p>
+          <a href="https://www.nso.gov.vn/du-lieu-dac-ta/2019/03/giai-thich-thuat-ngu-noi-dung-va-phuong-phap-tinh-mot-so-chi-tieu-thong-ke-gia/">Mở tài liệu phương pháp</a>
+          <div class="sourceMark">Dùng để giải thích vì sao gốc chỉ số và quyền số có thể thay đổi.</div>
+        </div>
+        <div class="sourceCard">
+          <h3>Niên giám Thống kê Hà Nội</h3>
+          <p>Nguồn chính cho CPI và chỉ số giá cấp Hà Nội.</p>
+          <a href="https://thongkehanoi.nso.gov.vn/nien-giam-thong-ke">Mở niên giám Hà Nội</a>
+          <div class="sourceMark">Tìm chương hoặc mục “Chỉ số giá”.</div>
+        </div>
+        <div class="sourceCard">
+          <h3>Niên giám Thống kê TP.HCM</h3>
+          <p>Nguồn chính cho CPI và chỉ số giá cấp TP.HCM.</p>
+          <a href="https://thongkehochiminh.nso.gov.vn/Niengiam/Niengiam">Mở niên giám TP.HCM</a>
+          <div class="sourceMark">Tìm mục “Chỉ số giá / Price index”.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="glossary">
+      <h2>Thuật ngữ ngắn gọn</h2>
+      <div class="glossary">
+        <div class="term"><b>CPI</b><p>Chỉ số giá tiêu dùng. Hiểu đơn giản là mức giá của một rổ hàng hóa/dịch vụ đại diện cho đời sống dân cư.</p></div>
+        <div class="term"><b>Lạm phát</b><p>Tốc độ tăng CPI. Nếu CPI tăng 5%/năm, sức mua của 1 đồng giảm tương ứng khoảng 5% trong năm đó.</p></div>
+        <div class="term"><b>Deflator</b><p>Chỉ số dùng để quy đổi lợi suất danh nghĩa thành lợi suất thực, tức sau khi trừ tác động lạm phát.</p></div>
+        <div class="term"><b>Lợi suất danh nghĩa</b><p>Mức tăng tiền nhìn thấy trên tài khoản hoặc giá tài sản, chưa điều chỉnh lạm phát.</p></div>
+        <div class="term"><b>Lợi suất thực</b><p>Lợi suất sau khi điều chỉnh CPI. Đây là con số gần hơn với sức mua thực tế của nhà đầu tư.</p></div>
+        <div class="term"><b>Price index</b><p>Chỉ số chỉ phản ánh biến động giá, thường chưa tính cổ tức hoặc dòng tiền tài sản tạo ra.</p></div>
+        <div class="term"><b>Total return</b><p>Lợi suất bao gồm cả tăng giá và dòng tiền như cổ tức, coupon hoặc tiền thuê.</p></div>
+        <div class="term"><b>Proxy</b><p>Biến thay thế khi không có dữ liệu trực tiếp. Ví dụ dùng giá căn hộ sơ cấp làm proxy cho bất động sản đô thị.</p></div>
+        <div class="term"><b>Tái cân bằng</b><p>Đưa danh mục về tỷ trọng ban đầu sau một kỳ. Ví dụ cuối mỗi năm quay lại 40% cổ phiếu, 30% tiền gửi, 20% vàng, 10% BĐS.</p></div>
+      </div>
+    </section>
+
+    <section id="workflow">
+      <h2>Cách làm backtest đề xuất</h2>
+      <div class="grid two">
+        <div class="card">
+          <h3>Công thức lợi suất thực</h3>
+          <p>Dùng CPI địa phương để quy đổi sức mua của người sống tại Hà Nội hoặc TP.HCM:</p>
+          <p><code>real_return = (1 + nominal_return) / (1 + local_inflation) - 1</code></p>
+          <p>Nếu chỉ có CPI năm, nên backtest theo năm. Khi có CPI tháng, có thể chuyển sang tần suất tháng.</p>
+        </div>
+        <div class="card">
+          <h3>Danh mục mẫu để so sánh</h3>
+          <ul>
+            <li>100% tiền gửi 12 tháng, lãi nhập gốc hàng năm.</li>
+            <li>100% VN-Index hoặc VN30, ghi rõ có/không có cổ tức.</li>
+            <li>100% vàng SJC hoặc chỉ số giá vàng GSO.</li>
+            <li>100% bất động sản theo proxy đã chọn.</li>
+            <li>Danh mục hỗn hợp: 40% chứng khoán, 30% tiền gửi, 20% vàng, 10% bất động sản; tái cân bằng hàng năm.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tableScroll" style="margin-top:16px">
+        <table>
+          <thead>
+            <tr>
+              <th>Vấn đề</th>
+              <th>Quyết định cần ghi rõ</th>
+              <th>Tác động nếu bỏ qua</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cổ tức chứng khoán</td>
+              <td>Price return hay total return</td>
+              <td>Bỏ qua cổ tức sẽ hạ thấp lợi suất dài hạn của chứng khoán.</td>
+            </tr>
+            <tr>
+              <td>Spread vàng</td>
+              <td>Dùng giá mua, giá bán, hay trung bình</td>
+              <td>Vàng SJC có spread và premium nội địa; lợi suất nhà đầu tư cá nhân khác chỉ số GSO.</td>
+            </tr>
+            <tr>
+              <td>Bất động sản</td>
+              <td>Giá mua, tiền thuê ròng, phí giao dịch, thuế, chi phí vay</td>
+              <td>Kết quả có thể đảo chiều nếu tính đòn bẩy và dòng tiền thuê.</td>
+            </tr>
+            <tr>
+              <td>Lãi suất tiết kiệm</td>
+              <td>Kỳ hạn, ngân hàng, lãi nhập gốc, trước/sau thuế</td>
+              <td>Lãi suất bình quân quốc gia có thể khác xa lãi niêm yết 12 tháng của một ngân hàng cụ thể.</td>
+            </tr>
+            <tr>
+              <td>CPI địa phương</td>
+              <td>Hà Nội trước/sau 2008, TP.HCM theo địa giới nào</td>
+              <td>Chuỗi có thể không so sánh được nếu không ghi rõ thay đổi địa giới và quyền số.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <p>Bản này là data-room tương tác: có số nền dùng ngay, link nguồn kiểm lại, và checklist để hoàn thiện CPI Hà Nội/TP.HCM cùng các tài sản đầu tư. Bước tiếp theo là trích xuất niên giám địa phương thành CSV và nối gốc chỉ số.</p>
+    </footer>
+  </main>
+
+  <div id="tooltip" class="tooltip"></div>
+
+  <script>
+    const SOURCES = {
+      cpi: {
+        label: "World Bank FP.CPI.TOTL.ZG",
+        url: "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=VN",
+        api: "https://api.worldbank.org/v2/country/VN/indicator/FP.CPI.TOTL.ZG?format=json&per_page=80"
+      },
+      deposit: {
+        label: "World Bank FR.INR.DPST",
+        url: "https://data.worldbank.org/indicator/FR.INR.DPST?locations=VN",
+        api: "https://api.worldbank.org/v2/country/VN/indicator/FR.INR.DPST?format=json&per_page=80"
+      }
+    };
+
+    const DATA = [
+      {year:2000,cpi:-1.7103,deposit:3.6533},{year:2001,cpi:-0.4315,deposit:5.3042},
+      {year:2002,cpi:3.8308,deposit:6.4475},{year:2003,cpi:3.2346,deposit:6.6217},
+      {year:2004,cpi:7.7549,deposit:6.1713},{year:2005,cpi:8.2846,deposit:7.1450},
+      {year:2006,cpi:7.4180,deposit:7.6300},{year:2007,cpi:8.3444,deposit:7.4925},
+      {year:2008,cpi:23.1154,deposit:12.7304},{year:2009,cpi:6.7170,deposit:7.9100},
+      {year:2010,cpi:9.2075,deposit:11.1938},{year:2011,cpi:18.6777,deposit:13.9935},
+      {year:2012,cpi:9.0947,deposit:10.5037},{year:2013,cpi:6.5927,deposit:7.1400},
+      {year:2014,cpi:4.0846,deposit:5.7575},{year:2015,cpi:0.6312,deposit:4.7475},
+      {year:2016,cpi:2.6682,deposit:5.0350},{year:2017,cpi:3.5203,deposit:4.8092},
+      {year:2018,cpi:3.5396,deposit:4.7383},{year:2019,cpi:2.7958,deposit:4.9750},
+      {year:2020,cpi:3.2209,deposit:4.1202},{year:2021,cpi:1.8347,deposit:3.3750},
+      {year:2022,cpi:3.1565,deposit:3.8175},{year:2023,cpi:3.2529,deposit:4.7810},
+      {year:2024,cpi:3.6211,deposit:null}
+    ].map(row => ({
+      ...row,
+      realDeposit: row.deposit == null ? null : ((1 + row.deposit / 100) / (1 + row.cpi / 100) - 1) * 100
+    }));
+
+    const chartConfig = {
+      cpi: {
+        title: "CPI Việt Nam, tăng trưởng năm (%)",
+        note: "Nguồn: World Bank FP.CPI.TOTL.ZG. Đây là lạm phát CPI quốc gia, dùng làm benchmark.",
+        series: [{key:"cpi", label:"CPI", color:"#ad4545", source:"cpi"}]
+      },
+      deposit: {
+        title: "Lãi suất tiền gửi Việt Nam (%)",
+        note: "Nguồn: World Bank FR.INR.DPST. Chuỗi công khai hiện có đến 2023.",
+        series: [{key:"deposit", label:"Tiền gửi", color:"#245d8d", source:"deposit"}]
+      },
+      realDeposit: {
+        title: "Lãi suất tiền gửi thực sau lạm phát (%)",
+        note: "Tính từ dữ liệu World Bank: (1 + lãi suất tiền gửi) / (1 + CPI) - 1.",
+        series: [{key:"realDeposit", label:"Tiền gửi thực", color:"#24706b", source:"deposit"}]
+      },
+      compare: {
+        title: "So sánh CPI và lãi suất tiền gửi (%)",
+        note: "Hai chuỗi cùng nguồn World Bank. Khoảng cách giữa hai đường gợi ý lãi suất thực trước các chi phí/thuế.",
+        series: [
+          {key:"cpi", label:"CPI", color:"#ad4545", source:"cpi"},
+          {key:"deposit", label:"Tiền gửi", color:"#245d8d", source:"deposit"}
+        ]
+      }
+    };
+
+    let currentChart = "cpi";
+    let currentRange = [2000, 2024];
+    const tooltip = document.getElementById("tooltip");
+
+    function fmt(value) {
+      if (value == null || Number.isNaN(value)) return "";
+      return value.toFixed(2);
+    }
+
+    function filteredData() {
+      return DATA.filter(d => d.year >= currentRange[0] && d.year <= currentRange[1]);
+    }
+
+    function drawChart() {
+      const svg = document.getElementById("mainChart");
+      const cfg = chartConfig[currentChart];
+      const data = filteredData();
+      const W = 840, H = 380, m = {l:54, r:26, t:28, b:48};
+      const values = [];
+      cfg.series.forEach(s => data.forEach(d => { if (d[s.key] != null) values.push(d[s.key]); }));
+      const xs = data.map(d => d.year);
+      const minX = Math.min(...xs), maxX = Math.max(...xs);
+      const minY = Math.min(0, Math.floor(Math.min(...values) - 1));
+      const maxY = Math.ceil(Math.max(...values) + 2);
+      const x = v => m.l + (v - minX) / Math.max(1, maxX - minX) * (W - m.l - m.r);
+      const y = v => H - m.b - (v - minY) / Math.max(1, maxY - minY) * (H - m.t - m.b);
+      let g = `<rect x="0" y="0" width="${W}" height="${H}" fill="#fff"/>`;
+
+      for (let i = 0; i <= 5; i++) {
+        const val = minY + (maxY - minY) * i / 5;
+        const yy = y(val);
+        g += `<line x1="${m.l}" y1="${yy}" x2="${W-m.r}" y2="${yy}" stroke="#e4e9ee"/>`;
+        g += `<text x="${m.l-10}" y="${yy+4}" font-size="12" text-anchor="end" fill="#5f6f7e">${val.toFixed(0)}</text>`;
+      }
+
+      const step = (maxX - minX) > 12 ? 5 : 1;
+      for (let yr = minX; yr <= maxX; yr += step) {
+        const xx = x(yr);
+        g += `<text x="${xx}" y="${H-18}" font-size="12" text-anchor="middle" fill="#5f6f7e">${yr}</text>`;
+      }
+
+      g += `<line x1="${m.l}" y1="${m.t}" x2="${m.l}" y2="${H-m.b}" stroke="#9aa7b2"/>`;
+      g += `<line x1="${m.l}" y1="${H-m.b}" x2="${W-m.r}" y2="${H-m.b}" stroke="#9aa7b2"/>`;
+      g += `<text x="${m.l}" y="18" font-size="12" fill="#5f6f7e">%</text>`;
+
+      cfg.series.forEach((s, idx) => {
+        const points = data.filter(d => d[s.key] != null);
+        const path = points.map((d, i) => `${i ? "L" : "M"}${x(d.year).toFixed(1)},${y(d[s.key]).toFixed(1)}`).join(" ");
+        g += `<path d="${path}" fill="none" stroke="${s.color}" stroke-width="3"/>`;
+        points.forEach(d => {
+          const label = `${s.label} ${d.year}: ${fmt(d[s.key])}% | Nguồn: ${SOURCES[s.source].label}`;
+          g += `<circle cx="${x(d.year)}" cy="${y(d[s.key])}" r="5" fill="${s.color}" data-tip="${label.replaceAll('"', "&quot;")}"/>`;
+        });
+        g += `<g transform="translate(${m.l + idx * 150},${H - 372})"><rect width="12" height="12" fill="${s.color}" rx="2"/><text x="18" y="11" font-size="12" fill="#334653">${s.label}</text></g>`;
+      });
+
+      document.getElementById("chartTitle").textContent = cfg.title;
+      document.getElementById("chartNote").textContent = cfg.note;
+      svg.innerHTML = g;
+      wireChartTooltip();
+      renderCurrentTable();
+    }
+
+    function wireChartTooltip() {
+      document.querySelectorAll("#mainChart circle").forEach(dot => {
+        const show = event => {
+          tooltip.textContent = dot.dataset.tip;
+          tooltip.style.left = event.clientX + "px";
+          tooltip.style.top = event.clientY + "px";
+          tooltip.classList.add("show");
+        };
+        dot.addEventListener("mousemove", show);
+        dot.addEventListener("mouseenter", show);
+        dot.addEventListener("touchstart", event => {
+          const touch = event.touches[0];
+          show(touch);
+        }, {passive:true});
+        dot.addEventListener("mouseleave", () => tooltip.classList.remove("show"));
+      });
+    }
+
+    function rowsForCurrentChart() {
+      const cfg = chartConfig[currentChart];
+      return filteredData().map(d => {
+        const row = {year: d.year};
+        cfg.series.forEach(s => row[s.label] = d[s.key]);
+        row.source = cfg.series.map(s => SOURCES[s.source].label).join(" + ");
+        return row;
+      });
+    }
+
+    function tableHtml(rows) {
+      const keys = Object.keys(rows[0] || {});
+      const head = `<thead><tr>${keys.map(k => `<th>${k}</th>`).join("")}</tr></thead>`;
+      const body = `<tbody>${rows.map(row => `<tr>${keys.map(k => `<td>${typeof row[k] === "number" && k !== "year" ? fmt(row[k]) : (row[k] ?? "")}</td>`).join("")}</tr>`).join("")}</tbody>`;
+      return head + body;
+    }
+
+    function renderCurrentTable() {
+      document.getElementById("currentDataTable").innerHTML = tableHtml(rowsForCurrentChart());
+    }
+
+    function renderAllTable() {
+      const rows = DATA.map(d => ({
+        year: d.year,
+        "CPI Việt Nam (%)": d.cpi,
+        "Lãi suất tiền gửi (%)": d.deposit,
+        "Lãi suất tiền gửi thực (%)": d.realDeposit,
+        "Nguồn CPI": SOURCES.cpi.label,
+        "Nguồn lãi suất": d.deposit == null ? "" : SOURCES.deposit.label
+      }));
+      document.getElementById("allDataTable").innerHTML = tableHtml(rows);
+    }
+
+    function toCsv(rows) {
+      const keys = Object.keys(rows[0] || {});
+      const escape = v => `"${String(v ?? "").replaceAll('"', '""')}"`;
+      return [keys.map(escape).join(","), ...rows.map(r => keys.map(k => escape(typeof r[k] === "number" && k !== "year" ? fmt(r[k]) : r[k])).join(","))].join("\n");
+    }
+
+    function downloadCsv(filename, rows) {
+      const blob = new Blob([toCsv(rows)], {type:"text/csv;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.querySelectorAll("[data-chart]").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("[data-chart]").forEach(b => b.classList.remove("active"));
+        button.classList.add("active");
+        currentChart = button.dataset.chart;
+        drawChart();
+      });
+    });
+
+    document.getElementById("rangeSelect").addEventListener("change", event => {
+      currentRange = event.target.value.split("-").map(Number);
+      drawChart();
+    });
+
+    document.getElementById("toggleBackup").addEventListener("click", () => {
+      const panel = document.getElementById("chartBackup");
+      panel.classList.toggle("open");
+      document.getElementById("toggleBackup").textContent = panel.classList.contains("open") ? "Ẩn dữ liệu backup" : "Xem dữ liệu backup";
+    });
+
+    document.getElementById("downloadCurrent").addEventListener("click", () => downloadCsv(`vietnam_${currentChart}_${currentRange.join("_")}.csv`, rowsForCurrentChart()));
+    document.getElementById("downloadAll").addEventListener("click", () => {
+      const rows = DATA.map(d => ({
+        year: d.year,
+        cpi_vietnam_percent: d.cpi,
+        deposit_interest_percent: d.deposit,
+        real_deposit_percent: d.realDeposit,
+        cpi_source: SOURCES.cpi.api,
+        deposit_source: d.deposit == null ? "" : SOURCES.deposit.api
+      }));
+      downloadCsv("vietnam_macro_backup_worldbank_2000_2024.csv", rows);
+    });
+
+    renderAllTable();
+    drawChart();
+  </script>
+</body>
+</html>
