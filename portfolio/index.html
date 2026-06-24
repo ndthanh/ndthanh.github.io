@@ -1,1 +1,556 @@
-placholder
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nguyen Duc Thanh - Product Portfolio</title>
+  <meta name="description" content="Selected product and software architecture portfolio by Nguyen Duc Thanh.">
+  <style>
+    :root {
+      --bg: #f6f8f7;
+      --ink: #1f2933;
+      --muted: #52616b;
+      --line: #d8dee5;
+      --panel: #ffffff;
+      --soft: #eef4f2;
+      --accent: #0f766e;
+      --accent-strong: #0b5f59;
+      --warning: #9a3412;
+      --shadow: 0 10px 28px rgba(31, 41, 51, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 16px;
+      line-height: 1.58;
+    }
+
+    a {
+      color: var(--accent-strong);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    a:hover {
+      color: var(--warning);
+    }
+
+    .wrap {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      min-width: 0;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .masthead {
+      padding: 32px 0 28px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.05rem, 10vw, 2.6rem);
+      line-height: 0.95;
+      letter-spacing: 0;
+      overflow-wrap: break-word;
+      text-wrap: balance;
+    }
+
+    .intro {
+      max-width: 760px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin: 22px 0 0;
+      max-width: 760px;
+    }
+
+    .stat {
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      background: var(--soft);
+    }
+
+    .stat strong {
+      display: block;
+      color: var(--accent-strong);
+      font-size: 1.28rem;
+      line-height: 1.15;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    main {
+      padding: 32px 0 56px;
+    }
+
+    .section-head {
+      margin: 0 0 18px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .note {
+      max-width: 520px;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .project-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .project {
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+      min-width: 0;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .project.featured {
+      grid-column: auto;
+    }
+
+    .project-head {
+      display: block;
+    }
+
+    h3 {
+      margin: 0;
+      min-width: 0;
+      font-size: 1.22rem;
+      line-height: 1.22;
+      overflow-wrap: break-word;
+    }
+
+    .badge {
+      display: inline-block;
+      margin-top: 8px;
+      border: 1px solid #b6cbc7;
+      border-radius: 999px;
+      padding: 3px 8px;
+      color: var(--accent-strong);
+      background: var(--soft);
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.3;
+      white-space: nowrap;
+    }
+
+    .project p {
+      margin: 12px 0 0;
+      color: var(--muted);
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .meta li {
+      border: 1px solid #d5ddd9;
+      background: #fbfcfb;
+      color: #33424a;
+      padding: 4px 8px;
+      font-size: 0.82rem;
+      line-height: 1.25;
+    }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: auto;
+      padding-top: 18px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      padding: 7px 11px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      color: var(--accent-strong);
+      background: #fff;
+      font-size: 0.92rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .button:hover {
+      border-color: var(--warning);
+      color: var(--warning);
+    }
+
+    .video-placeholder {
+      margin: 16px 0 0;
+      border: 1px dashed #9fb3af;
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(154, 52, 18, 0.04)),
+        #fbfcfb;
+      aspect-ratio: 16 / 9;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .play-mark {
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 12px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      position: relative;
+      background: #fff;
+    }
+
+    .play-mark::after {
+      content: "";
+      position: absolute;
+      left: 22px;
+      top: 16px;
+      width: 0;
+      height: 0;
+      border-top: 12px solid transparent;
+      border-bottom: 12px solid transparent;
+      border-left: 18px solid var(--accent);
+    }
+
+    .video-placeholder strong {
+      display: block;
+      font-size: 1rem;
+    }
+
+    .video-placeholder span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    code {
+      color: var(--warning);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 24px 0 36px;
+      color: var(--muted);
+      background: var(--panel);
+      font-size: 0.92rem;
+    }
+
+    @media (min-width: 760px) {
+      .wrap {
+        width: min(1120px, calc(100% - 48px));
+      }
+
+      .masthead {
+        padding: 48px 0 32px;
+      }
+
+      h1 {
+        font-size: clamp(3.2rem, 5vw, 4.6rem);
+      }
+
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: end;
+      }
+
+      .note {
+        margin: 0;
+        text-align: right;
+      }
+    }
+
+    @media (min-width: 900px) {
+      .stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .project-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .project.featured {
+        grid-column: 1 / -1;
+      }
+
+      .project-head {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        justify-content: space-between;
+      }
+
+      .badge {
+        flex: 0 0 auto;
+        margin-top: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap masthead">
+      <div>
+        <p class="eyebrow">Selected Product Portfolio</p>
+        <h1>Nguyen Duc Thanh</h1>
+        <p class="intro">
+          Products and systems I have built or architected across education technology, AI learning tools, accounting automation, compensation systems, and robotics prototypes.
+        </p>
+        <div class="stats" aria-label="Portfolio highlights">
+          <div class="stat">
+            <strong>100,000+</strong>
+            <span>paid learners reached through Học Excel Online</span>
+          </div>
+          <div class="stat">
+            <strong>35</strong>
+            <span>employees managed remotely at Học Excel Online</span>
+          </div>
+          <div class="stat">
+            <strong>6 months</strong>
+            <span>to architect and deliver a 3P salary system</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Projects</h2>
+        <p class="note">Short descriptions with public links where available. Private Tailnet links may require access to my network.</p>
+      </div>
+
+      <section class="project-grid" aria-label="Selected projects">
+        <article class="project featured">
+          <div class="project-head">
+            <h3>Học Excel Online learning ecosystem</h3>
+            <span class="badge">Public</span>
+          </div>
+          <p>
+            Founded and built an online education business covering Excel, VBA, Python, Google Sheets, Power Query, Power BI, automation, and practical business technology skills. The ecosystem reached 100,000+ paid learners and supported B2C courses, corporate training, and public knowledge sharing.
+          </p>
+          <ul class="meta">
+            <li>EdTech</li>
+            <li>Learning platform</li>
+            <li>Content operations</li>
+            <li>100,000+ paid learners</li>
+          </ul>
+          <div class="links">
+            <a class="button" href="https://hocexcel.online">hocexcel.online</a>
+            <a class="button" href="https://dtnguyen.business">dtnguyen.business</a>
+            <a class="button" href="https://blog.hocexcel.online">blog.hocexcel.online</a>
+          </div>
+        </article>
+
+        <article class="project">
+          <div class="project-head">
+            <h3>CRM and real-time advertising cost dashboard</h3>
+            <span class="badge">Internal</span>
+          </div>
+          <p>
+            Built and led internal CRM workflows for leads, orders, telesales, customer learning status, and operational reporting. Added near real-time dashboards for Facebook Ads and Google Ads cost data so the team could track acquisition economics and campaign efficiency during daily operations.
+          </p>
+          <ul class="meta">
+            <li>CRM</li>
+            <li>Facebook Ads</li>
+            <li>Google Ads</li>
+            <li>Telesales operations</li>
+          </ul>
+        </article>
+
+        <article class="project">
+          <div class="project-head">
+            <h3>AI interview practice app for Germany-bound students</h3>
+            <span class="badge">Public</span>
+          </div>
+          <p>
+            Built a Next.js app that helps study-abroad students practice spoken interview conversations with an LLM-based interviewer. The product combines GPT-4o mini, speech-to-text, and text-to-speech for repeated mock interview practice.
+          </p>
+          <ul class="meta">
+            <li>Next.js</li>
+            <li>GPT-4o mini</li>
+            <li>Speech-to-text</li>
+            <li>Text-to-speech</li>
+          </ul>
+          <div class="links">
+            <a class="button" href="https://franka.ndt.onl">franka.ndt.onl</a>
+          </div>
+        </article>
+
+        <article class="project">
+          <div class="project-head">
+            <h3>Math learning app for Grade 1-2 students</h3>
+            <span class="badge">Tailnet</span>
+          </div>
+          <p>
+            Built an internal app for early primary math practice, designed for at-home use on a local server. The app focuses on simple, repeatable exercises for Grade 1-2 learners and is exposed through a private Tailnet endpoint.
+          </p>
+          <ul class="meta">
+            <li>Education app</li>
+            <li>Local server</li>
+            <li>Tailnet access</li>
+            <li>Grade 1-2 math</li>
+          </ul>
+          <div class="links">
+            <a class="button" href="https://math.ndt.onl">math.ndt.onl</a>
+          </div>
+        </article>
+
+        <article class="project">
+          <div class="project-head">
+            <h3>E-invoice downloader for accounting workflows</h3>
+            <span class="badge">Write-up</span>
+          </div>
+          <p>
+            Created a browser/web automation tool to download invoices from Vietnamese electronic-invoice portals while keeping accounting data under local control. The project was designed for practical accounting teams that need automation without exposing sensitive data to unnecessary third-party systems.
+          </p>
+          <ul class="meta">
+            <li>Web automation</li>
+            <li>Accounting support</li>
+            <li>Local data control</li>
+            <li>E-invoice portals</li>
+          </ul>
+          <div class="links">
+            <a class="button" href="https://blog.hocexcel.online/khoa-hoc/tu-tao-cong-cu-ho-tro-ke-toan-dam-bao-an-toan-du-lieu">Project article</a>
+          </div>
+        </article>
+
+        <article class="project featured">
+          <div class="project-head">
+            <h3>3P salary architecture and data system for an oil and gas customer</h3>
+            <span class="badge">Architecture</span>
+          </div>
+          <p>
+            Architected the software and data model for a 3P compensation and salary evaluation system for an oil and gas / petrochemical customer. The work covered job-position structures, competency and performance scoring data, salary-scale logic, evaluation workflows, permission boundaries, import/export flows, and reporting foundations.
+          </p>
+          <p>
+            The system was delivered in approximately 6 months with a lean engineering team after previous attempts by other teams had stalled for years.
+          </p>
+          <ul class="meta">
+            <li>Software architecture</li>
+            <li>Data modeling</li>
+            <li>Compensation workflows</li>
+            <li>Role-based permissions</li>
+            <li>Reporting design</li>
+          </ul>
+        </article>
+
+        <article class="project">
+          <div class="project-head">
+            <h3>HEO Training Excel add-in</h3>
+            <span class="badge">Public</span>
+          </div>
+          <p>
+            Built an Office.js add-in that brings guided Excel learning and practice directly into Microsoft Excel. The add-in was published publicly on Microsoft AppSource as part of the Học Excel Online learning ecosystem.
+          </p>
+          <ul class="meta">
+            <li>Office.js</li>
+            <li>Microsoft Excel</li>
+            <li>Learning inside Excel</li>
+          </ul>
+          <div class="links">
+            <a class="button" href="https://appsource.microsoft.com/en-us/product/office/wa104382054?tab=overview">Microsoft AppSource</a>
+          </div>
+        </article>
+
+        <article class="project" id="self-balancing-robot">
+          <div class="project-head">
+            <h3>Two-wheeled self-balancing robot prototype</h3>
+            <span class="badge">Video soon</span>
+          </div>
+          <p>
+            Designed and built a two-wheeled self-balancing robot prototype end to end, including frame design, 3D printing, circuit assembly, soldering, firmware development, and balance/control tuning.
+          </p>
+          <div class="video-placeholder" aria-label="Robot demo video placeholder">
+            <div>
+              <div class="play-mark" aria-hidden="true"></div>
+              <strong>Robot demo video placeholder</strong>
+              <span>Upload <code>self-balancing-robot.mp4</code> into this same folder.</span>
+            </div>
+          </div>
+          <ul class="meta">
+            <li>Embedded firmware</li>
+            <li>3D printing</li>
+            <li>Electronics assembly</li>
+            <li>Control tuning</li>
+          </ul>
+          <div class="links">
+            <a class="button" href="./self-balancing-robot.mp4">Open demo video</a>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Product portfolio by Nguyen Duc Thanh. Last updated June 2026.</span>
+    </div>
+  </footer>
+</body>
+</html>
