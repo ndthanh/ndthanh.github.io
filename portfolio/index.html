@@ -236,52 +236,25 @@
       color: var(--warning);
     }
 
-    .video-placeholder {
+    .video-frame {
       margin: 16px 0 0;
-      border: 1px dashed #9fb3af;
+      border: 1px solid var(--line);
       border-radius: 8px;
-      background:
-        linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(154, 52, 18, 0.04)),
-        #fbfcfb;
+      overflow: hidden;
+      background: #111827;
+    }
+
+    .robot-video {
+      display: block;
+      width: 100%;
       aspect-ratio: 16 / 9;
-      display: grid;
-      place-items: center;
-      text-align: center;
-      padding: 20px;
+      background: #111827;
     }
 
-    .play-mark {
-      width: 58px;
-      height: 58px;
-      margin: 0 auto 12px;
-      border-radius: 50%;
-      border: 2px solid var(--accent);
-      position: relative;
-      background: #fff;
-    }
-
-    .play-mark::after {
-      content: "";
-      position: absolute;
-      left: 22px;
-      top: 16px;
-      width: 0;
-      height: 0;
-      border-top: 12px solid transparent;
-      border-bottom: 12px solid transparent;
-      border-left: 18px solid var(--accent);
-    }
-
-    .video-placeholder strong {
-      display: block;
-      font-size: 1rem;
-    }
-
-    .video-placeholder span {
-      display: block;
-      margin-top: 5px;
+    .video-caption {
+      margin: 8px 0 0;
       color: var(--muted);
-      font-size: 0.9rem;
+      font-size: 0.86rem;
     }
 
     code {
@@ -521,18 +494,19 @@
         <article class="project" id="self-balancing-robot">
           <div class="project-head">
             <h3>Two-wheeled self-balancing robot prototype</h3>
-            <span class="badge">Video soon</span>
+            <span class="badge">Demo video</span>
           </div>
           <p>
             Designed and built a two-wheeled self-balancing robot prototype end to end, including frame design, 3D printing, circuit assembly, soldering, firmware development, and balance/control tuning.
           </p>
-          <div class="video-placeholder" aria-label="Robot demo video placeholder">
-            <div>
-              <div class="play-mark" aria-hidden="true"></div>
-              <strong>Robot demo video placeholder</strong>
-              <span>Upload <code>self-balancing-robot.mp4</code> into this same folder.</span>
-            </div>
+          <div class="video-frame">
+            <video class="robot-video" controls playsinline preload="metadata" aria-label="Two-wheeled self-balancing robot demo video">
+              <source src="./self-balancing-robot.mp4" type="video/mp4">
+              <source src="./output.mp4" type="video/mp4">
+              Your browser cannot play this video. Open the video file directly below.
+            </video>
           </div>
+          <p class="video-caption">The player loads <code>self-balancing-robot.mp4</code> from the same <code>/portfolio</code> folder, with <code>output.mp4</code> as a fallback source.</p>
           <ul class="meta">
             <li>Embedded firmware</li>
             <li>3D printing</li>
@@ -540,7 +514,7 @@
             <li>Control tuning</li>
           </ul>
           <div class="links">
-            <a class="button" href="./self-balancing-robot.mp4">Open demo video</a>
+            <a class="button" href="./self-balancing-robot.mp4">Open video file</a>
           </div>
         </article>
       </section>
