@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bản đồ Việt Nam 34 tỉnh</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIINfQehuD2u+f8lNsQ6KpfsSLZ7J4hE1wY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell" id="appShell">
+      <aside class="sidebar" aria-label="Bảng điều khiển bản đồ">
+        <header class="brand">
+          <p>Bản đồ hành chính</p>
+          <h1>Việt Nam 34 tỉnh</h1>
+          <div class="status-pill" id="dataStatus">Đang tải GIS</div>
+        </header>
+
+        <section class="control-panel" aria-label="Công cụ">
+          <div class="action-row">
+            <button class="button button-primary" id="autoColorButton" type="button">
+              <i data-lucide="palette"></i>
+              <span>Tô màu</span>
+            </button>
+            <button class="button" id="exportButton" type="button">
+              <i data-lucide="file-down"></i>
+              <span>PDF</span>
+            </button>
+            <button class="button" id="exportSvgButton" type="button">
+              <i data-lucide="file-code"></i>
+              <span>SVG</span>
+            </button>
+          </div>
+
+          <div class="segmented" aria-label="Chế độ màu">
+            <button class="active" type="button" data-mode="region">Vùng</button>
+            <button type="button" data-mode="adjacent">Kề nhau</button>
+            <button type="button" data-mode="area">Diện tích</button>
+          </div>
+
+          <label class="field" for="provinceSelect">
+            <span>Tỉnh, thành phố</span>
+            <select id="provinceSelect">
+              <option value="">Tất cả</option>
+            </select>
+          </label>
+
+          <label class="field" for="detailSelect">
+            <span>Độ chi tiết GIS</span>
+            <select id="detailSelect">
+              <option value="standard">Nhanh - 3 MB</option>
+              <option value="high">High detail - 48 MB</option>
+            </select>
+          </label>
+
+          <div class="switch-grid">
+            <label class="switch">
+              <input id="labelToggle" type="checkbox" checked />
+              <span>Nhãn</span>
+            </label>
+            <label class="switch">
+              <input id="baseToggle" type="checkbox" />
+              <span>Nền OSM</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="info-panel" aria-live="polite">
+          <div class="info-kicker" id="selectedType">Toàn quốc</div>
+          <h2 id="selectedName">34 đơn vị cấp tỉnh</h2>
+          <dl>
+            <div>
+              <dt>Mã</dt>
+              <dd id="selectedCode">VN</dd>
+            </div>
+            <div>
+              <dt>Diện tích</dt>
+              <dd id="selectedArea">Đang tính</dd>
+            </div>
+            <div>
+              <dt>Vùng màu</dt>
+              <dd id="selectedRegion">Theo chế độ hiện tại</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="legend-panel" aria-label="Chú giải">
+          <div class="section-title">Chú giải</div>
+          <div class="legend" id="legend"></div>
+        </section>
+
+        <section class="province-panel" aria-label="Danh sách tỉnh">
+          <div class="section-title">Danh sách</div>
+          <div class="province-list" id="provinceList"></div>
+        </section>
+
+        <footer class="source-note">
+          Nguồn GIS: HDX/OCHA COD-AB, GSO. Valid 01/07/2025.
+        </footer>
+      </aside>
+
+      <main class="map-area" id="mapArea">
+        <div class="map-topbar no-print">
+          <button class="icon-button" id="fitButton" type="button" title="Zoom Việt Nam">
+            <i data-lucide="maximize-2"></i>
+          </button>
+          <button class="icon-button" id="clearButton" type="button" title="Bỏ chọn">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div id="map" aria-label="Bản đồ Việt Nam 34 tỉnh"></div>
+        <div class="map-caption">
+          Ranh giới hành chính cấp tỉnh, dữ liệu 34 tỉnh/thành sau sắp xếp.
+        </div>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="assets/app.js"></script>
+  </body>
+</html>
