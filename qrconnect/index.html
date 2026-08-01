@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#121009" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="apple-touch-icon" href="./pwa-192.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          const manifest = document.querySelector('link[rel="manifest"]');
+          const root = new URL("./", manifest.href);
+          navigator.serviceWorker.register(new URL("sw.js", root), {
+            scope: root.pathname,
+            updateViaCache: "none",
+          });
+        });
+      }
+    </script>
+    <title>Optical Transfer — fountain-coded QR file transfer</title>
+    <link rel="stylesheet" crossorigin href="./assets/style-BQXIesiT.css">
+  </head>
+  <body>
+    <h1>DECIMEN <small>— Fountain QR File Transfer</small></h1>
+    <p class="hint">
+      Send a file between two devices using nothing but a screen and a camera.
+      Open <a href="./send/">send</a> on the device with the file (a laptop is
+      ideal) and <a href="./receive/">receive</a> on a phone, then point the
+      phone's camera at the flickering code.
+    </p>
+    <p class="hint">
+      No network path between the devices is used — the payload travels as
+      light. Fountain coding means the receiver can drop any frames, in any
+      order, and still reconstruct the file.
+    </p>
+    <p class="hint">
+      This app is installable. Once it has loaded successfully, sender,
+      receiver, QR decoder, and all other assets remain available offline.
+    </p>
+  </body>
+</html>
