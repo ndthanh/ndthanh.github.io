@@ -8,15 +8,42 @@
 <body>
   <h1>Dummy File Upload</h1>
 
-  <input id="file-input" data-testid="file-input" type="file">
+  <fieldset>
+    <legend>Kịch bản upload</legend>
 
+    <label>
+      <input type="radio" name="scenario" value="success" checked>
+      Upload thành công
+    </label><br>
+
+    <label>
+      <input type="radio" name="scenario" value="timeout">
+      1. Kết nối mạng chậm dẫn đến timeout
+    </label><br>
+
+    <label>
+      <input type="radio" name="scenario" value="client-error">
+      2. Upload hiển thị lỗi cụ thể
+    </label><br>
+
+    <label>
+      <input type="radio" name="scenario" value="refresh">
+      3. Web bị refresh trong khi upload
+    </label><br>
+
+    <label>
+      <input type="radio" name="scenario" value="crash">
+      4. Web bị crash trong khi upload
+    </label>
+  </fieldset>
+
+  <br>
+  <input id="file-input" data-testid="file-input" type="file">
   <button id="upload-button" data-testid="upload-button" type="button">
     Upload
   </button>
 
-  <p id="status" data-testid="upload-status">
-    Chưa chọn file
-  </p>
+  <p id="status" data-testid="upload-status">Chưa chọn file</p>
 
   <script>
     const fileInput = document.getElementById('file-input');
@@ -29,17 +56,55 @@
         : 'Chưa chọn file';
     });
 
-    uploadButton.addEventListener('click', () => {
+    uploadButton.addEventListener('click', async () => {
       if (!fileInput.files.length) {
         status.textContent = 'Vui lòng chọn file';
         return;
       }
 
-      status.textContent =
-        `Upload thành công: ${fileInput.files[0].name}`;
+      const fileName = fileInput.files[0].name;
+      const scenario = document.querySelector(
+        'input[name="scenario"]:checked'
+      ).value;
 
+      uploadButton.disabled = true;
+      status.textContent = `Đang upload: ${fileName}`;
+      status.dataset.state = 'uploading';
+
+      if (scenario === 'timeout') {
+        // Promise không bao giờ hoàn tất, mô phỏng request không phản hồi.
+        await new Promise(() => {});
+      }
+
+      if (scenario === 'client-error') {
+        await delay(1000);
+        status.textContent = 'Lỗi upload: định dạng file không được hỗ trợ';
+        status.dataset.state = 'error';
+        uploadButton.disabled = false;
+        return;
+      }
+
+      if (scenario === 'refresh') {
+        await delay(1000);
+        location.reload();
+        return;
+      }
+
+      if (scenario === 'crash') {
+        await delay(1000);
+        location.replace('about:blank');
+        return;
+      }
+
+      await delay(1000);
+      status.textContent = `Upload thành công: ${fileName}`;
       status.dataset.state = 'success';
+      uploadButton.disabled = false;
     });
+
+    function delay(milliseconds) {
+      return new Promise(resolve => setTimeout(resolve, milliseconds));
+    }
   </script>
 </body>
 </html>
