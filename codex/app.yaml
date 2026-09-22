@@ -1,0 +1,10 @@
+command: ['python', 'app.py']
+env:
+  - name: BANKING_CONFIG
+    value: config.local.json
+  - name: DATABRICKS_WAREHOUSE_ID
+    valueFrom: sql-warehouse
+  - name: BANKING_JOB_ID
+    valueFrom: ingestion-job
+  - name: BANKING_SERVING_ENDPOINT
+    valueFrom: serving-endpoint

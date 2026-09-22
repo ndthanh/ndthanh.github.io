@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="vi">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BCT · Banking Assistant</title><link rel="stylesheet" href="/static/style.css"><script src="/static/app.js" defer></script></head>
+<body>
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><span class="brand-mark">b.</span><div>BCT<span>Knowledge workspace</span></div><button class="icon-button mobile" id="close-sidebar" aria-label="Đóng tài liệu">×</button></div>
+  <button class="new-chat" id="new-chat"><span>＋</span> Cuộc trò chuyện mới <span class="shortcut">↗</span></button>
+  <div class="section-label">NGUỒN TRI THỨC <span id="document-count">0</span></div>
+  <button class="dropzone" id="dropzone"><span class="upload-icon">↥</span><strong>Thêm tài liệu</strong><span>Kéo thả vào đây hoặc chọn tệp</span><small id="upload-limits">PDF, DOCX · tối đa 50 MB / tệp</small></button>
+  <input type="file" id="file-input" accept=".pdf,.docx" multiple hidden>
+  <div class="upload-message" id="upload-message" role="status" aria-live="polite"></div>
+  <div class="documents" id="documents"><div class="empty-docs">Tài liệu của bạn sẽ xuất hiện ở đây.<br>Chỉ tài liệu đã duyệt mới được dùng để trả lời.</div></div>
+  <div class="sidebar-footer"><span class="shield">◇</span><div>Không gian nội bộ<span>Tài liệu được lưu trên Databricks</span></div></div>
+</aside>
+<main>
+  <header><div class="header-left"><button class="icon-button mobile" id="open-sidebar" aria-label="Mở tài liệu">☰</button><strong>Banking Assistant</strong><span class="version">BCT</span></div><span class="environment" id="environment"><i></i> Databricks</span></header>
+  <div class="system-banner" id="system-banner" role="status" hidden></div>
+  <section class="conversation" id="conversation" aria-label="Cuộc trò chuyện" aria-live="polite">
+    <div class="welcome" id="welcome"><span class="welcome-mark">b.</span><p class="eyebrow">TRỢ LÝ TRI THỨC NGÂN HÀNG</p><h1>Bạn cần tra cứu điều gì?</h1><p class="welcome-copy">Tìm đúng điều khoản. Hiểu rõ chính sách.<br>Câu trả lời đi cùng nguồn tài liệu để bạn kiểm chứng.</p>
+      <div class="suggestions"><button data-question="Hồ sơ nhận biết khách hàng cá nhân cần những giấy tờ nào?"><span>◈</span><strong>Nhận biết khách hàng</strong><small>Tra cứu hồ sơ và quy định KYC</small></button><button data-question="Quy trình phê duyệt khoản vay cá nhân gồm những bước nào?"><span>▤</span><strong>Quy trình tín dụng</strong><small>Tìm điều kiện và các bước xử lý</small></button><button data-question="Trường hợp nào cần thẩm định khách hàng tăng cường?"><span>◇</span><strong>Phòng chống rửa tiền</strong><small>Đối chiếu điều kiện và ngoại lệ</small></button></div>
+      <div class="welcome-note">Bắt đầu bằng việc thêm tài liệu ở thanh bên trái.</div>
+    </div>
+    <div id="messages" class="messages"></div>
+  </section>
+  <div class="composer-region"><div class="query-options"><label for="as-of">Tra cứu tại ngày</label><input type="date" id="as-of" required><span>Chỉ dùng phiên bản có hiệu lực</span></div><form id="chat-form" class="composer"><label for="question" class="sr-only">Câu hỏi về chính sách</label><textarea id="question" rows="1" maxlength="4000" placeholder="Hỏi về chính sách, quy trình hoặc một điều khoản…"></textarea><div class="composer-bottom"><span>◉ <span id="ready-count">0 tài liệu đã duyệt</span></span><button type="submit" id="send" aria-label="Gửi câu hỏi">↑</button></div></form><p class="disclaimer">AI có thể sai. Hãy kiểm tra điều khoản gốc trước khi áp dụng. Mỗi câu hỏi cần nêu đủ ngữ cảnh.</p></div>
+</main>
+<dialog id="source-dialog"><div class="source-header"><div><p class="eyebrow">NGUỒN TRÍCH DẪN</p><h2 id="source-title"></h2></div><button class="icon-button" id="close-source" aria-label="Đóng trích dẫn">×</button></div><p id="source-path"></p><p id="source-meta"></p><pre id="source-content"></pre></dialog>
+</body></html>

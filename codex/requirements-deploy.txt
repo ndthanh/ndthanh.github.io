@@ -1,0 +1,2 @@
+-r requirements.txt
+databricks-agents==1.12.0

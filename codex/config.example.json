@@ -1,0 +1,22 @@
+{
+  "catalog": "workspace",
+  "schema": "banking_rag_vi",
+  "volume": "documents",
+  "warehouse_id": "REPLACE_WAREHOUSE_ID",
+  "search_endpoint": "banking-vi-search",
+  "embedding_endpoint": "REPLACE_WITH_AVAILABLE_MULTILINGUAL_ENDPOINT",
+  "llm_endpoint": "REPLACE_WITH_AVAILABLE_VI_LLM_ENDPOINT",
+  "serving_endpoint": "banking-vi-agent",
+  "experiment": "/Shared/banking-rag-vi",
+  "ingestion_job_id": 0,
+  "query_type": "ANN",
+  "use_summaries": true,
+  "use_reranker": false,
+  "use_ai_prep_search": false,
+  "candidate_k": 12,
+  "evidence_k": 8,
+  "max_chunk_chars": 2200,
+  "max_context_chars": 24000,
+  "max_upload_mb": 50,
+  "max_pages": 500
+}

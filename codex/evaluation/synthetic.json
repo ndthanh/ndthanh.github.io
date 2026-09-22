@@ -1,0 +1,8 @@
+[
+  {"inputs":{"question":"Theo chính sách giả lập, hồ sơ khách hàng cá nhân cần giấy tờ gì?","as_of":"2026-09-19"},"expectations":{"status":"answered","expected_chunk_ids":[]}},
+  {"inputs":{"question":"Theo chính sách giả lập, giấy tờ hết hiệu lực có được chấp nhận không?","as_of":"2026-09-19"},"expectations":{"status":"answered","expected_chunk_ids":[]}},
+  {"inputs":{"question":"Thời hạn xử lý hồ sơ giả lập được tính theo ngày làm việc hay ngày lịch?","as_of":"2026-09-19"},"expectations":{"status":"answered","expected_chunk_ids":[]}},
+  {"inputs":{"question":"Khoản 2 Điều 2 trong chính sách giả lập có cho tự động kết luận gian lận không?","as_of":"2026-09-19"},"expectations":{"status":"answered","expected_chunk_ids":[]}},
+  {"inputs":{"question":"Lãi suất cho vay ưu đãi tại ngân hàng là bao nhiêu?","as_of":"2026-09-19"},"expectations":{"status":"insufficient","expected_chunk_ids":[]}},
+  {"inputs":{"question":"Vậy còn trường hợp đó?","as_of":"2026-09-19"},"expectations":{"status":"needs_clarification","expected_chunk_ids":[]}}
+]
