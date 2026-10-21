@@ -4,35 +4,32 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Text Diff · Google Drive</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f3f5f9;color:#182338;font:15px system-ui,sans-serif}main{max-width:1160px;margin:40px auto;padding:0 20px}h1{margin-bottom:8px}p{color:#536179}.card{background:white;border:1px solid #dbe1ea;border-radius:12px;padding:20px;margin-top:20px}.settings,.editors{display:grid;grid-template-columns:1fr 1fr;gap:18px}label{display:block;font-weight:600}input,textarea{width:100%;margin-top:8px;padding:12px;border:1px solid #c7d0de;border-radius:7px;font:inherit}textarea{min-height:300px;resize:vertical;font:14px/1.6 ui-monospace,monospace;tab-size:4}button{background:#2859d9;color:white;border:0;border-radius:7px;padding:12px 20px;font:inherit;font-weight:600;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.actions{display:flex;align-items:center;gap:16px;margin-top:18px;flex-wrap:wrap}#status{white-space:pre-wrap}#links{display:flex;gap:20px;flex-wrap:wrap;margin:16px 0}a{color:#2055ca}#diff{overflow:auto;max-height:650px;border:1px solid #dbe1ea;border-radius:6px}.row{display:grid;grid-template-columns:48px 48px 28px minmax(0,1fr);font:13px/1.7 ui-monospace,monospace;min-width:100%;width:max-content}.row span{padding:2px 8px}.number{color:#69778a;text-align:right;user-select:none;border-right:1px solid #0000000d}.content{white-space:pre;min-width:300px}.add{background:#e5f6e9;color:#145c2c}.remove{background:#ffebe9;color:#9b2926}.hint{font-size:13px}input:focus,textarea:focus{outline:2px solid #87a9ff;outline-offset:1px}@media(max-width:700px){.settings,.editors{grid-template-columns:1fr}main{margin:24px auto}textarea{min-height:200px}}
+*{box-sizing:border-box}body{margin:0;background:#f3f5f9;color:#182338;font:15px system-ui,sans-serif}main{max-width:1160px;margin:40px auto;padding:0 20px}h1{margin-bottom:8px}p{color:#536179}.card{background:white;border:1px solid #dbe1ea;border-radius:12px;padding:20px;margin-top:20px}.settings,.editors{display:grid;grid-template-columns:1fr 1fr;gap:18px}label{display:block;font-weight:600}input,textarea{width:100%;margin-top:8px;padding:12px;border:1px solid #c7d0de;border-radius:7px;font:inherit}textarea{min-height:300px;resize:vertical;font:14px/1.6 ui-monospace,monospace;tab-size:4}button{background:#2859d9;color:white;border:0;border-radius:7px;padding:12px 20px;font:inherit;font-weight:600;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.actions{display:flex;align-items:center;gap:16px;margin-top:18px;flex-wrap:wrap}#status{white-space:pre-wrap}#diff{overflow:auto;max-height:650px;border:1px solid #dbe1ea;border-radius:6px}.row{display:grid;grid-template-columns:48px 48px 28px minmax(0,1fr);font:13px/1.7 ui-monospace,monospace;min-width:100%;width:max-content}.row span{padding:2px 8px}.number{color:#69778a;text-align:right;user-select:none;border-right:1px solid #0000000d}.content{white-space:pre;min-width:300px}.add{background:#e5f6e9;color:#145c2c}.remove{background:#ffebe9;color:#9b2926}.hint{font-size:13px}input:focus,textarea:focus{outline:2px solid #87a9ff;outline-offset:1px}@media(max-width:700px){.settings,.editors{grid-template-columns:1fr}main{margin:24px auto}textarea{min-height:200px}}
 </style>
 </head>
 <body><main>
 <h1>Text Diff</h1><p>So sánh hai phiên bản văn bản và lưu cùng một thư mục Google Drive.</p>
 <form id="form">
-<div class="card settings">
-<label>URL Apps Script Web App<input id="endpoint" type="url" placeholder="https://script.google.com/macros/s/…/exec" required></label>
-<label>Mã truy cập<input id="token" type="password" autocomplete="off" placeholder="ACCESS_TOKEN đã cấu hình ở backend" required></label>
-</div>
+
 <div class="card">
 <div class="editors">
 <label for="before">Bản gốc · before.txt<textarea id="before" maxlength="100000" spellcheck="false" placeholder="Dán văn bản gốc..."></textarea></label>
 <label for="after">Bản mới · after.txt<textarea id="after" maxlength="100000" spellcheck="false" placeholder="Dán văn bản mới..."></textarea></label>
 </div>
 <p class="hint">Tối đa 100.000 ký tự và 2.000 dòng mỗi bên. So sánh theo dòng, giữ nguyên khoảng trắng; bỏ qua khác biệt kiểu xuống dòng CRLF/LF.</p>
-<div class="actions"><button id="submit" type="submit">So sánh & lưu Drive</button><span id="status" role="status" aria-live="polite"></span></div>
+<div class="actions"><button id="submit" type="submit">so sánh</button><span id="status" role="status" aria-live="polite"></span></div>
 </div></form>
-<section class="card" id="result" hidden><h2 id="summary"></h2><nav id="links" aria-label="File đã lưu"></nav><div id="diff" aria-label="Kết quả diff"></div></section>
+<section class="card" id="result" hidden><h2 id="summary"></h2><div id="diff" aria-label="Kết quả diff"></div></section>
 <script>
 const $ = id => document.getElementById(id);
-// Prefilled configuration for this one-off project.
-$('endpoint').value = 'https://script.google.com/macros/s/AKfycbz9lKlo6WEv7TWOMmSrBSUjzsoNrMRMcbAR_LcQ9jnUf8XAh0f8Fws_PPJ6FXHpU1F1CA/exec';
-$('token').value = '12345678';
+// Configuration for this one-off project; not displayed in the UI.
+const API_URL = 'https://script.google.com/macros/s/AKfycbz9lKlo6WEv7TWOMmSrBSUjzsoNrMRMcbAR_LcQ9jnUf8XAh0f8Fws_PPJ6FXHpU1F1CA/exec';
+const ACCESS_TOKEN = '12345678';
 $('form').addEventListener('submit', async event => {
   event.preventDefault();
-  const endpoint = $('endpoint').value.trim();
+  const endpoint = API_URL.trim();
   if (!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(endpoint)) {
-    $('status').textContent = 'Hãy nhập URL deployment Apps Script kết thúc bằng /exec.'; return;
+    $('status').textContent = 'URL backend chưa được cấu hình đúng.'; return;
   }
   if (['before','after'].some(id => $(id).value.replace(/\r\n?/g,'\n').split('\n').length > 2000)) {
     $('status').textContent = 'Mỗi bên tối đa 2.000 dòng.'; return;
@@ -45,19 +42,12 @@ $('form').addEventListener('submit', async event => {
     // Do not set application/json or use mode: no-cors (response would be unreadable).
     const response = await fetch(endpoint, {
       method: 'POST', redirect: 'follow', credentials: 'omit',
-      body: new URLSearchParams({ token: $('token').value, before: $('before').value, after: $('after').value })
+      body: new URLSearchParams({ token: ACCESS_TOKEN, before: $('before').value, after: $('after').value })
     });
     if (!response.ok) throw new Error('HTTP ' + response.status);
     const data = await response.json();
     if (!data.ok) throw new Error(data.error || 'Backend trả về lỗi.');
     $('summary').textContent = data.added || data.removed ? `+${data.added} dòng thêm · −${data.removed} dòng xóa` : 'Hai nội dung giống nhau';
-    $('links').replaceChildren();
-    for (const [label, url] of [['Mở thư mục Drive', data.folderUrl], ['before.txt', data.beforeUrl], ['after.txt', data.afterUrl]]) {
-      const link = document.createElement('a'); link.textContent = label;
-      const parsed = new URL(url);
-      if (parsed.protocol !== 'https:' || parsed.hostname !== 'drive.google.com') throw new Error('URL Drive không hợp lệ.');
-      link.href = parsed.href; link.target = '_blank'; link.rel = 'noopener noreferrer'; $('links').append(link);
-    }
     const fragment = document.createDocumentFragment();
     for (const row of data.rows) {
       const line = document.createElement('div'); line.className = 'row ' + row.type;
